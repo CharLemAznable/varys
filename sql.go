@@ -1,0 +1,36 @@
+package main
+
+const queryConfigurationSQL = `
+SELECT C.CONFIG_NAME ,C.CONFIG_VALUE
+  FROM APP_CONFIG C
+ WHERE C.ENABLED = 1
+`
+
+const queryWechatAPITokenConfigSQL = `
+SELECT C.APP_ID ,C.APP_SECRET
+  FROM WECHAT_API_TOKEN_CONFIG C
+ WHERE C.ENABLED = 1
+   AND C.APP_ID = ?
+`
+
+const queryWechatAPITokenSQL = `
+SELECT T.APP_ID ,T.ACCESS_TOKEN ,T.UPDATED 
+      ,UNIX_TIMESTAMP(T.EXPIRE_TIME) AS EXPIRE_TIME
+  FROM WECHAT_API_TOKEN T
+ WHERE T.APP_ID = ?
+`
+
+const updateWechatAPITokenUpdating = `
+UPDATE WECHAT_API_TOKEN
+   SET UPDATED = 0
+ WHERE APP_ID = ?
+   AND UPDATED = 1
+`
+
+const replaceWechatAPITokenSQL = `
+REPLACE INTO WECHAT_API_TOKEN
+      (APP_ID   ,ACCESS_TOKEN
+      ,UPDATED  ,EXPIRE_TIME)
+VALUES(?        ,?
+      ,1        ,DATE_ADD(NOW(), INTERVAL ? SECOND))
+`
