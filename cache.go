@@ -32,14 +32,21 @@ func wechatAPITokenConfigLoader(appId interface{}, args ...interface{}) *gcache.
 }
 
 func wechatAPITokenLoader(appId interface{}, args ...interface{}) *gcache.CacheItem {
+    appIdString := appId.(string)
     resultMap, err := db.Sql(queryWechatAPITokenSQL).Params(appId).Query()
     if nil != err || 1 != len(resultMap) {
-        token, err := requestWechatAPITokenAndReplaceToDB(appId.(string))
-        if nil != err {
-            return nil
+        log.Println("Try to request WechatAPIToken")
+        count, _ := creatingWechatAPIToken(appIdString)
+        if count > 0 {
+            token, err := requestWechatAPITokenAndReplaceToDB(appIdString)
+            if nil != err {
+                return nil
+            }
+            log.Printf("Request WechatAPIToken: %s", Json(token))
+            return gcache.NewCacheItem(appId, wechatAPITokenLifeSpan, token)
         }
-        log.Printf("Request WechatAPIToken: %s", Json(token))
-        return gcache.NewCacheItem(appId, wechatAPITokenLifeSpan, token)
+        log.Println("Give up request WechatAPIToken, wait for next cache Query")
+        return nil
     }
     log.Printf("Query WechatAPIToken: %s", resultMap)
 
@@ -53,12 +60,9 @@ func wechatAPITokenLoader(appId interface{}, args ...interface{}) *gcache.CacheI
     isUpdated := "1" == updated
     if isExpired && isUpdated { // 已过期 && 是最新记录 -> 触发更新
         log.Println("Try to request and update WechatAPIToken")
-        count, err := updatingWechatAPIToken(appId.(string))
-        if nil != err {
-            return nil
-        }
+        count, _ := updatingWechatAPIToken(appIdString)
         if count > 0 {
-            token, err := requestWechatAPITokenAndReplaceToDB(appId.(string))
+            token, err := requestWechatAPITokenAndReplaceToDB(appIdString)
             if nil != err {
                 return nil
             }
@@ -74,10 +78,18 @@ func wechatAPITokenLoader(appId interface{}, args ...interface{}) *gcache.CacheI
     // 已过期(已开始更新) -> 临时缓存查询到的token
     lifeSpan := Condition(isExpired, wechatAPITokenTempLifeSpan, wechatAPITokenLifeSpan).(time.Duration)
     token := new(WechatAPIToken)
-    token.AppId = appId.(string)
+    token.AppId = appIdString
     token.AccessToken = resultItem["ACCESS_TOKEN"]
     log.Printf("Load WechatAPIToken Cache: %s, cache %3.1f min", Json(token), lifeSpan.Minutes())
     return gcache.NewCacheItem(appId, lifeSpan, token)
+}
+
+func creatingWechatAPIToken(appId string) (int64, error) {
+    count, err := db.Sql(createWechatAPITokenUpdating).Params(appId).Execute()
+    if nil != err {
+        return 0, err
+    }
+    return count, nil
 }
 
 func updatingWechatAPIToken(appId string) (int64, error) {

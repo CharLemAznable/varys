@@ -20,6 +20,12 @@ SELECT T.APP_ID ,T.ACCESS_TOKEN ,T.UPDATED
  WHERE T.APP_ID = ?
 `
 
+const createWechatAPITokenUpdating = `
+INSERT INTO WECHAT_API_TOKEN
+      (APP_ID   ,UPDATED)
+VALUES(?        ,0)
+`
+
 const updateWechatAPITokenUpdating = `
 UPDATE WECHAT_API_TOKEN
    SET UPDATED = 0
