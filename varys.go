@@ -1,4 +1,4 @@
-package main
+package varys
 
 import (
     _ "github.com/go-sql-driver/mysql"
@@ -8,15 +8,17 @@ import (
 var path = "/varys"
 var port = ":4236"
 
-func main() {
+func Run() {
     app := iris.Default()
     party := app.Party(path)
     {
-        party.Get("/welcome", welcome)
-        party.Get("/query-wechat-api-token/{appId:string}", queryWechatAPIToken)
+        party.Get(welcomePath, welcome)
+        party.Get(queryWechatAPITokenPath, queryWechatAPIToken)
     }
     app.Run(iris.Addr(port))
 }
+
+const welcomePath = "/welcome"
 
 func welcome(context iris.Context) {
     context.Text(`Three great men, a king, a priest, and a rich man.
@@ -25,6 +27,8 @@ Each great man bids the sellsword kill the other two.
 Who lives, who dies?
 `)
 }
+
+const queryWechatAPITokenPath = "/query-wechat-api-token/{appId:string}"
 
 func queryWechatAPIToken(context iris.Context) {
     appId := context.Params().Get("appId")

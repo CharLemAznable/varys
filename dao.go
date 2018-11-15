@@ -1,4 +1,4 @@
-package main
+package varys
 
 type WechatAPITokenConfig struct {
     AppId     string

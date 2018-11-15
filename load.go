@@ -1,4 +1,4 @@
-package main
+package varys
 
 import (
     "github.com/CharLemAznable/gcache"
@@ -10,7 +10,7 @@ import (
 
 var db *gql.Gql
 
-func init() {
+func load() {
     // init db config
     gql.LoadConfigFile("gql.yaml")
     _db, err := gql.Default()

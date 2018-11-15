@@ -1,4 +1,4 @@
-package main
+package varys
 
 const queryConfigurationSQL = `
 SELECT C.CONFIG_NAME ,C.CONFIG_VALUE

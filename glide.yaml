@@ -1,9 +1,0 @@
-package: .
-import:
-- package: github.com/CharLemAznable/gcache
-- package: github.com/CharLemAznable/gql
-- package: github.com/CharLemAznable/httpreq
-- package: github.com/go-sql-driver/mysql
-  version: ~1.4.0
-- package: github.com/kataras/iris
-  version: ~11.0.3

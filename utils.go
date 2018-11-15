@@ -1,4 +1,4 @@
-package main
+package varys
 
 import (
     "encoding/json"
