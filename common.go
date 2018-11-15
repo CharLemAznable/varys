@@ -31,16 +31,19 @@ func Json(v interface{}) string {
 
 func Condition(cond bool, trueVal, falseVal interface{}) interface{} {
     if cond {
-        return trueVal
+        switch trueVal.(type) {
+        case func() interface{}:
+            return (trueVal.(func() interface{}))()
+        default:
+            return trueVal
+        }
     }
-    return falseVal
-}
-
-func ConditionFunc(cond bool, trueFunc, falseFunc func() interface{}) interface{} {
-    if cond {
-        return trueFunc()
+    switch falseVal.(type) {
+    case func() interface{}:
+        return (falseVal.(func() interface{}))()
+    default:
+        return falseVal
     }
-    return falseFunc()
 }
 
 func If(cond bool, trueFunc func()) {

@@ -2,7 +2,8 @@ package varys
 
 import (
     _ "github.com/go-sql-driver/mysql"
-    "github.com/kataras/iris"
+    "net/http"
+    "strings"
 )
 
 var _path = "/varys"
@@ -18,33 +19,29 @@ func Run(path, port string) {
     If(0 != len(path), func() { _path = path })
     If(0 != len(port), func() { _port = port })
 
-    app := iris.Default()
-    party := app.Party(_path)
-    {
-        party.Get(welcomePath, welcome)
-        party.Get(queryWechatAPITokenPath, queryWechatAPIToken)
-    }
-    app.Run(iris.Addr(_port))
+    http.HandleFunc(_path+welcomePath, welcome)
+    http.HandleFunc(_path+queryWechatAPITokenPath, queryWechatAPIToken)
+    http.ListenAndServe(_port, nil)
 }
 
 const welcomePath = "/welcome"
 
-func welcome(context iris.Context) {
-    context.Text(`Three great men, a king, a priest, and a rich man.
+func welcome(writer http.ResponseWriter, request *http.Request) {
+    writer.Write([]byte(`Three great men, a king, a priest, and a rich man.
 Between them stands a common sellsword.
 Each great man bids the sellsword kill the other two.
 Who lives, who dies?
-`)
+`))
 }
 
-const queryWechatAPITokenPath = "/query-wechat-api-token/{appId:string}"
+const queryWechatAPITokenPath = "/query-wechat-api-token/"
 
-func queryWechatAPIToken(context iris.Context) {
-    appId := context.Params().Get("appId")
+func queryWechatAPIToken(writer http.ResponseWriter, request *http.Request) {
+    appId := strings.TrimPrefix(request.RequestURI, _path+queryWechatAPITokenPath)
     token, err := GetWechatAPIToken(appId)
-    context.JSON(ConditionFunc(nil != err, func() interface{} {
+    writer.Write([]byte(Json(Condition(nil != err, func() interface{} {
         return map[string]string{"appId": appId, "error": err.Error()}
     }, func() interface{} {
         return map[string]string{"appId": appId, "token": token.AccessToken}
-    }))
+    }))))
 }
