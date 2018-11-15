@@ -37,14 +37,6 @@ func load() {
 
     // load app config
     {
-        _path := configMap["path"]
-        If(0 != len(_path), func() { path = _path })
-    }
-    {
-        _port := configMap["port"]
-        If(0 != len(_port), func() { port = _port })
-    }
-    {
         _wechatAPITokenURL := configMap["wechatAPITokenURL"]
         If(0 != len(_wechatAPITokenURL), func() { wechatAPITokenURL = _wechatAPITokenURL })
     }

@@ -5,19 +5,26 @@ import (
     "github.com/kataras/iris"
 )
 
-var path = "/varys"
-var port = ":4236"
+var _path = "/varys"
+var _port = ":4236"
 
-func Run() {
+func Default() {
+    Run("", "")
+}
+
+func Run(path, port string) {
     load()
 
+    If(0 != len(path), func() { _path = path })
+    If(0 != len(port), func() { _port = port })
+
     app := iris.Default()
-    party := app.Party(path)
+    party := app.Party(_path)
     {
         party.Get(welcomePath, welcome)
         party.Get(queryWechatAPITokenPath, queryWechatAPIToken)
     }
-    app.Run(iris.Addr(port))
+    app.Run(iris.Addr(_port))
 }
 
 const welcomePath = "/welcome"
