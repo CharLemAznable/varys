@@ -9,6 +9,8 @@ var path = "/varys"
 var port = ":4236"
 
 func Run() {
+    load()
+
     app := iris.Default()
     party := app.Party(path)
     {
