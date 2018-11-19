@@ -130,3 +130,32 @@ func wechatThirdPlatformTokenRequestor(appId interface{}) (string, int, error) {
     }
     return response.ComponentAccessToken, response.ExpiresIn, nil
 }
+
+var wechatThirdPlatformPreAuthCodeURL = "https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token="
+
+type WechatThirdPlatformPreAuthCodeResponse struct {
+    PreAuthCode string `json:"pre_auth_code"`
+    ExpiresIn   int    `json:"expires_in"`
+}
+
+func wechatThirdPlatformPreAuthCodeRequestor(appId interface{}) (string, int, error) {
+    cache, err := wechatThirdPlatformTokenCache.Value(appId)
+    if nil != err {
+        return "", 0, err
+    }
+    tokenItem := cache.Data().(*WechatThirdPlatformToken)
+
+    result, err := httpreq.New(wechatThirdPlatformPreAuthCodeURL + tokenItem.ComponentAccessToken).
+        RequestBody(Json(map[string]string{"component_appid": appId.(string)})).
+        Prop("Content-Type", "application/json").Get()
+    if nil != err {
+        return "", 0, err
+    }
+
+    response := new(WechatThirdPlatformPreAuthCodeResponse)
+    err = json.Unmarshal([]byte(result), response)
+    if nil != err {
+        return "", 0, err
+    }
+    return response.PreAuthCode, response.ExpiresIn, nil
+}

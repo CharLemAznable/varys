@@ -87,3 +87,31 @@ REPLACE INTO WECHAT_THIRD_PLATFORM_TOKEN
 VALUES(?        ,?
       ,1        ,DATE_ADD(NOW(), INTERVAL ? SECOND))
 `
+
+const queryWechatThirdPlatformPreAuthCodeSQL = `
+SELECT T.APP_ID ,T.PRE_AUTH_CODE AS TOKEN ,T.UPDATED 
+      ,UNIX_TIMESTAMP(T.EXPIRE_TIME) AS EXPIRE_TIME
+  FROM WECHAT_THIRD_PLATFORM_PRE_AUTH_CODE T
+ WHERE T.APP_ID = ?
+`
+
+const createWechatThirdPlatformPreAuthCodeUpdating = `
+INSERT INTO WECHAT_THIRD_PLATFORM_PRE_AUTH_CODE
+      (APP_ID   ,UPDATED)
+VALUES(?        ,0)
+`
+
+const updateWechatThirdPlatformPreAuthCodeUpdating = `
+UPDATE WECHAT_THIRD_PLATFORM_PRE_AUTH_CODE
+   SET UPDATED = 0
+ WHERE APP_ID = ?
+   AND UPDATED = 1
+`
+
+const replaceWechatThirdPlatformPreAuthCodeSQL = `
+REPLACE INTO WECHAT_THIRD_PLATFORM_PRE_AUTH_CODE
+      (APP_ID   ,PRE_AUTH_CODE
+      ,UPDATED  ,EXPIRE_TIME)
+VALUES(?        ,?
+      ,1        ,DATE_ADD(NOW(), INTERVAL ? SECOND))
+`

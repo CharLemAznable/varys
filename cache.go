@@ -7,19 +7,22 @@ import (
     "time"
 )
 
-var wechatAPITokenConfigLifeSpan = time.Minute * 60        // config cache 60 min default
-var wechatAPITokenLifeSpan = time.Minute * 5               // stable token cache 5 min default
-var wechatAPITokenTempLifeSpan = time.Minute * 1           // temporary token cache 1 min default
-var wechatThirdPlatformConfigLifeSpan = time.Minute * 60   // config cache 60 min default
-var wechatThirdPlatformCryptorLifeSpan = time.Minute * 60  // cryptor cache 60 min default
-var wechatThirdPlatformTokenLifeSpan = time.Minute * 5     // stable component token cache 5 min default
-var wechatThirdPlatformTokenTempLifeSpan = time.Minute * 1 // temporary component token cache 1 min default
+var wechatAPITokenConfigLifeSpan = time.Minute * 60              // config cache 60 min default
+var wechatAPITokenLifeSpan = time.Minute * 5                     // stable token cache 5 min default
+var wechatAPITokenTempLifeSpan = time.Minute * 1                 // temporary token cache 1 min default
+var wechatThirdPlatformConfigLifeSpan = time.Minute * 60         // config cache 60 min default
+var wechatThirdPlatformCryptorLifeSpan = time.Minute * 60        // cryptor cache 60 min default
+var wechatThirdPlatformTokenLifeSpan = time.Minute * 5           // stable component token cache 5 min default
+var wechatThirdPlatformTokenTempLifeSpan = time.Minute * 1       // temporary component token cache 1 min default
+var WechatThirdPlatformPreAuthCodeLifeSpan = time.Minute * 3     // stable pre-auth code cache 3 min default
+var WechatThirdPlatformPreAuthCodeTempLifeSpan = time.Minute * 1 // temporary pre-auth code cache 1 min default
 
 var wechatAPITokenConfigCache *gcache.CacheTable
 var wechatAPITokenCache *gcache.CacheTable
 var wechatThirdPlatformConfigCache *gcache.CacheTable
 var wechatThirdPlatformCryptorCache *gcache.CacheTable
 var wechatThirdPlatformTokenCache *gcache.CacheTable
+var wechatThirdPlatformPreAuthCodeCache *gcache.CacheTable
 
 // common loader
 
@@ -250,5 +253,29 @@ func wechatThirdPlatformTokenLoader(appId interface{}, args ...interface{}) *gca
             return tokenItem
         },
         wechatThirdPlatformTokenRequestor,
+        appId, args...)
+}
+
+type WechatThirdPlatformPreAuthCode struct {
+    AppId       string
+    PreAuthCode string
+}
+
+func wechatThirdPlatformPreAuthCodeLoader(appId interface{}, args ...interface{}) *gcache.CacheItem {
+    return tokenLoader(
+        "WechatThirdPlatformPreAuthCode",
+        queryWechatThirdPlatformPreAuthCodeSQL,
+        createWechatThirdPlatformPreAuthCodeUpdating,
+        updateWechatThirdPlatformPreAuthCodeUpdating,
+        replaceWechatThirdPlatformPreAuthCodeSQL,
+        WechatThirdPlatformPreAuthCodeLifeSpan,
+        WechatThirdPlatformPreAuthCodeTempLifeSpan,
+        func(key interface{}, token string) interface{} {
+            codeItem := new(WechatThirdPlatformPreAuthCode)
+            codeItem.AppId = key.(string)
+            codeItem.PreAuthCode = token
+            return codeItem
+        },
+        wechatThirdPlatformPreAuthCodeRequestor,
         appId, args...)
 }

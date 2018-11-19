@@ -86,6 +86,8 @@ func load() {
     wechatThirdPlatformCryptorCache.SetDataLoader(wechatThirdPlatformCryptorLoader)
     wechatThirdPlatformTokenCache = gcache.CacheExpireAfterWrite("wechatThirdPlatformToken")
     wechatThirdPlatformTokenCache.SetDataLoader(wechatThirdPlatformTokenLoader)
+    wechatThirdPlatformPreAuthCodeCache = gcache.CacheExpireAfterWrite("wechatThirdPlatformPreAuthCode")
+    wechatThirdPlatformPreAuthCodeCache.SetDataLoader(wechatThirdPlatformPreAuthCodeLoader)
 }
 
 func lifeSpanConfigLoader(configStr string, loader func(configVal time.Duration)) {
