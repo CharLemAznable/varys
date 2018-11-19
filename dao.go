@@ -1,27 +1,20 @@
 package varys
 
-type WechatAPITokenConfig struct {
-    AppId     string
-    AppSecret string
-}
-
-type WechatAPIToken struct {
-    AppId       string
-    AccessToken string
-}
-
-func GetWechatAPITokenConfig(appId string) (*WechatAPITokenConfig, error) {
-    config, err := wechatAPITokenConfigCache.Value(appId)
+func UpdateWechatThirdPlatformTicket(appId, ticket string) (int64, error) {
+    count, err := db.Sql(replaceWechatThirdPlatformTicketSQL).Params(appId, ticket).Execute()
     if nil != err {
-        return nil, err
+        return 0, err
     }
-    return config.Data().(*WechatAPITokenConfig), nil
+    return count, nil
 }
 
-func GetWechatAPIToken(appId string) (*WechatAPIToken, error) {
-    token, err := wechatAPITokenCache.Value(appId)
+func QueryWechatThirdPlatformTicket(appId string) (string, error) {
+    resultMap, err := db.Sql(queryWechatThirdPlatformTicketSQL).Params(appId).Query()
     if nil != err {
-        return nil, err
+        return "", err
     }
-    return token.Data().(*WechatAPIToken), nil
+    if 1 != len(resultMap) {
+        return "", &UnexpectedError{Message: "Query WechatThirdPlatform Ticket Failed"}
+    }
+    return resultMap[0]["TICKET"], nil
 }

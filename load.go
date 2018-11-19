@@ -36,41 +36,63 @@ func load() {
     }
 
     // load app config
-    {
-        _wechatAPITokenURL := configMap["wechatAPITokenURL"]
-        If(0 != len(_wechatAPITokenURL), func() { wechatAPITokenURL = _wechatAPITokenURL })
-    }
-    {
-        wechatAPITokenConfigLifeSpanString := configMap["wechatAPITokenConfigLifeSpan"]
-        If(0 != len(wechatAPITokenConfigLifeSpanString), func() {
-            lifeSpan, err := Int64FromStr(wechatAPITokenConfigLifeSpanString)
-            if nil == err {
-                wechatAPITokenConfigLifeSpan = time.Minute * time.Duration(lifeSpan)
-            }
+    _wechatAPITokenURL := configMap["wechatAPITokenURL"]
+    If(0 != len(_wechatAPITokenURL), func() { wechatAPITokenURL = _wechatAPITokenURL })
+
+    lifeSpanConfigLoader(
+        configMap["wechatAPITokenConfigLifeSpan"],
+        func(configVal time.Duration) {
+            wechatAPITokenConfigLifeSpan = configVal
         })
-    }
-    {
-        wechatAPITokenLifeSpanString := configMap["wechatAPITokenLifeSpan"]
-        If(0 != len(wechatAPITokenLifeSpanString), func() {
-            lifeSpan, err := Int64FromStr(wechatAPITokenLifeSpanString)
-            if nil == err {
-                wechatAPITokenLifeSpan = time.Minute * time.Duration(lifeSpan)
-            }
+    lifeSpanConfigLoader(
+        configMap["wechatAPITokenLifeSpan"],
+        func(configVal time.Duration) {
+            wechatAPITokenLifeSpan = configVal
         })
-    }
-    {
-        wechatAPITokenTempLifeSpanString := configMap["wechatAPITokenTempLifeSpan"]
-        If(0 != len(wechatAPITokenTempLifeSpanString), func() {
-            lifeSpan, err := Int64FromStr(wechatAPITokenTempLifeSpanString)
-            if nil == err {
-                wechatAPITokenTempLifeSpan = time.Minute * time.Duration(lifeSpan)
-            }
+    lifeSpanConfigLoader(
+        configMap["wechatAPITokenTempLifeSpan"],
+        func(configVal time.Duration) {
+            wechatAPITokenTempLifeSpan = configVal
         })
-    }
+    lifeSpanConfigLoader(
+        configMap["wechatThirdPlatformConfigLifeSpan"],
+        func(configVal time.Duration) {
+            wechatThirdPlatformConfigLifeSpan = configVal
+        })
+    lifeSpanConfigLoader(
+        configMap["wechatThirdPlatformCryptorLifeSpan"],
+        func(configVal time.Duration) {
+            wechatThirdPlatformCryptorLifeSpan = configVal
+        })
+    lifeSpanConfigLoader(
+        configMap["wechatThirdPlatformTokenLifeSpan"],
+        func(configVal time.Duration) {
+            wechatThirdPlatformTokenLifeSpan = configVal
+        })
+    lifeSpanConfigLoader(
+        configMap["wechatThirdPlatformTokenTempLifeSpan"],
+        func(configVal time.Duration) {
+            wechatThirdPlatformTokenTempLifeSpan = configVal
+        })
 
     // build cache loader
     wechatAPITokenConfigCache = gcache.CacheExpireAfterWrite("WechatAPITokenConfig")
     wechatAPITokenConfigCache.SetDataLoader(wechatAPITokenConfigLoader)
     wechatAPITokenCache = gcache.CacheExpireAfterWrite("wechatAPIToken")
     wechatAPITokenCache.SetDataLoader(wechatAPITokenLoader)
+    wechatThirdPlatformConfigCache = gcache.CacheExpireAfterWrite("wechatThirdPlatformConfig")
+    wechatThirdPlatformConfigCache.SetDataLoader(wechatThirdPlatformConfigLoader)
+    wechatThirdPlatformCryptorCache = gcache.CacheExpireAfterWrite("wechatThirdPlatformCryptor")
+    wechatThirdPlatformCryptorCache.SetDataLoader(wechatThirdPlatformCryptorLoader)
+    wechatThirdPlatformTokenCache = gcache.CacheExpireAfterWrite("wechatThirdPlatformToken")
+    wechatThirdPlatformTokenCache.SetDataLoader(wechatThirdPlatformTokenLoader)
+}
+
+func lifeSpanConfigLoader(configStr string, loader func(configVal time.Duration)) {
+    If(0 != len(configStr), func() {
+        lifeSpan, err := Int64FromStr(configStr)
+        if nil == err {
+            loader(time.Minute * time.Duration(lifeSpan))
+        }
+    })
 }
