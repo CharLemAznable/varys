@@ -190,10 +190,11 @@ func wechatAPITokenLoader(appId interface{}, args ...interface{}) *gcache.CacheI
 // Wechat third-platform component_access_token cache loader
 
 type WechatThirdPlatformConfig struct {
-    AppId     string
-    AppSecret string
-    Token     string
-    AesKey    string
+    AppId       string
+    AppSecret   string
+    Token       string
+    AesKey      string
+    RedirectURL string
 }
 
 func wechatThirdPlatformConfigLoader(appId interface{}, args ...interface{}) *gcache.CacheItem {
@@ -207,6 +208,7 @@ func wechatThirdPlatformConfigLoader(appId interface{}, args ...interface{}) *gc
             config.AppSecret = resultItem["APP_SECRET"]
             config.Token = resultItem["TOKEN"]
             config.AesKey = resultItem["AES_KEY"]
+            config.RedirectURL = resultItem["REDIRECT_URL"]
             if 0 == len(config.AppId) || 0 == len(config.AppSecret) ||
                 0 == len(config.Token) || 0 == len(config.AesKey) {
                 return nil

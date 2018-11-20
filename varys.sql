@@ -34,6 +34,7 @@ CREATE TABLE `WECHAT_THIRD_PLATFORM_CONFIG` (
   `APP_SECRET` varchar(100) NOT NULL COMMENT '第三方平台APP_SECRET',
   `TOKEN` varchar(100) NOT NULL COMMENT '第三方平台接收消息的校验TOKEN',
   `AES_KEY` varchar(43) NOT NULL COMMENT '第三方平台接收消息的AES加密Key',
+  `REDIRECT_URL` text COMMENT '第三方平台授权回调URL',
   `ENABLED` tinyint(3) NOT NULL DEFAULT '1' COMMENT '有效状态 0-无效 1-有效',
   PRIMARY KEY (`APP_ID`)
 ) COMMENT='微信第三方平台配置表';

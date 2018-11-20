@@ -4,7 +4,6 @@ import (
     "fmt"
     _ "github.com/go-sql-driver/mysql"
     "net/http"
-    "net/url"
     "strings"
 )
 
@@ -109,7 +108,7 @@ func authorizeComponent(writer http.ResponseWriter, request *http.Request) {
         return
     }
     codeItem := cache.Data().(*WechatThirdPlatformPreAuthCode)
-    code := codeItem.PreAuthCode
+    preAuthCode := codeItem.PreAuthCode
 
     redirectQuery := request.URL.RawQuery
     if 0 != len(redirectQuery) {
@@ -117,15 +116,15 @@ func authorizeComponent(writer http.ResponseWriter, request *http.Request) {
     }
 
     writer.Write([]byte(fmt.Sprintf(redirectPageHtmlFormat,
-        appId, redirectQuery, appId, code)))
+        appId, redirectQuery, appId, preAuthCode)))
 }
 
 const authorizeRedirectPath = "/authorize-redirect/"
-const authorizedPageHtml = `
+const authorizedPageHtmlFormat = `
 <html><head><title>index</title><style type="text/css">
     body{max-width:640px;margin:0 auto;font-size:14px;-webkit-text-size-adjust:none;-moz-text-size-adjust:none;-ms-text-size-adjust:none;text-size-adjust:none}
     .tips{margin-top:40px;text-align:center;color:green}
-</style></head><body><div class="tips">授权成功</div></body></html>
+</style><script>location.replace("%s");</script></head><body><div class="tips">授权成功</div></body></html>
 `
 
 func authorizeRedirect(writer http.ResponseWriter, request *http.Request) {
@@ -135,15 +134,18 @@ func authorizeRedirect(writer http.ResponseWriter, request *http.Request) {
         return
     }
 
-    params, err := url.ParseQuery(request.URL.RawQuery)
+    cache, err := wechatThirdPlatformConfigCache.Value(appId)
     if nil != err {
-        writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
+        writer.Write([]byte(Json(map[string]string{"error": "AppId is Illegal"})))
         return
     }
-    fmt.Println(params["auth_code"])
-    fmt.Println(params["expires_in"])
+    config := cache.Data().(*WechatThirdPlatformConfig)
+    redirectUrl := config.RedirectURL
 
-    // TODO
+    redirectQuery := request.URL.RawQuery
+    if 0 != len(redirectQuery) {
+        redirectUrl = redirectUrl + "?" + redirectQuery
+    }
 
-    writer.Write([]byte(authorizedPageHtml))
+    writer.Write([]byte(fmt.Sprintf(authorizedPageHtmlFormat, redirectUrl)))
 }
