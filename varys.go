@@ -22,7 +22,7 @@ func Run(path, port string) {
 
     http.HandleFunc(_path+welcomePath, welcome)
     http.HandleFunc(_path+queryWechatAPITokenPath, queryWechatAPIToken)
-    http.HandleFunc(_path+acceptComponentVerifyTicketPath, acceptComponentVerifyTicket)
+    http.HandleFunc(_path+acceptAuthorizationPath, acceptAuthorization)
     http.HandleFunc(_path+authorizeComponentPath, authorizeComponent)
     http.HandleFunc(_path+authorizeRedirectPath, authorizeRedirect)
     http.ListenAndServe(_port, nil)
@@ -58,10 +58,10 @@ func queryWechatAPIToken(writer http.ResponseWriter, request *http.Request) {
         "appId": appId, "token": token.AccessToken})))
 }
 
-const acceptComponentVerifyTicketPath = "/accept-verify-ticket/"
+const acceptAuthorizationPath = "/accept-authorization/"
 
-func acceptComponentVerifyTicket(writer http.ResponseWriter, request *http.Request) {
-    appId := strings.TrimPrefix(request.URL.Path, _path+acceptComponentVerifyTicketPath)
+func acceptAuthorization(writer http.ResponseWriter, request *http.Request) {
+    appId := strings.TrimPrefix(request.URL.Path, _path+acceptAuthorizationPath)
     if 0 != len(appId) {
         authorizeData, err := parseWechatAuthorizeData(appId, request)
         if nil == err {
@@ -70,17 +70,20 @@ func acceptComponentVerifyTicket(writer http.ResponseWriter, request *http.Reque
                 UpdateWechatThirdPlatformTicket(appId, authorizeData.ComponentVerifyTicket)
 
             } else if "authorized" == authorizeData.InfoType {
-                // TODO
-
-            } else if "unauthorized" == authorizeData.InfoType {
-                // TODO
+                EnableWechatThirdPlatformAuthorizer(appId, authorizeData.AuthorizerAppid,
+                    authorizeData.AuthorizationCode, authorizeData.PreAuthCode)
 
             } else if "updateauthorized" == authorizeData.InfoType {
-                // TODO
+                EnableWechatThirdPlatformAuthorizer(appId, authorizeData.AuthorizerAppid,
+                    authorizeData.AuthorizationCode, authorizeData.PreAuthCode)
+
+            } else if "unauthorized" == authorizeData.InfoType {
+                DisableWechatThirdPlatformAuthorizer(appId, authorizeData.AuthorizerAppid)
 
             }
         }
     }
+
     // 接收到定时推送component_verify_ticket后必须直接返回字符串success
     writer.Write([]byte("success"))
 }

@@ -18,3 +18,24 @@ func QueryWechatThirdPlatformTicket(appId string) (string, error) {
     }
     return resultMap[0]["TICKET"], nil
 }
+
+func EnableWechatThirdPlatformAuthorizer(
+    appId, authorizerAppid, authorizationCode, preAuthCode string) (int64, error) {
+
+    count, err := db.Sql(enableWechatThirdPlatformAuthorizerSQL).
+        Params(appId, authorizerAppid, authorizationCode, preAuthCode).Execute()
+    if nil != err {
+        return 0, err
+    }
+    return count, nil
+}
+
+func DisableWechatThirdPlatformAuthorizer(appId, authorizerAppid string) (int64, error) {
+
+    count, err := db.Sql(disableWechatThirdPlatformAuthorizerSQL).
+        Params(appId, authorizerAppid).Execute()
+    if nil != err {
+        return 0, err
+    }
+    return count, nil
+}

@@ -115,3 +115,17 @@ REPLACE INTO WECHAT_THIRD_PLATFORM_PRE_AUTH_CODE
 VALUES(?        ,?
       ,1        ,DATE_ADD(NOW(), INTERVAL ? SECOND))
 `
+
+const enableWechatThirdPlatformAuthorizerSQL = `
+REPLACE INTO WECHAT_THIRD_PLATFORM_AUTHORIZER
+      (APP_ID               ,AUTHORIZER_APP_ID  ,AUTHORIZATION_STATE  
+      ,AUTHORIZATION_CODE   ,PRE_AUTH_CODE)
+VALUES(?                    ,?                  ,1
+      ,?                    ,?)
+`
+
+const disableWechatThirdPlatformAuthorizerSQL = `
+REPLACE INTO WECHAT_THIRD_PLATFORM_AUTHORIZER
+      (APP_ID               ,AUTHORIZER_APP_ID  ,AUTHORIZATION_STATE)
+VALUES(?                    ,?                  ,0)
+`
