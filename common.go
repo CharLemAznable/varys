@@ -18,7 +18,7 @@ func StrFromInt(i int) string {
 }
 
 func StrFromInt64(i int64) string {
-    return strconv.FormatInt(i,10)
+    return strconv.FormatInt(i, 10)
 }
 
 func Json(v interface{}) string {
@@ -31,19 +31,9 @@ func Json(v interface{}) string {
 
 func Condition(cond bool, trueVal, falseVal interface{}) interface{} {
     if cond {
-        switch trueVal.(type) {
-        case func() interface{}:
-            return (trueVal.(func() interface{}))()
-        default:
-            return trueVal
-        }
+        return ValOrFunc(trueVal)
     }
-    switch falseVal.(type) {
-    case func() interface{}:
-        return (falseVal.(func() interface{}))()
-    default:
-        return falseVal
-    }
+    return ValOrFunc(falseVal)
 }
 
 func If(cond bool, trueFunc func()) {
@@ -55,5 +45,21 @@ func If(cond bool, trueFunc func()) {
 func Unless(cond bool, falseFunc func()) {
     if !cond {
         falseFunc()
+    }
+}
+
+func DefaultIfNil(val, def interface{}) interface{} {
+    if nil != val {
+        return val
+    }
+    return ValOrFunc(def)
+}
+
+func ValOrFunc(val interface{}) interface{} {
+    switch val.(type) {
+    case func() interface{}:
+        return (val.(func() interface{}))()
+    default:
+        return val
     }
 }

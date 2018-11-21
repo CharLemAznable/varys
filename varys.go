@@ -72,13 +72,21 @@ func acceptAuthorization(writer http.ResponseWriter, request *http.Request) {
             } else if "authorized" == authorizeData.InfoType {
                 EnableWechatThirdPlatformAuthorizer(appId, authorizeData.AuthorizerAppid,
                     authorizeData.AuthorizationCode, authorizeData.PreAuthCode)
+                go wechatThirdPlatformAuthorizerTokenCreator(appId,
+                    authorizeData.AuthorizerAppid, authorizeData.AuthorizationCode)
 
             } else if "updateauthorized" == authorizeData.InfoType {
                 EnableWechatThirdPlatformAuthorizer(appId, authorizeData.AuthorizerAppid,
                     authorizeData.AuthorizationCode, authorizeData.PreAuthCode)
+                go wechatThirdPlatformAuthorizerTokenCreator(appId,
+                    authorizeData.AuthorizerAppid, authorizeData.AuthorizationCode)
 
             } else if "unauthorized" == authorizeData.InfoType {
                 DisableWechatThirdPlatformAuthorizer(appId, authorizeData.AuthorizerAppid)
+                // delete cache
+                wechatThirdPlatformAuthorizerTokenCache.Delete(
+                    WechatThirdPlatformAuthorizerTokenKey{
+                        AppId: appId, AuthorizerAppId: authorizeData.AuthorizerAppid})
 
             }
         }

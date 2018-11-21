@@ -1,5 +1,7 @@
 github.com/CharLemAznable/gcache v0.0.1 h1:ra7fR8DLqKxjWI+7sHgnAal6b8uPSqugcxSIb/v7CS4=
 github.com/CharLemAznable/gcache v0.0.1/go.mod h1:YzKdE7VPlpX7QIRAmmuSmQEy5GBT2qjXcJoisxXdoSQ=
+github.com/CharLemAznable/gcache v0.0.2 h1:T3C/8TAr9elYfBLjMhepVE4tUe9IPArPsdaZWsS+c2c=
+github.com/CharLemAznable/gcache v0.0.2/go.mod h1:YzKdE7VPlpX7QIRAmmuSmQEy5GBT2qjXcJoisxXdoSQ=
 github.com/CharLemAznable/gql v0.0.1 h1:k+OsQT/6QVHD9CP001sYb8x7WMzH80hP2CVhBjiEmo4=
 github.com/CharLemAznable/gql v0.0.1/go.mod h1:zainiq/tZGLcbHvu0XdAwbRU4Xu6s0dkhTYTakmfHNQ=
 github.com/CharLemAznable/httpreq v0.0.1 h1:ASEOgJAHS4HtBG/7DXi3Emak3AOK0gi8uLcW1OPSH0Q=
