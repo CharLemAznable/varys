@@ -22,6 +22,7 @@ func Run(path, port string) {
 
     http.HandleFunc(_path+welcomePath, welcome)
     http.HandleFunc(_path+queryWechatAPITokenPath, queryWechatAPIToken)
+    http.HandleFunc(_path+queryWechatAuthorizerTokenPath, queryWechatAuthorizerToken)
     http.HandleFunc(_path+acceptAuthorizationPath, acceptAuthorization)
     http.HandleFunc(_path+authorizeComponentPath, authorizeComponent)
     http.HandleFunc(_path+authorizeRedirectPath, authorizeRedirect)
@@ -38,12 +39,14 @@ Who lives, who dies?
 `))
 }
 
+// /query-wechat-api-token/{appId:string}
 const queryWechatAPITokenPath = "/query-wechat-api-token/"
 
 func queryWechatAPIToken(writer http.ResponseWriter, request *http.Request) {
     appId := strings.TrimPrefix(request.URL.Path, _path+queryWechatAPITokenPath)
     if 0 == len(appId) {
-        writer.Write([]byte(Json(map[string]string{"error": "AppId is Empty"})))
+        writer.Write([]byte(Json(map[string]string{
+            "error": "AppId is Empty"})))
         return
     }
 
@@ -58,6 +61,40 @@ func queryWechatAPIToken(writer http.ResponseWriter, request *http.Request) {
         "appId": appId, "token": token.AccessToken})))
 }
 
+// /query-wechat-authorizer-token/{appId:string}/{authorizerAppId:string}
+const queryWechatAuthorizerTokenPath = "/query-wechat-authorizer-token/"
+
+func queryWechatAuthorizerToken(writer http.ResponseWriter, request *http.Request) {
+    pathParams := strings.TrimPrefix(request.URL.Path, _path+queryWechatAPITokenPath)
+    if 0 == len(pathParams) {
+        writer.Write([]byte(Json(map[string]string{
+            "error": "Path Params is Empty"})))
+        return
+    }
+    ids := strings.Split(pathParams, "/")
+    if 2 != len(ids) {
+        writer.Write([]byte(Json(map[string]string{
+            "error": "Missing param appId/authorizerAppId"})))
+        return
+    }
+
+    appId := ids[0]
+    authorizerAppId := ids[1]
+    cache, err := wechatThirdPlatformAuthorizerTokenCache.
+        Value(WechatThirdPlatformAuthorizerTokenKey{
+            AppId: appId, AuthorizerAppId: authorizerAppId})
+    if nil != err {
+        writer.Write([]byte(Json(map[string]string{
+            "appId": appId, "error": err.Error()})))
+        return
+    }
+    token := cache.Data().(*WechatThirdPlatformAuthorizerToken)
+    writer.Write([]byte(Json(map[string]string{
+        "appId": appId, "authorizerAppId": authorizerAppId,
+        "token": token.AuthorizerAccessToken})))
+}
+
+// /accept-authorization/{appId:string}
 const acceptAuthorizationPath = "/accept-authorization/"
 
 func acceptAuthorization(writer http.ResponseWriter, request *http.Request) {
@@ -96,6 +133,7 @@ func acceptAuthorization(writer http.ResponseWriter, request *http.Request) {
     writer.Write([]byte("success"))
 }
 
+// /authorize-component/{appId:string}
 const authorizeComponentPath = "/authorize-component/"
 const redirectPageHtmlFormat = `
 <html><head><script>
@@ -130,12 +168,13 @@ func authorizeComponent(writer http.ResponseWriter, request *http.Request) {
         appId, redirectQuery, appId, preAuthCode)))
 }
 
+// /authorize-redirect/{appId:string}
 const authorizeRedirectPath = "/authorize-redirect/"
 const authorizedPageHtmlFormat = `
 <html><head><title>index</title><style type="text/css">
     body{max-width:640px;margin:0 auto;font-size:14px;-webkit-text-size-adjust:none;-moz-text-size-adjust:none;-ms-text-size-adjust:none;text-size-adjust:none}
     .tips{margin-top:40px;text-align:center;color:green}
-</style><script>location.replace("%s");</script></head><body><div class="tips">授权成功</div></body></html>
+</style><script>var p="%s";0!=p.length&&location.replace(p);</script></head><body><div class="tips">授权成功</div></body></html>
 `
 
 func authorizeRedirect(writer http.ResponseWriter, request *http.Request) {
@@ -152,9 +191,9 @@ func authorizeRedirect(writer http.ResponseWriter, request *http.Request) {
     }
     config := cache.Data().(*WechatThirdPlatformConfig)
     redirectUrl := config.RedirectURL
-
     redirectQuery := request.URL.RawQuery
-    if 0 != len(redirectQuery) {
+
+    if 0 != len(redirectUrl) && 0 != len(redirectQuery) {
         redirectUrl = redirectUrl + "?" + redirectQuery
     }
 

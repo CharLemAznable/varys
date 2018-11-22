@@ -299,7 +299,6 @@ type WechatThirdPlatformAuthorizerToken struct {
     AppId                  string
     AuthorizerAppId        string
     AuthorizerAccessToken  string
-    AuthorizerRefreshToken string
 }
 
 func wechatThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface{}) (*gcache.CacheItem, error) {
@@ -351,7 +350,6 @@ func wechatThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface
             tokenItem.AppId = tokenKey.AppId
             tokenItem.AuthorizerAppId = tokenKey.AuthorizerAppId
             tokenItem.AuthorizerAccessToken = accessToken
-            tokenItem.AuthorizerRefreshToken = refreshToken
             log.Printf("Request WechatThirdPlatformAuthorizerToken: %s", Json(tokenItem))
             return gcache.NewCacheItem(key, wechatThirdPlatformAuthorizerTokenLifeSpan, tokenItem), nil
         }
@@ -368,7 +366,6 @@ func wechatThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface
     tokenItem.AppId = tokenKey.AppId
     tokenItem.AuthorizerAppId = tokenKey.AuthorizerAppId
     tokenItem.AuthorizerAccessToken = resultItem["AUTHORIZER_ACCESS_TOKEN"]
-    tokenItem.AuthorizerRefreshToken = resultItem["AUTHORIZER_REFRESH_TOKEN"]
     log.Printf("Load WechatThirdPlatformAuthorizerToken Cache: %s, cache %3.1f min",
         Json(tokenItem), ls.Minutes())
     return gcache.NewCacheItem(key, ls, tokenItem), nil
@@ -409,7 +406,6 @@ func wechatThirdPlatformAuthorizerTokenCreator(appId, authorizerAppid, authoriza
     tokenItem.AppId = appId.(string)
     tokenItem.AuthorizerAppId = authorizerAppid.(string)
     tokenItem.AuthorizerAccessToken = accessToken
-    tokenItem.AuthorizerRefreshToken = refreshToken
     log.Printf("Request WechatThirdPlatformAuthorizerToken: %s", Json(tokenItem))
     wechatThirdPlatformAuthorizerTokenCache.Add(WechatThirdPlatformAuthorizerTokenKey{
         AppId: appId.(string), AuthorizerAppId: authorizerAppid.(string)},
