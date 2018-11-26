@@ -63,7 +63,7 @@ func wechatThirdPlatformTokenRequestor(codeName interface{}) (map[string]string,
             "component_appid":         config.AppId,
             "component_appsecret":     config.AppSecret,
             "component_verify_ticket": ticket})).
-        Prop("Content-Type", "application/json").Get()
+        Prop("Content-Type", "application/json").Post()
     if nil != err {
         return nil, err
     }
@@ -95,7 +95,7 @@ func wechatThirdPlatformPreAuthCodeRequestor(codeName interface{}) (map[string]s
 
     result, err := httpreq.New(wechatThirdPlatformPreAuthCodeURL + tokenItem.ComponentAccessToken).
         RequestBody(Json(map[string]string{"component_appid": tokenItem.AppId})).
-        Prop("Content-Type", "application/json").Get()
+        Prop("Content-Type", "application/json").Post()
     if nil != err {
         return nil, err
     }
@@ -144,7 +144,7 @@ func wechatThirdPlatformQueryAuthRequestor(codeName, authorizationCode interface
         RequestBody(Json(map[string]string{
             "component_appid":    tokenItem.AppId,
             "authorization_code": authorizationCode.(string)})).
-        Prop("Content-Type", "application/json").Get()
+        Prop("Content-Type", "application/json").Post()
     if nil != err {
         return nil, err
     }
@@ -182,7 +182,7 @@ func wechatThirdPlatformRefreshAuthRequestor(codeName, authorizerAppId, authoriz
             "component_appid":          tokenItem.AppId,
             "authorizer_appid":         authorizerAppId,
             "authorizer_refresh_token": authorizerRefreshToken})).
-        Prop("Content-Type", "application/json").Get()
+        Prop("Content-Type", "application/json").Post()
     if nil != err {
         return nil, err
     }
