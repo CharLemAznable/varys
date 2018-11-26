@@ -12,10 +12,10 @@ type WechatAPITokenResponse struct {
     ExpiresIn   int    `json:"expires_in"`
 }
 
-func wechatAPITokenRequestor(appId interface{}) (string, int, error) {
-    cache, err := wechatAPITokenConfigCache.Value(appId)
+func wechatAPITokenRequestor(codeName interface{}) (map[string]string, error) {
+    cache, err := wechatAPITokenConfigCache.Value(codeName)
     if nil != err {
-        return "", 0, err
+        return nil, err
     }
     config := cache.Data().(*WechatAPITokenConfig)
 
@@ -25,15 +25,18 @@ func wechatAPITokenRequestor(appId interface{}) (string, int, error) {
         Prop("Content-Type",
             "application/x-www-form-urlencoded").Get()
     if nil != err {
-        return "", 0, err
+        return nil, err
     }
 
     response := new(WechatAPITokenResponse)
     err = json.Unmarshal([]byte(result), response)
     if nil != err {
-        return "", 0, err
+        return nil, err
     }
-    return response.AccessToken, response.ExpiresIn, nil
+    return map[string]string{
+        "APP_ID":       config.AppId,
+        "ACCESS_TOKEN": response.AccessToken,
+        "EXPIRES_IN":   StrFromInt(response.ExpiresIn)}, nil
 }
 
 var wechatThirdPlatformTokenURL = "https://api.weixin.qq.com/cgi-bin/component/api_component_token"
@@ -43,16 +46,16 @@ type WechatThirdPlatformTokenResponse struct {
     ExpiresIn            int    `json:"expires_in"`
 }
 
-func wechatThirdPlatformTokenRequestor(appId interface{}) (string, int, error) {
-    cache, err := wechatThirdPlatformConfigCache.Value(appId)
+func wechatThirdPlatformTokenRequestor(codeName interface{}) (map[string]string, error) {
+    cache, err := wechatThirdPlatformConfigCache.Value(codeName)
     if nil != err {
-        return "", 0, err
+        return nil, err
     }
     config := cache.Data().(*WechatThirdPlatformConfig)
 
-    ticket, err := QueryWechatThirdPlatformTicket(appId.(string))
+    ticket, err := QueryWechatThirdPlatformTicket(codeName.(string))
     if nil != err {
-        return "", 0, err
+        return nil, err
     }
 
     result, err := httpreq.New(wechatThirdPlatformTokenURL).
@@ -62,15 +65,18 @@ func wechatThirdPlatformTokenRequestor(appId interface{}) (string, int, error) {
             "component_verify_ticket": ticket})).
         Prop("Content-Type", "application/json").Get()
     if nil != err {
-        return "", 0, err
+        return nil, err
     }
 
     response := new(WechatThirdPlatformTokenResponse)
     err = json.Unmarshal([]byte(result), response)
     if nil != err {
-        return "", 0, err
+        return nil, err
     }
-    return response.ComponentAccessToken, response.ExpiresIn, nil
+    return map[string]string{
+        "APP_ID":                 config.AppId,
+        "COMPONENT_ACCESS_TOKEN": response.ComponentAccessToken,
+        "EXPIRES_IN":             StrFromInt(response.ExpiresIn)}, nil
 }
 
 var wechatThirdPlatformPreAuthCodeURL = "https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token="
@@ -80,26 +86,29 @@ type WechatThirdPlatformPreAuthCodeResponse struct {
     ExpiresIn   int    `json:"expires_in"`
 }
 
-func wechatThirdPlatformPreAuthCodeRequestor(appId interface{}) (string, int, error) {
-    cache, err := wechatThirdPlatformTokenCache.Value(appId)
+func wechatThirdPlatformPreAuthCodeRequestor(codeName interface{}) (map[string]string, error) {
+    cache, err := wechatThirdPlatformTokenCache.Value(codeName)
     if nil != err {
-        return "", 0, err
+        return nil, err
     }
     tokenItem := cache.Data().(*WechatThirdPlatformToken)
 
     result, err := httpreq.New(wechatThirdPlatformPreAuthCodeURL + tokenItem.ComponentAccessToken).
-        RequestBody(Json(map[string]string{"component_appid": appId.(string)})).
+        RequestBody(Json(map[string]string{"component_appid": tokenItem.AppId})).
         Prop("Content-Type", "application/json").Get()
     if nil != err {
-        return "", 0, err
+        return nil, err
     }
 
     response := new(WechatThirdPlatformPreAuthCodeResponse)
     err = json.Unmarshal([]byte(result), response)
     if nil != err {
-        return "", 0, err
+        return nil, err
     }
-    return response.PreAuthCode, response.ExpiresIn, nil
+    return map[string]string{
+        "APP_ID":        tokenItem.AppId,
+        "PRE_AUTH_CODE": response.PreAuthCode,
+        "EXPIRES_IN":    StrFromInt(response.ExpiresIn)}, nil
 }
 
 var wechatThirdPlatformQueryAuthURL = "https://api.weixin.qq.com/cgi-bin/component/api_query_auth?component_access_token="
@@ -124,30 +133,33 @@ type FuncscopeCategoryContent struct {
     Id int `json:"id"`
 }
 
-func wechatThirdPlatformQueryAuthRequestor(appId, authorizationCode interface{}) (string, string, int, error) {
-    cache, err := wechatThirdPlatformTokenCache.Value(appId)
+func wechatThirdPlatformQueryAuthRequestor(codeName, authorizationCode interface{}) (map[string]string, error) {
+    cache, err := wechatThirdPlatformTokenCache.Value(codeName)
     if nil != err {
-        return "", "", 0, err
+        return nil, err
     }
     tokenItem := cache.Data().(*WechatThirdPlatformToken)
 
     result, err := httpreq.New(wechatThirdPlatformQueryAuthURL + tokenItem.ComponentAccessToken).
         RequestBody(Json(map[string]string{
-            "component_appid":    appId.(string),
+            "component_appid":    tokenItem.AppId,
             "authorization_code": authorizationCode.(string)})).
         Prop("Content-Type", "application/json").Get()
     if nil != err {
-        return "", "", 0, err
+        return nil, err
     }
 
     response := new(WechatThirdPlatformQueryAuthResponse)
     err = json.Unmarshal([]byte(result), response)
     if nil != err {
-        return "", "", 0, err
+        return nil, err
     }
-    return response.AuthorizationInfo.AuthorizerAccessToken,
-        response.AuthorizationInfo.AuthorizerRefreshToken,
-        response.AuthorizationInfo.ExpiresIn, nil
+    return map[string]string{
+        "APP_ID":                   tokenItem.AppId,
+        "AUTHORIZER_APPID":         response.AuthorizationInfo.AuthorizerAppid,
+        "AUTHORIZER_ACCESS_TOKEN":  response.AuthorizationInfo.AuthorizerAccessToken,
+        "AUTHORIZER_REFRESH_TOKEN": response.AuthorizationInfo.AuthorizerRefreshToken,
+        "EXPIRES_IN":               StrFromInt(response.AuthorizationInfo.ExpiresIn)}, nil
 }
 
 var wechatThirdPlatformRefreshAuthURL = "https://api.weixin.qq.com/cgi-bin/component/api_authorizer_token?component_access_token="
@@ -158,29 +170,32 @@ type WechatThirdPlatformRefreshAuthResponse struct {
     AuthorizerRefreshToken string `json:"authorizer_refresh_token"`
 }
 
-func wechatThirdPlatformRefreshAuthRequestor(appId, authorizerAppId, authorizerRefreshToken string) (string, string, int, error) {
-    cache, err := wechatThirdPlatformTokenCache.Value(appId)
+func wechatThirdPlatformRefreshAuthRequestor(codeName, authorizerAppId, authorizerRefreshToken string) (map[string]string, error) {
+    cache, err := wechatThirdPlatformTokenCache.Value(codeName)
     if nil != err {
-        return "", "", 0, err
+        return nil, err
     }
     tokenItem := cache.Data().(*WechatThirdPlatformToken)
 
     result, err := httpreq.New(wechatThirdPlatformRefreshAuthURL + tokenItem.ComponentAccessToken).
         RequestBody(Json(map[string]string{
-            "component_appid":          appId,
+            "component_appid":          tokenItem.AppId,
             "authorizer_appid":         authorizerAppId,
             "authorizer_refresh_token": authorizerRefreshToken})).
         Prop("Content-Type", "application/json").Get()
     if nil != err {
-        return "", "", 0, err
+        return nil, err
     }
 
     response := new(WechatThirdPlatformRefreshAuthResponse)
     err = json.Unmarshal([]byte(result), response)
     if nil != err {
-        return "", "", 0, err
+        return nil, err
     }
-    return response.AuthorizerAccessToken,
-        response.AuthorizerRefreshToken,
-        response.ExpiresIn, nil
+    return map[string]string{
+        "APP_ID":                   tokenItem.AppId,
+        "AUTHORIZER_APPID":         authorizerAppId,
+        "AUTHORIZER_ACCESS_TOKEN":  response.AuthorizerAccessToken,
+        "AUTHORIZER_REFRESH_TOKEN": response.AuthorizerRefreshToken,
+        "EXPIRES_IN":               StrFromInt(response.ExpiresIn)}, nil
 }

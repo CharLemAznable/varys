@@ -20,8 +20,8 @@ type WechatAuthorizeData struct {
     PreAuthCode                  string   `xml:"PreAuthCode"`
 }
 
-func parseWechatAuthorizeData(appId string, request *http.Request) (*WechatAuthorizeData, error) {
-    cache, err := wechatThirdPlatformCryptorCache.Value(appId)
+func parseWechatAuthorizeData(codeName string, request *http.Request) (*WechatAuthorizeData, error) {
+    cache, err := wechatThirdPlatformCryptorCache.Value(codeName)
     if nil != err {
         log.Println("GetWechatThirdPlatformCryptor error:", err.Error())
         return nil, err

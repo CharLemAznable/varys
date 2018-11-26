@@ -1,15 +1,15 @@
 package varys
 
-func UpdateWechatThirdPlatformTicket(appId, ticket string) (int64, error) {
-    count, err := db.Sql(replaceWechatThirdPlatformTicketSQL).Params(appId, ticket).Execute()
+func UpdateWechatThirdPlatformTicket(codeName, ticket string) (int64, error) {
+    count, err := db.Sql(replaceWechatThirdPlatformTicketSQL).Params(ticket, codeName).Execute()
     if nil != err {
         return 0, err
     }
     return count, nil
 }
 
-func QueryWechatThirdPlatformTicket(appId string) (string, error) {
-    resultMap, err := db.Sql(queryWechatThirdPlatformTicketSQL).Params(appId).Query()
+func QueryWechatThirdPlatformTicket(codeName string) (string, error) {
+    resultMap, err := db.Sql(queryWechatThirdPlatformTicketSQL).Params(codeName).Query()
     if nil != err {
         return "", err
     }
@@ -20,20 +20,21 @@ func QueryWechatThirdPlatformTicket(appId string) (string, error) {
 }
 
 func EnableWechatThirdPlatformAuthorizer(
-    appId, authorizerAppid, authorizationCode, preAuthCode string) (int64, error) {
+    codeName, authorizerAppid, authorizationCode, preAuthCode string) (int64, error) {
 
     count, err := db.Sql(enableWechatThirdPlatformAuthorizerSQL).
-        Params(appId, authorizerAppid, authorizationCode, preAuthCode).Execute()
+        Params(authorizerAppid, authorizationCode, preAuthCode, codeName).Execute()
     if nil != err {
         return 0, err
     }
     return count, nil
 }
 
-func DisableWechatThirdPlatformAuthorizer(appId, authorizerAppid string) (int64, error) {
+func DisableWechatThirdPlatformAuthorizer(
+    codeName, authorizerAppid string) (int64, error) {
 
     count, err := db.Sql(disableWechatThirdPlatformAuthorizerSQL).
-        Params(appId, authorizerAppid).Execute()
+        Params(authorizerAppid, codeName).Execute()
     if nil != err {
         return 0, err
     }
