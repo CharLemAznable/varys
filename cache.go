@@ -248,7 +248,7 @@ func wechatThirdPlatformCryptorLoader(codeName interface{}, args ...interface{})
     if nil != err {
         return nil, err // require legal config
     }
-    log.Printf("Load WechatThirdPlatformCryptor Cache: %s", Json(cryptor))
+    log.Printf("Load WechatThirdPlatformCryptor Cache: %s", cryptor)
     return gcache.NewCacheItem(codeName, wechatThirdPlatformCryptorLifeSpan, cryptor), nil
 }
 
