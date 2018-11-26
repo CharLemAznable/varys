@@ -3,31 +3,48 @@ package varys
 import (
     "fmt"
     _ "github.com/go-sql-driver/mysql"
+    "log"
     "net/http"
     "strings"
 )
 
+type Varys struct {
+    server *http.Server
+}
+
 var _path = "/varys"
 var _port = ":4236"
 
-func Default() {
-    Run("", "")
+func Default() *Varys {
+    return NewVarys("", "")
 }
 
-func Run(path, port string) {
+func NewVarys(path, port string) *Varys {
     load()
 
     If(0 != len(path), func() { _path = path })
     If(0 != len(port), func() { _port = port })
 
-    http.Handle("/", http.FileServer(http.Dir("varys"))) // static resources
-    http.HandleFunc(_path+welcomePath, welcome)
-    http.HandleFunc(_path+queryWechatAPITokenPath, queryWechatAPIToken)
-    http.HandleFunc(_path+queryWechatAuthorizerTokenPath, queryWechatAuthorizerToken)
-    http.HandleFunc(_path+acceptAuthorizationPath, acceptAuthorization)
-    http.HandleFunc(_path+authorizeComponentPath, authorizeComponent)
-    http.HandleFunc(_path+authorizeRedirectPath, authorizeRedirect)
-    http.ListenAndServe(_port, nil)
+    varysMux := http.NewServeMux()
+    varysMux.Handle("/", http.FileServer(http.Dir("varys"))) // static resources
+    varysMux.HandleFunc(_path+welcomePath, welcome)
+    varysMux.HandleFunc(_path+queryWechatAPITokenPath, queryWechatAPIToken)
+    varysMux.HandleFunc(_path+queryWechatAuthorizerTokenPath, queryWechatAuthorizerToken)
+    varysMux.HandleFunc(_path+acceptAuthorizationPath, acceptAuthorization)
+    varysMux.HandleFunc(_path+authorizeComponentPath, authorizeComponent)
+    varysMux.HandleFunc(_path+authorizeRedirectPath, authorizeRedirect)
+    varysServer := &http.Server{Addr: _port, Handler: varysMux}
+
+    varys := new(Varys)
+    varys.server = varysServer
+    return varys
+}
+
+func (varys *Varys) Run() {
+    if nil == varys.server {
+        log.Println("Initial Varys Error")
+    }
+    varys.server.ListenAndServe()
 }
 
 const welcomePath = "/welcome"
