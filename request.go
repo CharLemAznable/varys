@@ -31,7 +31,8 @@ func wechatAPITokenRequestor(codeName interface{}) (map[string]string, error) {
     response := new(WechatAPITokenResponse)
     err = json.Unmarshal([]byte(result), response)
     if nil != err || 0 == len(response.AccessToken) {
-        return nil, DefaultIfNil(err, &UnexpectedError{Message: "Request access_token Failed"}).(error)
+        return nil, DefaultIfNil(err, &UnexpectedError{Message:
+            "Request access_token Failed: " + result}).(error)
     }
     return map[string]string{
         "APP_ID":       config.AppId,
@@ -71,7 +72,8 @@ func wechatThirdPlatformTokenRequestor(codeName interface{}) (map[string]string,
     response := new(WechatThirdPlatformTokenResponse)
     err = json.Unmarshal([]byte(result), response)
     if nil != err || 0 == len(response.ComponentAccessToken) {
-        return nil, DefaultIfNil(err, &UnexpectedError{Message: "Request component_access_token Failed"}).(error)
+        return nil, DefaultIfNil(err, &UnexpectedError{Message:
+            "Request component_access_token Failed: " + result}).(error)
     }
     return map[string]string{
         "APP_ID":                 config.AppId,
@@ -103,7 +105,8 @@ func wechatThirdPlatformPreAuthCodeRequestor(codeName interface{}) (map[string]s
     response := new(WechatThirdPlatformPreAuthCodeResponse)
     err = json.Unmarshal([]byte(result), response)
     if nil != err || 0 == len(response.PreAuthCode) {
-        return nil, DefaultIfNil(err, &UnexpectedError{Message: "Request pre_auth_code Failed"}).(error)
+        return nil, DefaultIfNil(err, &UnexpectedError{Message:
+            "Request pre_auth_code Failed: " + result}).(error)
     }
     return map[string]string{
         "APP_ID":        tokenItem.AppId,
@@ -152,7 +155,8 @@ func wechatThirdPlatformQueryAuthRequestor(codeName, authorizationCode interface
     response := new(WechatThirdPlatformQueryAuthResponse)
     err = json.Unmarshal([]byte(result), response)
     if nil != err || 0 == len(response.AuthorizationInfo.AuthorizerAccessToken) {
-        return nil, DefaultIfNil(err, &UnexpectedError{Message: "Request authorizer_access_token Failed"}).(error)
+        return nil, DefaultIfNil(err, &UnexpectedError{Message:
+            "Request authorizer_access_token Failed: " + result}).(error)
     }
     return map[string]string{
         "APP_ID":                   tokenItem.AppId,
@@ -190,7 +194,8 @@ func wechatThirdPlatformRefreshAuthRequestor(codeName, authorizerAppId, authoriz
     response := new(WechatThirdPlatformRefreshAuthResponse)
     err = json.Unmarshal([]byte(result), response)
     if nil != err || 0 == len(response.AuthorizerAccessToken) {
-        return nil, DefaultIfNil(err, &UnexpectedError{Message: "Refresh authorizer_access_token Failed"}).(error)
+        return nil, DefaultIfNil(err, &UnexpectedError{Message:
+            "Refresh authorizer_access_token Failed: " + result}).(error)
     }
     return map[string]string{
         "APP_ID":                   tokenItem.AppId,
