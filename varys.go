@@ -20,6 +20,7 @@ func Run(path, port string) {
     If(0 != len(path), func() { _path = path })
     If(0 != len(port), func() { _port = port })
 
+    http.Handle("/", http.FileServer(http.Dir("varys"))) // static resources
     http.HandleFunc(_path+welcomePath, welcome)
     http.HandleFunc(_path+queryWechatAPITokenPath, queryWechatAPIToken)
     http.HandleFunc(_path+queryWechatAuthorizerTokenPath, queryWechatAuthorizerToken)
