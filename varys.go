@@ -45,6 +45,7 @@ func (varys *varys) Run() {
     if nil == varys.server {
         log.Println("Initial varys Error")
     }
+    log.Println("varys Server Started...")
     varys.server.ListenAndServe()
 }
 
