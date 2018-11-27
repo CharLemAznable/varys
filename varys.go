@@ -2,24 +2,21 @@ package varys
 
 import (
     "fmt"
+    . "github.com/CharLemAznable/goutils"
     _ "github.com/go-sql-driver/mysql"
     "log"
     "net/http"
     "strings"
 )
 
-type Varys struct {
+type varys struct {
     server *http.Server
 }
 
 var _path = "/varys"
 var _port = ":4236"
 
-func Default() *Varys {
-    return NewVarys("", "")
-}
-
-func NewVarys(path, port string) *Varys {
+func NewVarys(path, port string) *varys {
     load()
 
     If(0 != len(path), func() { _path = path })
@@ -35,14 +32,18 @@ func NewVarys(path, port string) *Varys {
     varysMux.HandleFunc(_path+authorizeRedirectPath, authorizeRedirect)
     varysServer := &http.Server{Addr: _port, Handler: varysMux}
 
-    varys := new(Varys)
+    varys := new(varys)
     varys.server = varysServer
     return varys
 }
 
-func (varys *Varys) Run() {
+func Default() *varys {
+    return NewVarys("", "")
+}
+
+func (varys *varys) Run() {
     if nil == varys.server {
-        log.Println("Initial Varys Error")
+        log.Println("Initial varys Error")
     }
     varys.server.ListenAndServe()
 }
@@ -122,22 +123,22 @@ func acceptAuthorization(writer http.ResponseWriter, request *http.Request) {
         if nil == err {
 
             if "component_verify_ticket" == authorizeData.InfoType {
-                UpdateWechatThirdPlatformTicket(codeName, authorizeData.ComponentVerifyTicket)
+                updateWechatThirdPlatformTicket(codeName, authorizeData.ComponentVerifyTicket)
 
             } else if "authorized" == authorizeData.InfoType {
-                EnableWechatThirdPlatformAuthorizer(codeName, authorizeData.AuthorizerAppid,
+                enableWechatThirdPlatformAuthorizer(codeName, authorizeData.AuthorizerAppid,
                     authorizeData.AuthorizationCode, authorizeData.PreAuthCode)
                 go wechatThirdPlatformAuthorizerTokenCreator(codeName,
                     authorizeData.AuthorizerAppid, authorizeData.AuthorizationCode)
 
             } else if "updateauthorized" == authorizeData.InfoType {
-                EnableWechatThirdPlatformAuthorizer(codeName, authorizeData.AuthorizerAppid,
+                enableWechatThirdPlatformAuthorizer(codeName, authorizeData.AuthorizerAppid,
                     authorizeData.AuthorizationCode, authorizeData.PreAuthCode)
                 go wechatThirdPlatformAuthorizerTokenCreator(codeName,
                     authorizeData.AuthorizerAppid, authorizeData.AuthorizationCode)
 
             } else if "unauthorized" == authorizeData.InfoType {
-                DisableWechatThirdPlatformAuthorizer(codeName, authorizeData.AuthorizerAppid)
+                disableWechatThirdPlatformAuthorizer(codeName, authorizeData.AuthorizerAppid)
                 // delete cache
                 wechatThirdPlatformAuthorizerTokenCache.Delete(
                     WechatThirdPlatformAuthorizerTokenKey{

@@ -1,6 +1,6 @@
 package varys
 
-func UpdateWechatThirdPlatformTicket(codeName, ticket string) (int64, error) {
+func updateWechatThirdPlatformTicket(codeName, ticket string) (int64, error) {
     count, err := db.Sql(replaceWechatThirdPlatformTicketSQL).Params(ticket, codeName).Execute()
     if nil != err {
         return 0, err
@@ -8,7 +8,7 @@ func UpdateWechatThirdPlatformTicket(codeName, ticket string) (int64, error) {
     return count, nil
 }
 
-func QueryWechatThirdPlatformTicket(codeName string) (string, error) {
+func queryWechatThirdPlatformTicket(codeName string) (string, error) {
     resultMap, err := db.Sql(queryWechatThirdPlatformTicketSQL).Params(codeName).Query()
     if nil != err {
         return "", err
@@ -19,7 +19,7 @@ func QueryWechatThirdPlatformTicket(codeName string) (string, error) {
     return resultMap[0]["TICKET"], nil
 }
 
-func EnableWechatThirdPlatformAuthorizer(
+func enableWechatThirdPlatformAuthorizer(
     codeName, authorizerAppid, authorizationCode, preAuthCode string) (int64, error) {
 
     count, err := db.Sql(enableWechatThirdPlatformAuthorizerSQL).
@@ -30,7 +30,7 @@ func EnableWechatThirdPlatformAuthorizer(
     return count, nil
 }
 
-func DisableWechatThirdPlatformAuthorizer(
+func disableWechatThirdPlatformAuthorizer(
     codeName, authorizerAppid string) (int64, error) {
 
     count, err := db.Sql(disableWechatThirdPlatformAuthorizerSQL).

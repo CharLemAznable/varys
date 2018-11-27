@@ -2,6 +2,7 @@ package varys
 
 import (
     "github.com/CharLemAznable/gcache"
+    . "github.com/CharLemAznable/goutils"
     "github.com/CharLemAznable/wechataes"
     "log"
     "time"
@@ -183,7 +184,7 @@ func wechatAPITokenBuilder(resultItem map[string]string) interface{} {
 
 func wechatAPITokenCompleteParamBuilder(resultItem map[string]string, lifeSpan time.Duration, key interface{}) []interface{} {
     expiresIn, _ := IntFromStr(resultItem["EXPIRES_IN"])
-    return []interface{} {resultItem["ACCESS_TOKEN"],
+    return []interface{}{resultItem["ACCESS_TOKEN"],
         // 过期时间增量: token实际有效时长 - token缓存时长 * 缓存提前更新系数(1.1)
         expiresIn - int(lifeSpan.Seconds()*1.1), key}
 }
@@ -266,7 +267,7 @@ func wechatThirdPlatformTokenBuilder(resultItem map[string]string) interface{} {
 
 func wechatThirdPlatformTokenCompleteParamBuilder(resultItem map[string]string, lifeSpan time.Duration, key interface{}) []interface{} {
     expiresIn, _ := IntFromStr(resultItem["EXPIRES_IN"])
-    return []interface{} {resultItem["COMPONENT_ACCESS_TOKEN"],
+    return []interface{}{resultItem["COMPONENT_ACCESS_TOKEN"],
         // 过期时间增量: token实际有效时长 - token缓存时长 * 缓存提前更新系数(1.1)
         expiresIn - int(lifeSpan.Seconds()*1.1), key}
 }
@@ -301,7 +302,7 @@ func WechatThirdPlatformPreAuthCodeBuilder(resultItem map[string]string) interfa
 
 func WechatThirdPlatformPreAuthCodeCompleteParamBuilder(resultItem map[string]string, lifeSpan time.Duration, key interface{}) []interface{} {
     expiresIn, _ := IntFromStr(resultItem["EXPIRES_IN"])
-    return []interface{} {resultItem["PRE_AUTH_CODE"],
+    return []interface{}{resultItem["PRE_AUTH_CODE"],
         // 过期时间增量: token实际有效时长 - token缓存时长 * 缓存提前更新系数(1.1)
         expiresIn - int(lifeSpan.Seconds()*1.1), key}
 }
@@ -328,9 +329,9 @@ type WechatThirdPlatformAuthorizerTokenKey struct {
 }
 
 type WechatThirdPlatformAuthorizerToken struct {
-    AppId                  string
-    AuthorizerAppId        string
-    AuthorizerAccessToken  string
+    AppId                 string
+    AuthorizerAppId       string
+    AuthorizerAccessToken string
 }
 
 func wechatThirdPlatformAuthorizerTokenBuilder(resultItem map[string]string) interface{} {
@@ -343,7 +344,7 @@ func wechatThirdPlatformAuthorizerTokenBuilder(resultItem map[string]string) int
 
 func wechatThirdPlatformAuthorizerTokenCompleteParamBuilder(resultItem map[string]string, lifeSpan time.Duration, codeName interface{}, authorizerAppId interface{}) []interface{} {
     expiresIn, _ := IntFromStr(resultItem["EXPIRES_IN"])
-    return []interface{} {
+    return []interface{}{
         resultItem["AUTHORIZER_ACCESS_TOKEN"],
         resultItem["AUTHORIZER_REFRESH_TOKEN"],
         // 过期时间增量: token实际有效时长 - token缓存时长 * 缓存提前更新系数(1.1)
@@ -388,7 +389,7 @@ func wechatThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface
             }
             count, err := db.Sql(completeWechatThirdPlatformAuthorizerTokenSQL).
                 Params(wechatThirdPlatformAuthorizerTokenCompleteParamBuilder(
-                resultItem, wechatThirdPlatformAuthorizerTokenLifeSpan, tokenKey.CodeName, tokenKey.AuthorizerAppId)...).Execute()
+                    resultItem, wechatThirdPlatformAuthorizerTokenLifeSpan, tokenKey.CodeName, tokenKey.AuthorizerAppId)...).Execute()
             if nil != err || count < 1 {
                 return nil, DefaultIfNil(err, &UnexpectedError{Message:
                 "Replace WechatThirdPlatformAuthorizerToken Failed"}).(error)

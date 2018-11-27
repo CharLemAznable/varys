@@ -2,6 +2,10 @@ github.com/CharLemAznable/gcache v0.0.1 h1:ra7fR8DLqKxjWI+7sHgnAal6b8uPSqugcxSIb
 github.com/CharLemAznable/gcache v0.0.1/go.mod h1:YzKdE7VPlpX7QIRAmmuSmQEy5GBT2qjXcJoisxXdoSQ=
 github.com/CharLemAznable/gcache v0.0.2 h1:T3C/8TAr9elYfBLjMhepVE4tUe9IPArPsdaZWsS+c2c=
 github.com/CharLemAznable/gcache v0.0.2/go.mod h1:YzKdE7VPlpX7QIRAmmuSmQEy5GBT2qjXcJoisxXdoSQ=
+github.com/CharLemAznable/goutils v0.0.1 h1:skNR7fw2dQsr+zWaI1IYjI/xgmB66kGVSVCqW+2rubM=
+github.com/CharLemAznable/goutils v0.0.1/go.mod h1:5k65ATR9RePdTPxeel4ynWcaB/g1rrT+034kzs+sw5g=
+github.com/CharLemAznable/goutils v0.0.2 h1:w8cc5C4pQfAlpFKT9pD0D6Uik0pQrEngONlGlskSA5Q=
+github.com/CharLemAznable/goutils v0.0.2/go.mod h1:5k65ATR9RePdTPxeel4ynWcaB/g1rrT+034kzs+sw5g=
 github.com/CharLemAznable/gql v0.0.1 h1:k+OsQT/6QVHD9CP001sYb8x7WMzH80hP2CVhBjiEmo4=
 github.com/CharLemAznable/gql v0.0.1/go.mod h1:zainiq/tZGLcbHvu0XdAwbRU4Xu6s0dkhTYTakmfHNQ=
 github.com/CharLemAznable/httpreq v0.0.1 h1:ASEOgJAHS4HtBG/7DXi3Emak3AOK0gi8uLcW1OPSH0Q=
@@ -12,6 +16,8 @@ github.com/CharLemAznable/wechataes v0.0.1 h1:rNQDEN+MtA3yZ+ZQAMfEOadtfdpFvZUNDE
 github.com/CharLemAznable/wechataes v0.0.1/go.mod h1:uoRY3t3wxhZY2jIgeMKn25iWPBdvPOTGw6LqpIVC+Sc=
 github.com/CharLemAznable/wechataes v0.0.2 h1:WjLEkdPdX8mIsyLRc2I/onTCuP+C5+H91+iu7wILmII=
 github.com/CharLemAznable/wechataes v0.0.2/go.mod h1:uoRY3t3wxhZY2jIgeMKn25iWPBdvPOTGw6LqpIVC+Sc=
+github.com/CharLemAznable/wechataes v0.0.3 h1:wTpmToIUJtXCzXg+7aBBgIxBRnKYBB13tLNBnxcqAjg=
+github.com/CharLemAznable/wechataes v0.0.3/go.mod h1:uoRY3t3wxhZY2jIgeMKn25iWPBdvPOTGw6LqpIVC+Sc=
 github.com/CharLemAznable/yaml v0.0.1 h1:ESPSw82o7nVW2UA6MT98m9NlUBUh9tn/s9IcU3w8H58=
 github.com/CharLemAznable/yaml v0.0.1/go.mod h1:5Rfk109gU0ZmfbajTcpe8QP4UbgnRoxTzXXzq0m8q3g=
 github.com/go-sql-driver/mysql v1.4.1 h1:g24URVg0OFbNUTx9qqY1IRZ9D9z3iPyi5zKhQZpNwpA=
