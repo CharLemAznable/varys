@@ -37,8 +37,26 @@ func load() {
     }
 
     // load app config
-    _wechatAPITokenURL := configMap["wechatAPITokenURL"]
-    If(0 != len(_wechatAPITokenURL), func() { wechatAPITokenURL = _wechatAPITokenURL })
+    urlConfigLoader(configMap["wechatAPITokenURL"],
+        func(configURL string) {
+            wechatAPITokenURL = configURL
+        })
+    urlConfigLoader(configMap["wechatThirdPlatformTokenURL"],
+        func(configURL string) {
+            wechatThirdPlatformTokenURL = configURL
+        })
+    urlConfigLoader(configMap["wechatThirdPlatformPreAuthCodeURL"],
+        func(configURL string) {
+            wechatThirdPlatformPreAuthCodeURL = configURL
+        })
+    urlConfigLoader(configMap["wechatThirdPlatformQueryAuthURL"],
+        func(configURL string) {
+            wechatThirdPlatformQueryAuthURL = configURL
+        })
+    urlConfigLoader(configMap["wechatThirdPlatformRefreshAuthURL"],
+        func(configURL string) {
+            wechatThirdPlatformRefreshAuthURL = configURL
+        })
 
     lifeSpanConfigLoader(
         configMap["wechatAPITokenConfigLifeSpan"],
@@ -111,6 +129,12 @@ func load() {
     wechatThirdPlatformPreAuthCodeCache.SetDataLoader(wechatThirdPlatformPreAuthCodeLoader)
     wechatThirdPlatformAuthorizerTokenCache = gcache.CacheExpireAfterWrite("wechatThirdPlatformAuthorizerToken")
     wechatThirdPlatformAuthorizerTokenCache.SetDataLoader(wechatThirdPlatformAuthorizerTokenLoader)
+}
+
+func urlConfigLoader(configStr string, loader func(configURL string)) {
+    If(0 != len(configStr), func() {
+        loader(configStr)
+    })
 }
 
 func lifeSpanConfigLoader(configStr string, loader func(configVal time.Duration)) {
