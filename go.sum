@@ -12,6 +12,8 @@ github.com/CharLemAznable/httpreq v0.0.1 h1:ASEOgJAHS4HtBG/7DXi3Emak3AOK0gi8uLcW
 github.com/CharLemAznable/httpreq v0.0.1/go.mod h1:fg5+er8nSSLNNYjLKWt9YLQb1E/4k6YOJQJPF1ig+JQ=
 github.com/CharLemAznable/httpreq v0.0.2 h1:lYygv+HyBBJWmiijLhun9Vk5R42gXnJXNZ64cgTmfPc=
 github.com/CharLemAznable/httpreq v0.0.2/go.mod h1:fg5+er8nSSLNNYjLKWt9YLQb1E/4k6YOJQJPF1ig+JQ=
+github.com/CharLemAznable/httpreq v0.0.3 h1:eTDht461EWm6HEROls+ZmdOnczYP5i84y3Zyd3w4UMA=
+github.com/CharLemAznable/httpreq v0.0.3/go.mod h1:TeAiEK1posaYeBmYoaeS7z0y4iOXBKP7XxnEGXXgeNk=
 github.com/CharLemAznable/wechataes v0.0.1 h1:rNQDEN+MtA3yZ+ZQAMfEOadtfdpFvZUNDEW9qSDOosw=
 github.com/CharLemAznable/wechataes v0.0.1/go.mod h1:uoRY3t3wxhZY2jIgeMKn25iWPBdvPOTGw6LqpIVC+Sc=
 github.com/CharLemAznable/wechataes v0.0.2 h1:WjLEkdPdX8mIsyLRc2I/onTCuP+C5+H91+iu7wILmII=
