@@ -37,38 +37,38 @@
 http://localhost:4236/varys
   ```
   ```
-/query-wechat-api-token/{appId:string}
+/query-wechat-api-token/{codeName:string}
 
-获取指定appId对应的公众号当前的access_token
+获取指定codeName对应的公众号当前的access_token
 返回数据:
 成功: {"appId": #appId#, "token": #access_token#}
 错误: {"appId": #appId#, "error": #ErrorMessage#}
   ```
   ```
-/query-wechat-authorizer-token/{appId:string}/{authorizerAppId:string}
+/query-wechat-authorizer-token/{codeName:string}/{authorizerAppId:string}
 
-获取指定appId对应的第三方平台所代理的authorizerAppId对应的公众号当前的authorizer_access_token
+获取指定codeName对应的第三方平台所代理的authorizerAppId对应的公众号当前的authorizer_access_token
 返回数据:
 成功: {"appId": #appId#, "authorizerAppId": #authorizerAppId#, "token": #authorizer_access_token#}
 错误: {"appId": #appId#, "authorizerAppId": #authorizerAppId#, "error": #ErrorMessage#}
   ```
   ```
-/accept-authorization/{appId:string}
+/accept-authorization/{codeName:string}
 
 第三方平台在微信配置的授权事件接收URL
 用于接收component_verify_ticket以及公众号对第三方平台进行授权、取消授权、更新授权的推送通知
 返回数据: "success"
   ```
   ```
-/authorize-component/{appId:string}
+/authorize-component/{codeName:string}
 
 第三方平台授权入口页面, 跳转到微信的授权页面
 用于引导公众号和小程序管理员向第三方平台授权
 跳转页面地址:
-https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=#appId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/authorize-redirect/{appId:string}#
+https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=#appId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/authorize-redirect/{codeName:string}#
   ```
   ```
-/authorize-redirect/{appId:string}
+/authorize-redirect/{codeName:string}
 
 第三方平台授权回调地址
 跳转页面地址:
