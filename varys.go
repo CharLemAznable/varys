@@ -85,7 +85,7 @@ func queryWechatAPIToken(writer http.ResponseWriter, request *http.Request) {
 const queryWechatAuthorizerTokenPath = "/query-wechat-authorizer-token/"
 
 func queryWechatAuthorizerToken(writer http.ResponseWriter, request *http.Request) {
-    pathParams := strings.TrimPrefix(request.URL.Path, _path+queryWechatAPITokenPath)
+    pathParams := strings.TrimPrefix(request.URL.Path, _path+queryWechatAuthorizerTokenPath)
     if 0 == len(pathParams) {
         writer.Write([]byte(Json(map[string]string{
             "error": "Path Params is Empty"})))
@@ -199,7 +199,7 @@ const authorizedPageHtmlFormat = `
 `
 
 func authorizeRedirect(writer http.ResponseWriter, request *http.Request) {
-    codeName := strings.TrimPrefix(request.URL.Path, _path+authorizeComponentPath)
+    codeName := strings.TrimPrefix(request.URL.Path, _path+authorizeRedirectPath)
     if 0 == len(codeName) {
         writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
         return
