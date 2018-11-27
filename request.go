@@ -1,6 +1,7 @@
 package varys
 
 import (
+    . "github.com/CharLemAznable/goutils"
     "github.com/CharLemAznable/httpreq"
 )
 

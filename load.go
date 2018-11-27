@@ -2,6 +2,7 @@ package varys
 
 import (
     "github.com/CharLemAznable/gcache"
+    . "github.com/CharLemAznable/goutils"
     "github.com/CharLemAznable/gql"
     "log"
     "os"
