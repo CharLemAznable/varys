@@ -3,9 +3,10 @@ package varys
 import (
     "fmt"
     . "github.com/CharLemAznable/goutils"
+    log "github.com/CharLemAznable/log4go"
     _ "github.com/go-sql-driver/mysql"
-    "log"
     "net/http"
+    "os"
     "strings"
 )
 
@@ -43,9 +44,10 @@ func Default() *varys {
 
 func (varys *varys) Run() {
     if nil == varys.server {
-        log.Println("Initial varys Error")
+        log.Error("Initial varys Error")
+        os.Exit(-1)
     }
-    log.Println("varys Server Started...")
+    log.Info("varys Server Started...")
     varys.server.ListenAndServe()
 }
 

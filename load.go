@@ -4,7 +4,7 @@ import (
     "github.com/CharLemAznable/gcache"
     . "github.com/CharLemAznable/goutils"
     "github.com/CharLemAznable/gql"
-    "log"
+    log "github.com/CharLemAznable/log4go"
     "os"
     "time"
 )
@@ -12,11 +12,13 @@ import (
 var db *gql.Gql
 
 func load() {
+    log.LoadConfiguration("logback.xml")
+
     // init db config
     gql.LoadConfigFile("gql.yaml")
     _db, err := gql.Default()
     if nil != err {
-        log.Println("Missing db config: Default in gql.yaml")
+        log.Error("Missing db config: Default in gql.yaml")
         os.Exit(-1)
     }
     db = _db
@@ -24,7 +26,7 @@ func load() {
     // query app config -> map[string]string
     configs, err := db.Sql(queryConfigurationSQL).Query()
     if nil != err {
-        log.Println("Query Configuration Err: ", err)
+        log.Error("Query Configuration Err: ", err)
         os.Exit(-1)
     }
     configMap := make(map[string]string)

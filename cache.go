@@ -3,8 +3,8 @@ package varys
 import (
     "github.com/CharLemAznable/gcache"
     . "github.com/CharLemAznable/goutils"
+    log "github.com/CharLemAznable/log4go"
     "github.com/CharLemAznable/wechataes"
-    "log"
     "time"
 )
 
@@ -43,10 +43,10 @@ func configLoader(
         return nil, &UnexpectedError{Message:
         "Require " + name + " Config with key: " + key.(string)} // require config
     }
-    log.Printf("Query %s: %s", name, resultMap)
+    log.Trace("Query %s: %s", name, resultMap)
 
     config := builder(resultMap[0])
-    log.Printf("Load %s Cache: %s", name, Json(config))
+    log.Info("Load %s Cache: %s", name, Json(config))
     return gcache.NewCacheItem(key, lifeSpan, config), nil
 }
 
@@ -67,7 +67,7 @@ func tokenLoader(
 
     resultMap, err := db.Sql(querySql).Params(key).Query()
     if nil != err || 1 != len(resultMap) {
-        log.Printf("Try to request %s", name)
+        log.Info("Try to request %s", name)
         count, err := db.Sql(createSql).Params(key).Execute()
         if nil == err && count > 0 {
             tokenItem, err := requestUpdater(name, uncompleteSql, completeSql, lifeSpan,
@@ -75,13 +75,13 @@ func tokenLoader(
             if nil != err {
                 return nil, err
             }
-            log.Printf("Request %s: %s", name, Json(tokenItem))
+            log.Info("Request %s: %s", name, Json(tokenItem))
             return gcache.NewCacheItem(key, lifeSpan, tokenItem), nil
         }
-        log.Printf("Give up request %s, wait for next cache Query", name)
+        log.Warn("Give up request %s, wait for next cache Query", name)
         return nil, &UnexpectedError{Message: "Query " + name + " Later"}
     }
-    log.Printf("Query %s: %s", name, resultMap)
+    log.Trace("Query %s: %s", name, resultMap)
 
     resultItem := resultMap[0]
     updated := resultItem["UPDATED"]
@@ -92,7 +92,7 @@ func tokenLoader(
     isExpired := time.Now().Unix() > expireTime
     isUpdated := "1" == updated
     if isExpired && isUpdated { // 已过期 && 是最新记录 -> 触发更新
-        log.Printf("Try to request and update %s", name)
+        log.Info("Try to request and update %s", name)
         count, err := db.Sql(updateSql).Params(key).Execute()
         if nil == err && count > 0 {
             tokenItem, err := requestUpdater(name, uncompleteSql, completeSql, lifeSpan,
@@ -100,10 +100,10 @@ func tokenLoader(
             if nil != err {
                 return nil, err
             }
-            log.Printf("Request %s: %s", name, Json(tokenItem))
+            log.Info("Request %s: %s", name, Json(tokenItem))
             return gcache.NewCacheItem(key, lifeSpan, tokenItem), nil
         }
-        log.Printf("Give up request and update %s, use Query result Temporarily", name)
+        log.Warn("Give up request and update %s, use Query result Temporarily", name)
     }
 
     // 未过期 || (已非最新记录 || 更新为旧记录失败)
@@ -112,7 +112,7 @@ func tokenLoader(
     // 已过期(已开始更新) -> 临时缓存查询到的token
     ls := Condition(isExpired, lifeSpanTemp, lifeSpan).(time.Duration)
     tokenItem := builder(resultItem)
-    log.Printf("Load %s Cache: %s, cache %3.1f min", name, Json(tokenItem), ls.Minutes())
+    log.Info("Load %s Cache: %s, cache %3.1f min", name, Json(tokenItem), ls.Minutes())
     return gcache.NewCacheItem(key, ls, tokenItem), nil
 }
 
@@ -243,13 +243,13 @@ func wechatThirdPlatformCryptorLoader(codeName interface{}, args ...interface{})
         "Require WechatThirdPlatformConfig with key: " + codeName.(string)} // require config
     }
     config := cache.Data().(*WechatThirdPlatformConfig)
-    log.Printf("Query WechatThirdPlatformConfig Cache: %s", Json(config))
+    log.Trace("Query WechatThirdPlatformConfig Cache: %s", Json(config))
 
     cryptor, err := wechataes.NewWechatCryptor(config.AppId, config.Token, config.AesKey)
     if nil != err {
         return nil, err // require legal config
     }
-    log.Printf("Load WechatThirdPlatformCryptor Cache: %s", cryptor)
+    log.Info("Load WechatThirdPlatformCryptor Cache: %s", cryptor)
     return gcache.NewCacheItem(codeName, wechatThirdPlatformCryptorLifeSpan, cryptor), nil
 }
 
@@ -364,7 +364,7 @@ func wechatThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface
         return nil, DefaultIfNil(err, &UnexpectedError{Message:
         "Unauthorized authorizer app_id"}).(error) // requires that the token already exists
     }
-    log.Printf("Query WechatThirdPlatformAuthorizerToken: %s", resultMap)
+    log.Trace("Query WechatThirdPlatformAuthorizerToken: %s", resultMap)
 
     resultItem := resultMap[0]
     authorizerRefreshToken := resultItem["AUTHORIZER_REFRESH_TOKEN"] // requires that the refresh token exists
@@ -376,7 +376,7 @@ func wechatThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface
     isExpired := time.Now().Unix() > expireTime
     isUpdated := "1" == updated
     if isExpired && isUpdated { // 已过期 && 是最新记录 -> 触发更新
-        log.Printf("Try to request and update WechatThirdPlatformAuthorizerToken")
+        log.Info("Try to request and update WechatThirdPlatformAuthorizerToken")
         count, err := db.Sql(updateWechatThirdPlatformAuthorizerTokenUpdating).
             Params(tokenKey.CodeName, tokenKey.AuthorizerAppId).Execute()
         if nil == err && count > 0 {
@@ -396,10 +396,10 @@ func wechatThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface
             }
 
             tokenItem := wechatThirdPlatformAuthorizerTokenBuilder(resultItem)
-            log.Printf("Request WechatThirdPlatformAuthorizerToken: %s", Json(tokenItem))
+            log.Info("Request WechatThirdPlatformAuthorizerToken: %s", Json(tokenItem))
             return gcache.NewCacheItem(key, wechatThirdPlatformAuthorizerTokenLifeSpan, tokenItem), nil
         }
-        log.Printf("Give up request and update WechatThirdPlatformAuthorizerToken, use Query result Temporarily")
+        log.Warn("Give up request and update WechatThirdPlatformAuthorizerToken, use Query result Temporarily")
     }
 
     // 未过期 || (已非最新记录 || 更新为旧记录失败)
@@ -409,7 +409,7 @@ func wechatThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface
     ls := Condition(isExpired, wechatThirdPlatformAuthorizerTokenTempLifeSpan,
         wechatThirdPlatformAuthorizerTokenLifeSpan).(time.Duration)
     tokenItem := wechatThirdPlatformAuthorizerTokenBuilder(resultItem)
-    log.Printf("Load WechatThirdPlatformAuthorizerToken Cache: %s, cache %3.1f min", Json(tokenItem), ls.Minutes())
+    log.Info("Load WechatThirdPlatformAuthorizerToken Cache: %s, cache %3.1f min", Json(tokenItem), ls.Minutes())
     return gcache.NewCacheItem(key, ls, tokenItem), nil
 }
 
@@ -431,19 +431,19 @@ func wechatThirdPlatformAuthorizerTokenCreator(codeName, authorizerAppId, author
     if nil != err {
         db.Sql(uncompleteWechatThirdPlatformAuthorizerTokenSQL).
             Params(codeName, authorizerAppId).Execute()
-        log.Printf("Request WechatThirdPlatformAuthorizerToken Failed: %s", err.Error())
+        log.Warn("Request WechatThirdPlatformAuthorizerToken Failed: %s", err.Error())
     }
     count, err = db.Sql(completeWechatThirdPlatformAuthorizerTokenSQL).
         Params(wechatThirdPlatformAuthorizerTokenCompleteParamBuilder(
             resultItem, wechatThirdPlatformAuthorizerTokenLifeSpan, codeName, authorizerAppId)).Execute()
     if nil != err || count < 1 {
-        log.Printf("Record new WechatThirdPlatformAuthorizerToken Failed: %s",
+        log.Warn("Record new WechatThirdPlatformAuthorizerToken Failed: %s",
             DefaultIfNil(err, &UnexpectedError{Message:
             "Replace WechatThirdPlatformAuthorizerToken Failed"}).(error).Error())
     }
 
     tokenItem := wechatThirdPlatformAuthorizerTokenBuilder(resultItem)
-    log.Printf("Request WechatThirdPlatformAuthorizerToken: %s", Json(tokenItem))
+    log.Info("Request WechatThirdPlatformAuthorizerToken: %s", Json(tokenItem))
     wechatThirdPlatformAuthorizerTokenCache.Add(WechatThirdPlatformAuthorizerTokenKey{
         CodeName: codeName.(string), AuthorizerAppId: authorizerAppId.(string)},
         wechatThirdPlatformAuthorizerTokenLifeSpan, tokenItem)
