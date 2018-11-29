@@ -26,7 +26,7 @@ func load() {
     // query app config -> map[string]string
     configs, err := db.Sql(queryConfigurationSQL).Query()
     if nil != err {
-        log.Error("Query Configuration Err: ", err)
+        log.Error("Query Configuration Err: %s", err.Error())
         os.Exit(-1)
     }
     configMap := make(map[string]string)
