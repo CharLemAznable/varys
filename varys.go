@@ -29,7 +29,8 @@ func NewVarys(path, port string) *varys {
     varysMux.HandleFunc(_path+queryWechatAPITokenPath, queryWechatAPIToken)
     varysMux.HandleFunc(_path+queryWechatAuthorizerTokenPath, queryWechatAuthorizerToken)
     varysMux.HandleFunc(_path+acceptAuthorizationPath, acceptAuthorization)
-    varysMux.HandleFunc(_path+authorizeComponentPath, authorizeComponent)
+    varysMux.HandleFunc(_path+authorizeComponentScanPath, authorizeComponentScan)
+    varysMux.HandleFunc(_path+authorizeComponentLinkPath, authorizeComponentLink)
     varysMux.HandleFunc(_path+authorizeRedirectPath, authorizeRedirect)
     varysServer := &http.Server{Addr: _port, Handler: varysMux}
 
@@ -155,19 +156,19 @@ func acceptAuthorization(writer http.ResponseWriter, request *http.Request) {
     writer.Write([]byte("success"))
 }
 
-// /authorize-component/{codeName:string}
-const authorizeComponentPath = "/authorize-component/"
-const redirectPageHtmlFormat = `
+// /authorize-component-scan/{codeName:string}
+const authorizeComponentScanPath = "/authorize-component-scan/"
+const scanRedirectPageHtmlFormat = `
 <html><head><script>
-    redirect_uri = location.href.substring(0, location.href.indexOf("/authorize-component/")) + "/authorize-redirect/%s" + "%s";
+    redirect_uri = location.href.substring(0, location.href.indexOf("/authorize-component-scan/")) + "/authorize-redirect/%s" + "%s";
     location.replace(
         "https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=%s&pre_auth_code=%s&redirect_uri=" + encodeURIComponent(redirect_uri)
     );
 </script></head></html>
 `
 
-func authorizeComponent(writer http.ResponseWriter, request *http.Request) {
-    codeName := strings.TrimPrefix(request.URL.Path, _path+authorizeComponentPath)
+func authorizeComponentScan(writer http.ResponseWriter, request *http.Request) {
+    codeName := strings.TrimPrefix(request.URL.Path, _path+authorizeComponentScanPath)
     if 0 == len(codeName) {
         writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
         return
@@ -187,7 +188,43 @@ func authorizeComponent(writer http.ResponseWriter, request *http.Request) {
         redirectQuery = "?" + redirectQuery
     }
 
-    writer.Write([]byte(fmt.Sprintf(redirectPageHtmlFormat,
+    writer.Write([]byte(fmt.Sprintf(scanRedirectPageHtmlFormat,
+        codeName, redirectQuery, appId, preAuthCode)))
+}
+
+// /authorize-component-link/{codeName:string}
+const authorizeComponentLinkPath = "/authorize-component-link/"
+const linkRedirectPageHtmlFormat = `
+<html><head><script>
+    redirect_uri = location.href.substring(0, location.href.indexOf("/authorize-component-link/")) + "/authorize-redirect/%s" + "%s";
+    location.replace(
+        "https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid=%s&pre_auth_code=%s&redirect_uri=" + encodeURIComponent(redirect_uri) + "#wechat_redirect"
+    );
+</script></head></html>
+`
+
+func authorizeComponentLink(writer http.ResponseWriter, request *http.Request) {
+    codeName := strings.TrimPrefix(request.URL.Path, _path+authorizeComponentLinkPath)
+    if 0 == len(codeName) {
+        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
+        return
+    }
+
+    cache, err := wechatThirdPlatformPreAuthCodeCache.Value(codeName)
+    if nil != err {
+        writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
+        return
+    }
+    codeItem := cache.Data().(*WechatThirdPlatformPreAuthCode)
+    appId := codeItem.AppId
+    preAuthCode := codeItem.PreAuthCode
+
+    redirectQuery := request.URL.RawQuery
+    if 0 != len(redirectQuery) {
+        redirectQuery = "?" + redirectQuery
+    }
+
+    writer.Write([]byte(fmt.Sprintf(linkRedirectPageHtmlFormat,
         codeName, redirectQuery, appId, preAuthCode)))
 }
 

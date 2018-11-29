@@ -60,12 +60,20 @@ http://localhost:4236/varys
 返回数据: "success"
   ```
   ```
-/authorize-component/{codeName:string}
+/authorize-component-scan/{codeName:string}
 
-第三方平台授权入口页面, 跳转到微信的授权页面
+第三方平台扫码授权入口页面, 跳转到微信的扫码授权页面
 用于引导公众号和小程序管理员向第三方平台授权
 跳转页面地址:
 https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=#appId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/authorize-redirect/{codeName:string}#
+  ```
+  ```
+/authorize-component-link/{codeName:string}
+
+第三方平台移动端链接授权入口页面, 跳转到微信的链接授权页面
+用于引导公众号和小程序管理员向第三方平台授权
+跳转页面地址:
+https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid=#appId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/authorize-redirect/{codeName:string}##wechat_redirect
   ```
   ```
 /authorize-redirect/{codeName:string}
