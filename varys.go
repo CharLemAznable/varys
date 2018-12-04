@@ -113,7 +113,7 @@ func queryWechatAuthorizerToken(writer http.ResponseWriter, request *http.Reques
     }
     token := cache.Data().(*WechatThirdPlatformAuthorizerToken)
     writer.Write([]byte(Json(map[string]string{
-        "codeName": codeName, "authorizerAppId": authorizerAppId,
+        "appId": token.AppId, "authorizerAppId": token.AuthorizerAppId,
         "token": token.AuthorizerAccessToken})))
 }
 

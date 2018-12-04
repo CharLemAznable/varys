@@ -42,7 +42,7 @@ http://localhost:4236/varys
 获取指定codeName对应的公众号当前的access_token
 返回数据:
 成功: {"appId": #appId#, "token": #access_token#}
-错误: {"appId": #appId#, "error": #ErrorMessage#}
+错误: {"error": #ErrorMessage#}
   ```
   ```
 /query-wechat-authorizer-token/{codeName:string}/{authorizerAppId:string}
@@ -50,7 +50,7 @@ http://localhost:4236/varys
 获取指定codeName对应的第三方平台所代理的authorizerAppId对应的公众号当前的authorizer_access_token
 返回数据:
 成功: {"appId": #appId#, "authorizerAppId": #authorizerAppId#, "token": #authorizer_access_token#}
-错误: {"appId": #appId#, "authorizerAppId": #authorizerAppId#, "error": #ErrorMessage#}
+错误: {"error": #ErrorMessage#}
   ```
   ```
 /accept-authorization/{codeName:string}
