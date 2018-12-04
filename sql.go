@@ -123,47 +123,6 @@ UPDATE WECHAT_THIRD_PLATFORM_TOKEN
    AND UPDATED                = 0
 `
 
-// pre_auth_code
-
-const queryWechatThirdPlatformPreAuthCodeSQL = `
-SELECT T.APP_ID ,T.PRE_AUTH_CODE ,T.UPDATED 
-      ,UNIX_TIMESTAMP(T.EXPIRE_TIME) AS EXPIRE_TIME
-  FROM WECHAT_THIRD_PLATFORM_PRE_AUTH_CODE T
- WHERE T.CODE_NAME = ?
-`
-
-const createWechatThirdPlatformPreAuthCodeUpdating = `
-INSERT INTO WECHAT_THIRD_PLATFORM_PRE_AUTH_CODE
-      (CODE_NAME    ,APP_ID     ,UPDATED)
-SELECT C.CODE_NAME  ,C.APP_ID   ,0
-  FROM WECHAT_THIRD_PLATFORM_CONFIG C
- WHERE C.ENABLED   = 1
-   AND C.CODE_NAME = ?
-`
-
-const updateWechatThirdPlatformPreAuthCodeUpdating = `
-UPDATE WECHAT_THIRD_PLATFORM_PRE_AUTH_CODE
-   SET UPDATED   = 0
- WHERE CODE_NAME = ?
-   AND UPDATED   = 1
-`
-
-const uncompleteWechatThirdPlatformPreAuthCodeSQL = `
-UPDATE WECHAT_THIRD_PLATFORM_PRE_AUTH_CODE
-   SET UPDATED   = 1
- WHERE CODE_NAME = ?
-   AND UPDATED   = 0
-`
-
-const completeWechatThirdPlatformPreAuthCodeSQL = `
-UPDATE WECHAT_THIRD_PLATFORM_PRE_AUTH_CODE
-   SET UPDATED       = 1
-      ,PRE_AUTH_CODE = ?
-      ,EXPIRE_TIME   = DATE_ADD(NOW(), INTERVAL ? SECOND)
- WHERE CODE_NAME     = ?
-   AND UPDATED       = 0
-`
-
 // authorization_code
 
 const enableWechatThirdPlatformAuthorizerSQL = `

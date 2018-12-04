@@ -15,8 +15,6 @@ var wechatThirdPlatformConfigLifeSpan = time.Minute * 60             // config c
 var wechatThirdPlatformCryptorLifeSpan = time.Minute * 60            // cryptor cache 60 min default
 var wechatThirdPlatformTokenLifeSpan = time.Minute * 5               // stable component token cache 5 min default
 var wechatThirdPlatformTokenTempLifeSpan = time.Minute * 1           // temporary component token cache 1 min default
-var WechatThirdPlatformPreAuthCodeLifeSpan = time.Minute * 3         // stable pre-auth code cache 3 min default
-var WechatThirdPlatformPreAuthCodeTempLifeSpan = time.Minute * 1     // temporary pre-auth code cache 1 min default
 var wechatThirdPlatformAuthorizerTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
 var wechatThirdPlatformAuthorizerTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
 
@@ -25,7 +23,6 @@ var wechatAPITokenCache *gcache.CacheTable
 var wechatThirdPlatformConfigCache *gcache.CacheTable
 var wechatThirdPlatformCryptorCache *gcache.CacheTable
 var wechatThirdPlatformTokenCache *gcache.CacheTable
-var wechatThirdPlatformPreAuthCodeCache *gcache.CacheTable
 var wechatThirdPlatformAuthorizerTokenCache *gcache.CacheTable
 
 // common loader
@@ -285,41 +282,6 @@ func wechatThirdPlatformTokenLoader(codeName interface{}, args ...interface{}) (
         wechatThirdPlatformTokenBuilder,
         wechatThirdPlatformTokenRequestor,
         wechatThirdPlatformTokenCompleteParamBuilder,
-        codeName, args...)
-}
-
-type WechatThirdPlatformPreAuthCode struct {
-    AppId       string
-    PreAuthCode string
-}
-
-func WechatThirdPlatformPreAuthCodeBuilder(resultItem map[string]string) interface{} {
-    codeItem := new(WechatThirdPlatformPreAuthCode)
-    codeItem.AppId = resultItem["APP_ID"]
-    codeItem.PreAuthCode = resultItem["PRE_AUTH_CODE"]
-    return codeItem
-}
-
-func WechatThirdPlatformPreAuthCodeCompleteParamBuilder(resultItem map[string]string, lifeSpan time.Duration, key interface{}) []interface{} {
-    expiresIn, _ := IntFromStr(resultItem["EXPIRES_IN"])
-    return []interface{}{resultItem["PRE_AUTH_CODE"],
-        // 过期时间增量: token实际有效时长 - token缓存时长 * 缓存提前更新系数(1.1)
-        expiresIn - int(lifeSpan.Seconds()*1.1), key}
-}
-
-func wechatThirdPlatformPreAuthCodeLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
-    return tokenLoader(
-        "WechatThirdPlatformPreAuthCode",
-        queryWechatThirdPlatformPreAuthCodeSQL,
-        createWechatThirdPlatformPreAuthCodeUpdating,
-        updateWechatThirdPlatformPreAuthCodeUpdating,
-        uncompleteWechatThirdPlatformPreAuthCodeSQL,
-        completeWechatThirdPlatformPreAuthCodeSQL,
-        WechatThirdPlatformPreAuthCodeLifeSpan,
-        WechatThirdPlatformPreAuthCodeTempLifeSpan,
-        WechatThirdPlatformPreAuthCodeBuilder,
-        wechatThirdPlatformPreAuthCodeRequestor,
-        WechatThirdPlatformPreAuthCodeCompleteParamBuilder,
         codeName, args...)
 }
 

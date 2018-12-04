@@ -22,11 +22,10 @@
   1) 第三方平台配置缓存默认1小时
   2) 第三方平台报文解密器缓存默认1小时
 
-  包含微信第三方平台component_access_token/pre_auth_code/authorizer_access_token缓存, 其中
+  包含微信第三方平台component_access_token/authorizer_access_token缓存, 其中
 
   1) component_access_token缓存默认5分钟, 当component_access_token即将过期并被其他分布式节点更新时缓存1分钟
-  2) pre_auth_code缓存默认3分钟, 当pre_auth_code即将过期并被其他分布式节点更新时缓存1分钟
-  3) authorizer_access_token缓存默认5分钟, 当authorizer_access_token即将过期并被其他分布式节点更新时缓存1分钟
+  2) authorizer_access_token缓存默认5分钟, 当authorizer_access_token即将过期并被其他分布式节点更新时缓存1分钟
 
   [cache.go](https://github.com/CharLemAznable/varys/blob/master/cache.go)
 

@@ -174,14 +174,13 @@ func authorizeComponentScan(writer http.ResponseWriter, request *http.Request) {
         return
     }
 
-    cache, err := wechatThirdPlatformPreAuthCodeCache.Value(codeName)
+    response, err := wechatThirdPlatformPreAuthCodeRequestor(codeName)
     if nil != err {
         writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
         return
     }
-    codeItem := cache.Data().(*WechatThirdPlatformPreAuthCode)
-    appId := codeItem.AppId
-    preAuthCode := codeItem.PreAuthCode
+    appId := response["APP_ID"]
+    preAuthCode := response["PRE_AUTH_CODE"]
 
     redirectQuery := request.URL.RawQuery
     if 0 != len(redirectQuery) {
@@ -210,14 +209,13 @@ func authorizeComponentLink(writer http.ResponseWriter, request *http.Request) {
         return
     }
 
-    cache, err := wechatThirdPlatformPreAuthCodeCache.Value(codeName)
+    response, err := wechatThirdPlatformPreAuthCodeRequestor(codeName)
     if nil != err {
         writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
         return
     }
-    codeItem := cache.Data().(*WechatThirdPlatformPreAuthCode)
-    appId := codeItem.AppId
-    preAuthCode := codeItem.PreAuthCode
+    appId := response["APP_ID"]
+    preAuthCode := response["PRE_AUTH_CODE"]
 
     redirectQuery := request.URL.RawQuery
     if 0 != len(redirectQuery) {
