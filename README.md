@@ -12,7 +12,7 @@
 
   #### 本地缓存
 
-  包含微信公众号配置缓存和access_token缓存, 其中:
+  包含微信公众号配置缓存和```access_token```缓存, 其中:
 
   1) 公众号配置缓存默认1小时
   2) access_token缓存默认5分钟, 当access_token即将过期并被其他分布式节点更新时缓存1分钟
@@ -22,7 +22,7 @@
   1) 第三方平台配置缓存默认1小时
   2) 第三方平台报文解密器缓存默认1小时
 
-  包含微信第三方平台component_access_token/authorizer_access_token缓存, 其中
+  包含微信第三方平台```component_access_token```/```authorizer_access_token```缓存, 其中
 
   1) component_access_token缓存默认5分钟, 当component_access_token即将过期并被其他分布式节点更新时缓存1分钟
   2) authorizer_access_token缓存默认5分钟, 当authorizer_access_token即将过期并被其他分布式节点更新时缓存1分钟
@@ -83,3 +83,51 @@ https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&compo
 ```
 
   [varys.go](https://github.com/CharLemAznable/varys/blob/master/varys.go)
+
+  #### 打包部署
+
+  新建Go File:
+```go
+package main
+
+import "github.com/CharLemAznable/varys"
+
+func main() {
+    varys.Default().Run()
+    // 或自定义路径和端口
+    // varys.NewVarys("/varys", ":4236").Run()
+}
+```
+  命令行```build```: (Linux AMD64主机环境)
+```bash
+$ env GOOS=linux GOARCH=amd64 go build -o varys.linux.bin
+```
+  同路径下新建日志配置文件```logback.xml```:
+```xml
+<logging>
+    <filter enabled="true">
+        <tag>file</tag>
+        <type>file</type>
+        <level>TRACE</level>
+        <property name="filename">varys.log</property>
+        <property name="format">[%D %T] [%L] (%S) %M</property>
+        <property name="rotate">false</property>
+        <property name="maxsize">0M</property>
+        <property name="maxlines">0K</property>
+        <property name="daily">false</property>
+    </filter>
+</logging>
+```
+  同路径下新建数据库连接配置文件```gql.yaml```:
+```yaml
+Default:
+  DriverName:       mysql
+  DataSourceName:   username:password@tcp(host:port)/dbname?charset=utf8
+  MaxOpenConns:     50
+  MaxIdleConns:     1
+  ConnMaxLifetime:  60
+```
+  启动```varys```服务:
+```bash
+$ nohup ./varys.linux.bin &
+```
