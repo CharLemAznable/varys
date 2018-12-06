@@ -17,6 +17,9 @@ var wechatThirdPlatformTokenLifeSpan = time.Minute * 5               // stable c
 var wechatThirdPlatformTokenTempLifeSpan = time.Minute * 1           // temporary component token cache 1 min default
 var wechatThirdPlatformAuthorizerTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
 var wechatThirdPlatformAuthorizerTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
+var wechatCorpTokenConfigLifeSpan = time.Minute * 60                 // config cache 60 min default
+var wechatCorpTokenMaxLifeSpan = time.Minute * 5                     // stable token cache 5 min max
+var wechatCorpTokenExpireCriticalSpan = time.Second * 1              // token about to expire critical time span
 
 var wechatAPITokenConfigCache *gcache.CacheTable
 var wechatAPITokenCache *gcache.CacheTable
@@ -24,6 +27,8 @@ var wechatThirdPlatformConfigCache *gcache.CacheTable
 var wechatThirdPlatformCryptorCache *gcache.CacheTable
 var wechatThirdPlatformTokenCache *gcache.CacheTable
 var wechatThirdPlatformAuthorizerTokenCache *gcache.CacheTable
+var wechatCorpTokenConfigCache *gcache.CacheTable
+var wechatCorpTokenCache *gcache.CacheTable
 
 // common loader
 
@@ -351,7 +356,8 @@ func wechatThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface
             }
             count, err := db.Sql(completeWechatThirdPlatformAuthorizerTokenSQL).
                 Params(wechatThirdPlatformAuthorizerTokenCompleteParamBuilder(
-                    resultItem, wechatThirdPlatformAuthorizerTokenLifeSpan, tokenKey.CodeName, tokenKey.AuthorizerAppId)...).Execute()
+                    resultItem, wechatThirdPlatformAuthorizerTokenLifeSpan,
+                    tokenKey.CodeName, tokenKey.AuthorizerAppId)...).Execute()
             if nil != err || count < 1 {
                 return nil, DefaultIfNil(err, &UnexpectedError{Message:
                 "Replace WechatThirdPlatformAuthorizerToken Failed"}).(error)
@@ -397,7 +403,8 @@ func wechatThirdPlatformAuthorizerTokenCreator(codeName, authorizerAppId, author
     }
     count, err = db.Sql(completeWechatThirdPlatformAuthorizerTokenSQL).
         Params(wechatThirdPlatformAuthorizerTokenCompleteParamBuilder(
-            resultItem, wechatThirdPlatformAuthorizerTokenLifeSpan, codeName, authorizerAppId)).Execute()
+            resultItem, wechatThirdPlatformAuthorizerTokenLifeSpan,
+            codeName, authorizerAppId)...).Execute()
     if nil != err || count < 1 {
         log.Warn("Record new WechatThirdPlatformAuthorizerToken Failed: %s",
             DefaultIfNil(err, &UnexpectedError{Message:
@@ -409,4 +416,131 @@ func wechatThirdPlatformAuthorizerTokenCreator(codeName, authorizerAppId, author
     wechatThirdPlatformAuthorizerTokenCache.Add(WechatThirdPlatformAuthorizerTokenKey{
         CodeName: codeName.(string), AuthorizerAppId: authorizerAppId.(string)},
         wechatThirdPlatformAuthorizerTokenLifeSpan, tokenItem)
+}
+
+// Wechat Corp access_token cache loader
+
+type WechatCorpTokenConfig struct {
+    CorpId     string
+    CorpSecret string
+}
+
+func wechatCorpTokenConfigLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+    return configLoader(
+        "WechatCorpTokenConfig",
+        queryWechatCorpTokenConfigSQL,
+        wechatCorpTokenConfigLifeSpan,
+        func(resultItem map[string]string) interface{} {
+            config := new(WechatCorpTokenConfig)
+            config.CorpId = resultItem["CORP_ID"]
+            config.CorpSecret = resultItem["CORP_SECRET"]
+            if 0 == len(config.CorpId) || 0 == len(config.CorpSecret) {
+                return nil
+            }
+            return config
+        },
+        codeName, args...)
+}
+
+type WechatCorpToken struct {
+    CorpId      string
+    AccessToken string
+}
+
+func wechatCorpTokenBuilder(resultItem map[string]string) interface{} {
+    tokenItem := new(WechatCorpToken)
+    tokenItem.CorpId = resultItem["CORP_ID"]
+    tokenItem.AccessToken = resultItem["ACCESS_TOKEN"]
+    return tokenItem
+}
+
+func wechatCorpTokenSQLParamBuilder(resultItem map[string]string, codeName interface{}) []interface{} {
+    expireTime, _ := Int64FromStr(resultItem["EXPIRE_TIME"])
+    return []interface{}{resultItem["ACCESS_TOKEN"], expireTime, codeName}
+}
+
+func wechatCorpTokenLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+    resultMap, err := db.Sql(queryWechatCorpTokenSQL).Params(codeName).Query()
+    if nil != err || 1 != len(resultMap) {
+        log.Info("Try to request WechatCorpToken")
+
+        resultItem, err := wechatCorpTokenRequestor(codeName)
+        if nil != err {
+            log.Warn("Request WechatCorpToken Failed: ", err.Error())
+            return nil, err
+        }
+
+        count, err := db.Sql(createWechatCorpTokenSQL).Params(
+            wechatCorpTokenSQLParamBuilder(resultItem, codeName)...).Execute()
+        if nil != err || count < 1 { // 插入记录失败, 则查询记录并缓存
+            return queryNewestWechatCorpToken(codeName)
+        }
+
+        // 创建成功, 缓存最大缓存时长
+        tokenItem := wechatCorpTokenBuilder(resultItem)
+        log.Info("Request WechatCorpToken: %s", Json(tokenItem))
+        return gcache.NewCacheItem(codeName, wechatCorpTokenMaxLifeSpan, tokenItem), nil
+    }
+    log.Trace("Query WechatCorpToken: %s", resultMap)
+
+    resultItem := resultMap[0]
+    expireTime, err := Int64FromStr(resultItem["EXPIRE_TIME"])
+    if nil != err {
+        return nil, err
+    }
+    effectiveSpan := expireTime - time.Now().Unix()
+    // 即将过期 -> 触发更新
+    if effectiveSpan <= int64(wechatCorpTokenExpireCriticalSpan.Seconds()) {
+        log.Info("Try to request and update WechatCorpToken")
+
+        // 休眠后再请求最新的access_token
+        time.Sleep(wechatCorpTokenExpireCriticalSpan)
+        resultItem, err := wechatCorpTokenRequestor(codeName)
+        if nil != err {
+            log.Warn("Request WechatCorpToken Failed: ", err.Error())
+            return nil, err
+        }
+
+        count, err := db.Sql(updateWechatCorpTokenSQL).Params(
+            wechatCorpTokenSQLParamBuilder(resultItem, codeName)...).Execute()
+        if nil != err || count < 1 { // 更新记录失败, 则查询记录并缓存
+            return queryNewestWechatCorpToken(codeName)
+        }
+
+        // 更新成功, 缓存最大缓存时长
+        tokenItem := wechatCorpTokenBuilder(resultItem)
+        log.Info("Request and Update WechatCorpToken: %s", Json(tokenItem))
+        return gcache.NewCacheItem(codeName, wechatCorpTokenMaxLifeSpan, tokenItem), nil
+    }
+
+    // token有效期少于最大缓存时长, 则仅缓存剩余有效期时长的一半, 即加快缓存更新频率
+    ls := Condition(effectiveSpan > int64(wechatCorpTokenMaxLifeSpan),
+        wechatCorpTokenMaxLifeSpan, effectiveSpan/2).(time.Duration)
+    tokenItem := wechatCorpTokenBuilder(resultItem)
+    log.Info("Load WechatCorpToken Cache: %s, cache %3.1f min", Json(tokenItem), ls.Minutes())
+    return gcache.NewCacheItem(codeName, ls, tokenItem), nil
+}
+
+func queryNewestWechatCorpToken(codeName interface{}) (*gcache.CacheItem, error) {
+    resultMap, err := db.Sql(queryWechatCorpTokenSQL).Params(codeName).Query()
+    if nil != err {
+        return nil, err
+    }
+
+    resultItem := resultMap[0]
+    expireTime, err := Int64FromStr(resultItem["EXPIRE_TIME"])
+    if nil != err {
+        return nil, err
+    }
+    effectiveSpan := expireTime - time.Now().Unix()
+    if effectiveSpan <= 0 {
+        return nil, &UnexpectedError{Message: "Record WechatCorpToken Failed"}
+    }
+
+    // token有效期少于最大缓存时长, 则仅缓存剩余有效期时长的一半, 即加快缓存更新频率
+    ls := Condition(effectiveSpan > int64(wechatCorpTokenMaxLifeSpan),
+        wechatCorpTokenMaxLifeSpan, effectiveSpan/2).(time.Duration)
+    tokenItem := wechatCorpTokenBuilder(resultItem)
+    log.Info("Load WechatCorpToken Cache: %s, cache %3.1f min", Json(tokenItem), ls.Minutes())
+    return gcache.NewCacheItem(codeName, ls, tokenItem), nil
 }

@@ -59,51 +59,70 @@ func load() {
         func(configURL string) {
             wechatThirdPlatformRefreshAuthURL = configURL
         })
+    urlConfigLoader(configMap["wechatCorpTokenURL"],
+        func(configURL string) {
+            wechatCorpTokenURL = configURL
+        })
 
     lifeSpanConfigLoader(
         configMap["wechatAPITokenConfigLifeSpan"],
         func(configVal time.Duration) {
-            wechatAPITokenConfigLifeSpan = configVal
+            wechatAPITokenConfigLifeSpan = configVal * time.Minute
         })
     lifeSpanConfigLoader(
         configMap["wechatAPITokenLifeSpan"],
         func(configVal time.Duration) {
-            wechatAPITokenLifeSpan = configVal
+            wechatAPITokenLifeSpan = configVal * time.Minute
         })
     lifeSpanConfigLoader(
         configMap["wechatAPITokenTempLifeSpan"],
         func(configVal time.Duration) {
-            wechatAPITokenTempLifeSpan = configVal
+            wechatAPITokenTempLifeSpan = configVal * time.Minute
         })
     lifeSpanConfigLoader(
         configMap["wechatThirdPlatformConfigLifeSpan"],
         func(configVal time.Duration) {
-            wechatThirdPlatformConfigLifeSpan = configVal
+            wechatThirdPlatformConfigLifeSpan = configVal * time.Minute
         })
     lifeSpanConfigLoader(
         configMap["wechatThirdPlatformCryptorLifeSpan"],
         func(configVal time.Duration) {
-            wechatThirdPlatformCryptorLifeSpan = configVal
+            wechatThirdPlatformCryptorLifeSpan = configVal * time.Minute
         })
     lifeSpanConfigLoader(
         configMap["wechatThirdPlatformTokenLifeSpan"],
         func(configVal time.Duration) {
-            wechatThirdPlatformTokenLifeSpan = configVal
+            wechatThirdPlatformTokenLifeSpan = configVal * time.Minute
         })
     lifeSpanConfigLoader(
         configMap["wechatThirdPlatformTokenTempLifeSpan"],
         func(configVal time.Duration) {
-            wechatThirdPlatformTokenTempLifeSpan = configVal
+            wechatThirdPlatformTokenTempLifeSpan = configVal * time.Minute
         })
     lifeSpanConfigLoader(
         configMap["wechatThirdPlatformAuthorizerTokenLifeSpan"],
         func(configVal time.Duration) {
-            wechatThirdPlatformAuthorizerTokenLifeSpan = configVal
+            wechatThirdPlatformAuthorizerTokenLifeSpan = configVal * time.Minute
         })
     lifeSpanConfigLoader(
         configMap["wechatThirdPlatformAuthorizerTokenTempLifeSpan"],
         func(configVal time.Duration) {
-            wechatThirdPlatformAuthorizerTokenTempLifeSpan = configVal
+            wechatThirdPlatformAuthorizerTokenTempLifeSpan = configVal * time.Minute
+        })
+    lifeSpanConfigLoader(
+        configMap["wechatCorpTokenConfigLifeSpan"],
+        func(configVal time.Duration) {
+            wechatCorpTokenConfigLifeSpan = configVal * time.Minute
+        })
+    lifeSpanConfigLoader(
+        configMap["wechatCorpTokenMaxLifeSpan"],
+        func(configVal time.Duration) {
+            wechatCorpTokenMaxLifeSpan = configVal * time.Minute
+        })
+    lifeSpanConfigLoader(
+        configMap["wechatCorpTokenExpireCriticalSpan"],
+        func(configVal time.Duration) {
+            wechatCorpTokenExpireCriticalSpan = configVal * time.Second
         })
 
     // build cache loader
@@ -119,6 +138,10 @@ func load() {
     wechatThirdPlatformTokenCache.SetDataLoader(wechatThirdPlatformTokenLoader)
     wechatThirdPlatformAuthorizerTokenCache = gcache.CacheExpireAfterWrite("wechatThirdPlatformAuthorizerToken")
     wechatThirdPlatformAuthorizerTokenCache.SetDataLoader(wechatThirdPlatformAuthorizerTokenLoader)
+    wechatCorpTokenConfigCache = gcache.CacheExpireAfterWrite("wechatCorpTokenConfig")
+    wechatCorpTokenConfigCache.SetDataLoader(wechatCorpTokenConfigLoader)
+    wechatCorpTokenCache = gcache.CacheExpireAfterWrite("wechatCorpToken")
+    wechatCorpTokenCache.SetDataLoader(wechatCorpTokenLoader)
 }
 
 func urlConfigLoader(configStr string, loader func(configURL string)) {
@@ -131,7 +154,7 @@ func lifeSpanConfigLoader(configStr string, loader func(configVal time.Duration)
     If(0 != len(configStr), func() {
         lifeSpan, err := Int64FromStr(configStr)
         if nil == err {
-            loader(time.Minute * time.Duration(lifeSpan))
+            loader(time.Duration(lifeSpan))
         }
     })
 }

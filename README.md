@@ -26,6 +26,11 @@
 
   1) component_access_token缓存默认5分钟, 当component_access_token即将过期并被其他分布式节点更新时缓存1分钟
   2) authorizer_access_token缓存默认5分钟, 当authorizer_access_token即将过期并被其他分布式节点更新时缓存1分钟
+  
+  包含企业微信配置缓存和```access_token```缓存, 其中:
+
+  1) 企业微信配置缓存默认1小时
+  2) access_token缓存最大5分钟, 当access_token即将过期时, 缓存时间最大至其有效期结束
 
   [cache.go](https://github.com/CharLemAznable/varys/blob/master/cache.go)
 
@@ -49,6 +54,14 @@ http://localhost:4236/varys
 获取指定codeName对应的第三方平台所代理的authorizerAppId对应的公众号当前的authorizer_access_token
 返回数据:
 成功: {"appId": #appId#, "authorizerAppId": #authorizerAppId#, "token": #authorizer_access_token#}
+错误: {"error": #ErrorMessage#}
+```
+```http
+/query-wechat-corp-token/{codeName:string}
+
+获取指定codeName对应的企业微信当前的access_token
+返回数据:
+成功: {"corpId": #corpId#, "token": #access_token#}
 错误: {"error": #ErrorMessage#}
 ```
 ```http
