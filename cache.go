@@ -484,13 +484,13 @@ func wechatCorpTokenLoader(codeName interface{}, args ...interface{}) (*gcache.C
     log.Trace("Query WechatCorpToken: %s", resultMap)
 
     resultItem := resultMap[0]
-    expireTime, err := Int64FromStr(resultItem["EXPIRE_TIME"])
+    expireTime, err := Int64FromStr(resultItem["EXPIRE_TIME"]) // in second
     if nil != err {
         return nil, err
     }
-    effectiveSpan := expireTime - time.Now().Unix()
+    effectiveSpan := time.Duration(expireTime - time.Now().Unix()) * time.Second
     // 即将过期 -> 触发更新
-    if effectiveSpan <= int64(wechatCorpTokenExpireCriticalSpan.Seconds()) {
+    if effectiveSpan <= wechatCorpTokenExpireCriticalSpan {
         log.Info("Try to request and update WechatCorpToken")
 
         // 休眠后再请求最新的access_token
@@ -514,7 +514,7 @@ func wechatCorpTokenLoader(codeName interface{}, args ...interface{}) (*gcache.C
     }
 
     // token有效期少于最大缓存时长, 则仅缓存剩余有效期时长的一半, 即加快缓存更新频率
-    ls := Condition(effectiveSpan > int64(wechatCorpTokenMaxLifeSpan),
+    ls := Condition(effectiveSpan > wechatCorpTokenMaxLifeSpan,
         wechatCorpTokenMaxLifeSpan, effectiveSpan/2).(time.Duration)
     tokenItem := wechatCorpTokenBuilder(resultItem)
     log.Info("Load WechatCorpToken Cache: %s, cache %3.1f min", Json(tokenItem), ls.Minutes())
@@ -528,17 +528,17 @@ func queryNewestWechatCorpToken(codeName interface{}) (*gcache.CacheItem, error)
     }
 
     resultItem := resultMap[0]
-    expireTime, err := Int64FromStr(resultItem["EXPIRE_TIME"])
+    expireTime, err := Int64FromStr(resultItem["EXPIRE_TIME"]) // in second
     if nil != err {
         return nil, err
     }
-    effectiveSpan := expireTime - time.Now().Unix()
-    if effectiveSpan <= 0 {
+    effectiveSpan := time.Duration(expireTime - time.Now().Unix()) * time.Second
+    if effectiveSpan <= wechatCorpTokenExpireCriticalSpan {
         return nil, &UnexpectedError{Message: "Record WechatCorpToken Failed"}
     }
 
     // token有效期少于最大缓存时长, 则仅缓存剩余有效期时长的一半, 即加快缓存更新频率
-    ls := Condition(effectiveSpan > int64(wechatCorpTokenMaxLifeSpan),
+    ls := Condition(effectiveSpan > wechatCorpTokenMaxLifeSpan,
         wechatCorpTokenMaxLifeSpan, effectiveSpan/2).(time.Duration)
     tokenItem := wechatCorpTokenBuilder(resultItem)
     log.Info("Load WechatCorpToken Cache: %s, cache %3.1f min", Json(tokenItem), ls.Minutes())
