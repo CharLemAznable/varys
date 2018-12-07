@@ -525,8 +525,9 @@ func wechatCorpTokenLoader(codeName interface{}, args ...interface{}) (*gcache.C
 
 func queryNewestWechatCorpToken(codeName interface{}) (*gcache.CacheItem, error) {
     resultMap, err := db.Sql(queryWechatCorpTokenSQL).Params(codeName).Query()
-    if nil != err {
-        return nil, err
+    if nil != err || 1 != len(resultMap) {
+        return nil, DefaultIfNil(err, &UnexpectedError{
+            Message: "Record WechatCorpToken Failed"}).(error)
     }
 
     resultItem := resultMap[0]
