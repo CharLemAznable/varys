@@ -26,7 +26,7 @@ func wechatAPITokenRequestor(codeName interface{}) (map[string]string, error) {
         "appid", config.AppId, "secret", config.AppSecret).
         Prop("Content-Type",
             "application/x-www-form-urlencoded").Get()
-    log.Trace("Request WechatAPIToken Response: %s", result)
+    log.Trace("Request WechatAPIToken Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }
@@ -67,7 +67,7 @@ func wechatThirdPlatformTokenRequestor(codeName interface{}) (map[string]string,
             "component_appsecret":     config.AppSecret,
             "component_verify_ticket": ticket})).
         Prop("Content-Type", "application/json").Post()
-    log.Trace("Request WechatThirdPlatformToken Response: %s", result)
+    log.Trace("Request WechatThirdPlatformToken Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }
@@ -100,7 +100,7 @@ func wechatThirdPlatformPreAuthCodeRequestor(codeName interface{}) (map[string]s
     result, err := httpreq.New(wechatThirdPlatformPreAuthCodeURL + tokenItem.ComponentAccessToken).
         RequestBody(Json(map[string]string{"component_appid": tokenItem.AppId})).
         Prop("Content-Type", "application/json").Post()
-    log.Trace("Request WechatThirdPlatformPreAuthCode Response: %s", result)
+    log.Trace("Request WechatThirdPlatformPreAuthCode Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }
@@ -150,7 +150,7 @@ func wechatThirdPlatformQueryAuthRequestor(codeName, authorizationCode interface
             "component_appid":    tokenItem.AppId,
             "authorization_code": authorizationCode.(string)})).
         Prop("Content-Type", "application/json").Post()
-    log.Trace("Request WechatThirdPlatformQueryAuth Response: %s", result)
+    log.Trace("Request WechatThirdPlatformQueryAuth Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }
@@ -189,7 +189,7 @@ func wechatThirdPlatformRefreshAuthRequestor(codeName, authorizerAppId, authoriz
             "authorizer_appid":         authorizerAppId,
             "authorizer_refresh_token": authorizerRefreshToken})).
         Prop("Content-Type", "application/json").Post()
-    log.Trace("Request WechatThirdPlatformRefreshAuth Response: %s", result)
+    log.Trace("Request WechatThirdPlatformRefreshAuth Response:(%s, %s) %s", codeName, authorizerAppId, result)
     if nil != err {
         return nil, err
     }
@@ -227,7 +227,7 @@ func wechatCorpTokenRequestor(codeName interface{}) (map[string]string, error) {
         "corpid", config.CorpId, "corpsecret", config.CorpSecret).
         Prop("Content-Type",
             "application/x-www-form-urlencoded").Get()
-    log.Trace("Request WechatCorpToken Response: %s", result)
+    log.Trace("Request WechatCorpToken Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }

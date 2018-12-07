@@ -23,20 +23,20 @@ type WechatAuthorizeData struct {
 func parseWechatAuthorizeData(codeName string, request *http.Request) (*WechatAuthorizeData, error) {
     cache, err := wechatThirdPlatformCryptorCache.Value(codeName)
     if nil != err {
-        log.Warn("GetWechatThirdPlatformCryptor error: %s", err.Error())
+        log.Warn("GetWechatThirdPlatformCryptor error:(%s) %s", codeName, err.Error())
         return nil, err
     }
     cryptor := cache.Data().(*wechataes.WechatCryptor)
 
     body, err := ioutil.ReadAll(request.Body)
     if nil != err {
-        log.Warn("Request read Body error: %s", err.Error())
+        log.Warn("Request read Body error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
     err = request.ParseForm()
     if nil != err {
-        log.Warn("Request ParseForm error: %s", err.Error())
+        log.Warn("Request ParseForm error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
@@ -46,15 +46,15 @@ func parseWechatAuthorizeData(codeName string, request *http.Request) (*WechatAu
     nonce := params.Get("nonce")
     decryptMsg, err := cryptor.DecryptMsg(msgSign, timeStamp, nonce, string(body))
     if nil != err {
-        log.Warn("WechatCryptor DecryptMsg error: %s", err.Error())
+        log.Warn("WechatCryptor DecryptMsg error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
-    log.Info("微信推送消息(明文): %s", decryptMsg)
+    log.Info("微信推送消息(明文):(%s) %s", codeName, decryptMsg)
     authorizeData := new(WechatAuthorizeData)
     err = xml.Unmarshal([]byte(decryptMsg), authorizeData)
     if nil != err {
-        log.Warn("Unmarshal DecryptMsg error: %s", err.Error())
+        log.Warn("Unmarshal DecryptMsg error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
