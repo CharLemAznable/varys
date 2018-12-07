@@ -67,6 +67,8 @@ Who lives, who dies?
 const queryWechatAPITokenPath = "/query-wechat-api-token/"
 
 func queryWechatAPIToken(writer http.ResponseWriter, request *http.Request) {
+    writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+
     codeName := strings.TrimPrefix(request.URL.Path, _path+queryWechatAPITokenPath)
     if 0 == len(codeName) {
         writer.Write([]byte(Json(map[string]string{
@@ -89,6 +91,8 @@ func queryWechatAPIToken(writer http.ResponseWriter, request *http.Request) {
 const queryWechatAuthorizerTokenPath = "/query-wechat-authorizer-token/"
 
 func queryWechatAuthorizerToken(writer http.ResponseWriter, request *http.Request) {
+    writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+
     pathParams := strings.TrimPrefix(request.URL.Path, _path+queryWechatAuthorizerTokenPath)
     if 0 == len(pathParams) {
         writer.Write([]byte(Json(map[string]string{
@@ -122,6 +126,8 @@ func queryWechatAuthorizerToken(writer http.ResponseWriter, request *http.Reques
 const queryWechatCorpTokenPath = "/query-wechat-corp-token/"
 
 func queryWechatCorpToken(writer http.ResponseWriter, request *http.Request) {
+    writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+
     codeName := strings.TrimPrefix(request.URL.Path, _path+queryWechatCorpTokenPath)
     if 0 == len(codeName) {
         writer.Write([]byte(Json(map[string]string{
