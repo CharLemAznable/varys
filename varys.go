@@ -193,17 +193,13 @@ const acceptCorpAuthorizationPath = "/accept-corp-authorization/"
 func acceptCorpAuthorization(writer http.ResponseWriter, request *http.Request) {
     codeName := strings.TrimPrefix(request.URL.Path, _path+acceptCorpAuthorizationPath)
     if 0 != len(codeName) {
-        decryptMsg, err := parseWechatCorpAuthorizeMsg(codeName, request)
+        authorizeData, err := parseWechatCorpAuthorizeData(codeName, request)
         if nil == err {
-            authorizeData, err := parseWechatCorpAuthorizeData(codeName, decryptMsg)
-            if nil != err {
-                // 验证推送URL
-                log.Info("Verify accept corp authorization URL, msg:(%s), %s", codeName, decryptMsg)
-                writer.Write([]byte(decryptMsg))
-                return
-            }
-
             switch authorizeData.InfoType {
+
+            case "echostr":
+                writer.Write([]byte(authorizeData.EchoStr))
+                return
 
             case "suite_ticket":
 
