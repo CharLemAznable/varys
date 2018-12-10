@@ -26,6 +26,8 @@ github.com/CharLemAznable/wechataes v0.0.2 h1:WjLEkdPdX8mIsyLRc2I/onTCuP+C5+H91+
 github.com/CharLemAznable/wechataes v0.0.2/go.mod h1:uoRY3t3wxhZY2jIgeMKn25iWPBdvPOTGw6LqpIVC+Sc=
 github.com/CharLemAznable/wechataes v0.0.3 h1:wTpmToIUJtXCzXg+7aBBgIxBRnKYBB13tLNBnxcqAjg=
 github.com/CharLemAznable/wechataes v0.0.3/go.mod h1:uoRY3t3wxhZY2jIgeMKn25iWPBdvPOTGw6LqpIVC+Sc=
+github.com/CharLemAznable/wechataes v0.0.4 h1:2IAtIVabdKclwpYuj15+fKXZQIBRsSg6NEmZhzQtdwI=
+github.com/CharLemAznable/wechataes v0.0.4/go.mod h1:uoRY3t3wxhZY2jIgeMKn25iWPBdvPOTGw6LqpIVC+Sc=
 github.com/CharLemAznable/yaml v0.0.1 h1:ESPSw82o7nVW2UA6MT98m9NlUBUh9tn/s9IcU3w8H58=
 github.com/CharLemAznable/yaml v0.0.1/go.mod h1:5Rfk109gU0ZmfbajTcpe8QP4UbgnRoxTzXXzq0m8q3g=
 github.com/go-sql-driver/mysql v1.4.1 h1:g24URVg0OFbNUTx9qqY1IRZ9D9z3iPyi5zKhQZpNwpA=

@@ -98,7 +98,7 @@ func parseWechatCorpAuthorizeData(codeName string, request *http.Request) (*Wech
     nonce := params.Get("nonce")
     echostr := params.Get("echostr")
     if 0 != len(echostr) { // 验证推送URL
-        msg, err := cryptor.DecryptMsg(msgSign, timeStamp, nonce, echostr)
+        msg, err := cryptor.DecryptMsgContent(msgSign, timeStamp, nonce, echostr)
         if nil != err {
             log.Warn("WechatCryptor DecryptMsg EchoStr error:(%s) %s", codeName, err.Error())
             return nil, err
