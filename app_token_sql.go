@@ -1,0 +1,47 @@
+package varys
+
+const queryWechatAPITokenConfigSQL = `
+SELECT C.APP_ID ,C.APP_SECRET
+  FROM WECHAT_API_TOKEN_CONFIG C
+ WHERE C.ENABLED   = 1
+   AND C.CODE_NAME = ?
+`
+
+const queryWechatAPITokenSQL = `
+SELECT T.APP_ID ,T.ACCESS_TOKEN ,T.UPDATED
+      ,UNIX_TIMESTAMP(T.EXPIRE_TIME) AS EXPIRE_TIME
+  FROM WECHAT_API_TOKEN T
+ WHERE T.CODE_NAME = ?
+`
+
+const createWechatAPITokenUpdating = `
+INSERT INTO WECHAT_API_TOKEN
+      (CODE_NAME    ,APP_ID     ,UPDATED)
+SELECT C.CODE_NAME  ,C.APP_ID   ,0
+  FROM WECHAT_API_TOKEN_CONFIG C
+ WHERE C.ENABLED   = 1
+   AND C.CODE_NAME = ?
+`
+
+const updateWechatAPITokenUpdating = `
+UPDATE WECHAT_API_TOKEN
+   SET UPDATED   = 0
+ WHERE CODE_NAME = ?
+   AND UPDATED   = 1
+`
+
+const uncompleteWechatAPITokenSQL = `
+UPDATE WECHAT_API_TOKEN
+   SET UPDATED   = 1
+ WHERE CODE_NAME = ?
+   AND UPDATED   = 0
+`
+
+const completeWechatAPITokenSQL = `
+UPDATE WECHAT_API_TOKEN
+   SET UPDATED      = 1
+      ,ACCESS_TOKEN = ?
+      ,EXPIRE_TIME  = DATE_ADD(NOW(), INTERVAL ? SECOND)
+ WHERE CODE_NAME    = ?
+   AND UPDATED      = 0
+`

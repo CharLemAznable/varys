@@ -30,6 +30,7 @@ func NewVarys(path, port string) *varys {
     varysMux.HandleFunc(_path+queryWechatAuthorizerTokenPath, queryWechatAuthorizerToken)
     varysMux.HandleFunc(_path+queryWechatCorpTokenPath, queryWechatCorpToken)
     varysMux.HandleFunc(_path+acceptAuthorizationPath, acceptAuthorization)
+    varysMux.HandleFunc(_path+acceptCorpAuthorizationPath, acceptCorpAuthorization)
     varysMux.HandleFunc(_path+authorizeComponentScanPath, authorizeComponentScan)
     varysMux.HandleFunc(_path+authorizeComponentLinkPath, authorizeComponentLink)
     varysMux.HandleFunc(_path+authorizeRedirectPath, authorizeRedirect)
@@ -154,23 +155,24 @@ func acceptAuthorization(writer http.ResponseWriter, request *http.Request) {
     if 0 != len(codeName) {
         authorizeData, err := parseWechatAuthorizeData(codeName, request)
         if nil == err {
+            switch authorizeData.InfoType {
 
-            if "component_verify_ticket" == authorizeData.InfoType {
+            case "component_verify_ticket":
                 updateWechatThirdPlatformTicket(codeName, authorizeData.ComponentVerifyTicket)
 
-            } else if "authorized" == authorizeData.InfoType {
+            case "authorized":
                 enableWechatThirdPlatformAuthorizer(codeName, authorizeData.AuthorizerAppid,
                     authorizeData.AuthorizationCode, authorizeData.PreAuthCode)
                 go wechatThirdPlatformAuthorizerTokenCreator(codeName,
                     authorizeData.AuthorizerAppid, authorizeData.AuthorizationCode)
 
-            } else if "updateauthorized" == authorizeData.InfoType {
+            case "updateauthorized":
                 enableWechatThirdPlatformAuthorizer(codeName, authorizeData.AuthorizerAppid,
                     authorizeData.AuthorizationCode, authorizeData.PreAuthCode)
                 go wechatThirdPlatformAuthorizerTokenCreator(codeName,
                     authorizeData.AuthorizerAppid, authorizeData.AuthorizationCode)
 
-            } else if "unauthorized" == authorizeData.InfoType {
+            case "unauthorized":
                 disableWechatThirdPlatformAuthorizer(codeName, authorizeData.AuthorizerAppid)
                 // delete cache
                 wechatThirdPlatformAuthorizerTokenCache.Delete(
@@ -182,6 +184,39 @@ func acceptAuthorization(writer http.ResponseWriter, request *http.Request) {
     }
 
     // 接收到定时推送component_verify_ticket后必须直接返回字符串success
+    writer.Write([]byte("success"))
+}
+
+// /accept-authorization/{codeName:string}
+const acceptCorpAuthorizationPath = "/accept-corp-authorization/"
+
+func acceptCorpAuthorization(writer http.ResponseWriter, request *http.Request) {
+    codeName := strings.TrimPrefix(request.URL.Path, _path+acceptCorpAuthorizationPath)
+    if 0 != len(codeName) {
+        decryptMsg, err := parseWechatCorpAuthorizeMsg(codeName, request)
+        if nil == err {
+            authorizeData, err := parseWechatCorpAuthorizeData(codeName, decryptMsg)
+            if nil != err {
+                // 验证推送URL
+                log.Info("Verify accept corp authorization URL, msg:(%s), %s", codeName, decryptMsg)
+                writer.Write([]byte(decryptMsg))
+                return
+            }
+
+            switch authorizeData.InfoType {
+
+            case "suite_ticket":
+
+            case "create_auth":
+
+            case "change_auth":
+
+            case "cancel_auth":
+
+            }
+        }
+    }
+
     writer.Write([]byte("success"))
 }
 

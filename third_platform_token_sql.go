@@ -1,71 +1,11 @@
 package varys
 
-// global configuration
-
-const queryConfigurationSQL = `
-SELECT C.CONFIG_NAME ,C.CONFIG_VALUE
-  FROM APP_CONFIG C
- WHERE C.ENABLED = 1
-`
-
-// wechat API access_token
-
-const queryWechatAPITokenConfigSQL = `
-SELECT C.APP_ID ,C.APP_SECRET
-  FROM WECHAT_API_TOKEN_CONFIG C
- WHERE C.ENABLED   = 1
-   AND C.CODE_NAME = ?
-`
-
-const queryWechatAPITokenSQL = `
-SELECT T.APP_ID ,T.ACCESS_TOKEN ,T.UPDATED
-      ,UNIX_TIMESTAMP(T.EXPIRE_TIME) AS EXPIRE_TIME
-  FROM WECHAT_API_TOKEN T
- WHERE T.CODE_NAME = ?
-`
-
-const createWechatAPITokenUpdating = `
-INSERT INTO WECHAT_API_TOKEN
-      (CODE_NAME    ,APP_ID     ,UPDATED)
-SELECT C.CODE_NAME  ,C.APP_ID   ,0
-  FROM WECHAT_API_TOKEN_CONFIG C
- WHERE C.ENABLED   = 1
-   AND C.CODE_NAME = ?
-`
-
-const updateWechatAPITokenUpdating = `
-UPDATE WECHAT_API_TOKEN
-   SET UPDATED   = 0
- WHERE CODE_NAME = ?
-   AND UPDATED   = 1
-`
-
-const uncompleteWechatAPITokenSQL = `
-UPDATE WECHAT_API_TOKEN
-   SET UPDATED   = 1
- WHERE CODE_NAME = ?
-   AND UPDATED   = 0
-`
-
-const completeWechatAPITokenSQL = `
-UPDATE WECHAT_API_TOKEN
-   SET UPDATED      = 1
-      ,ACCESS_TOKEN = ?
-      ,EXPIRE_TIME  = DATE_ADD(NOW(), INTERVAL ? SECOND)
- WHERE CODE_NAME    = ?
-   AND UPDATED      = 0
-`
-
-// wechat third platform authorizer access_token
-
 const queryWechatThirdPlatformConfigSQL = `
 SELECT C.APP_ID ,C.APP_SECRET ,C.TOKEN ,C.AES_KEY ,C.REDIRECT_URL
   FROM WECHAT_THIRD_PLATFORM_CONFIG C
  WHERE C.ENABLED   = 1
    AND C.CODE_NAME = ?
 `
-
-// component_verify_ticket
 
 const replaceWechatThirdPlatformTicketSQL = `
 REPLACE INTO WECHAT_THIRD_PLATFORM_TICKET
@@ -81,8 +21,6 @@ SELECT T.TICKET
   FROM WECHAT_THIRD_PLATFORM_TICKET T
  WHERE T.CODE_NAME = ?
 `
-
-// component_access_token
 
 const queryWechatThirdPlatformTokenSQL = `
 SELECT T.APP_ID ,T.COMPONENT_ACCESS_TOKEN ,T.UPDATED 
@@ -123,8 +61,6 @@ UPDATE WECHAT_THIRD_PLATFORM_TOKEN
    AND UPDATED                = 0
 `
 
-// authorization_code
-
 const enableWechatThirdPlatformAuthorizerSQL = `
 REPLACE INTO WECHAT_THIRD_PLATFORM_AUTHORIZER
       (CODE_NAME            ,APP_ID                 ,AUTHORIZER_APP_ID
@@ -146,8 +82,6 @@ SELECT C.CODE_NAME          ,C.APP_ID
  WHERE C.ENABLED   = 1
    AND C.CODE_NAME = ?
 `
-
-// authorizer_access_token
 
 const queryWechatThirdPlatformAuthorizerTokenSQL = `
 SELECT T.APP_ID ,T.AUTHORIZER_APP_ID
@@ -198,39 +132,4 @@ SELECT A.CODE_NAME  ,A.APP_ID   ,A.AUTHORIZER_APP_ID    ,0
  WHERE A.AUTHORIZATION_STATE = 1
    AND A.CODE_NAME           = ?
    AND A.AUTHORIZER_APP_ID   = ?
-`
-
-// wechat Corp access_token
-
-const queryWechatCorpTokenConfigSQL = `
-SELECT C.CORP_ID ,C.CORP_SECRET
-  FROM WECHAT_CORP_TOKEN_CONFIG C
- WHERE C.ENABLED   = 1
-   AND C.CODE_NAME = ?
-`
-
-const queryWechatCorpTokenSQL = `
-SELECT T.CORP_ID ,T.ACCESS_TOKEN
-      ,UNIX_TIMESTAMP(T.EXPIRE_TIME) AS EXPIRE_TIME
-  FROM WECHAT_CORP_TOKEN T
- WHERE T.CODE_NAME = ?
-`
-
-const createWechatCorpTokenSQL = `
-INSERT INTO WECHAT_CORP_TOKEN
-      (CODE_NAME    ,CORP_ID
-      ,ACCESS_TOKEN ,EXPIRE_TIME)
-SELECT C.CODE_NAME  ,C.CORP_ID
-      ,?            ,FROM_UNIXTIME(?)
-  FROM WECHAT_CORP_TOKEN_CONFIG C
- WHERE C.ENABLED   = 1
-   AND C.CODE_NAME = ?
-`
-
-const updateWechatCorpTokenSQL = `
-UPDATE WECHAT_CORP_TOKEN
-   SET ACCESS_TOKEN = ?
-      ,EXPIRE_TIME  = FROM_UNIXTIME(?)
- WHERE CODE_NAME    = ?
-   AND EXPIRE_TIME  < NOW()
 `
