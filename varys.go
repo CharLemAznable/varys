@@ -34,6 +34,8 @@ func NewVarys(path, port string) *varys {
     varysMux.HandleFunc(_path+authorizeComponentScanPath, authorizeComponentScan)
     varysMux.HandleFunc(_path+authorizeComponentLinkPath, authorizeComponentLink)
     varysMux.HandleFunc(_path+authorizeRedirectPath, authorizeRedirect)
+    varysMux.HandleFunc(_path+authorizeCorpComponentPath, authorizeCorpComponent)
+    varysMux.HandleFunc(_path+authorizeCorpRedirectPath, authorizeCorpRedirect)
     varysServer := &http.Server{Addr: _port, Handler: varysMux}
 
     varys := new(varys)
@@ -202,8 +204,10 @@ func acceptCorpAuthorization(writer http.ResponseWriter, request *http.Request) 
                 return
 
             case "suite_ticket":
+                updateWechatCorpThirdPlatformTicket(codeName, authorizeData.SuiteTicket)
 
             case "create_auth":
+                // TODO auth_code for permanent_code
 
             case "change_auth":
 
@@ -316,4 +320,69 @@ func authorizeRedirect(writer http.ResponseWriter, request *http.Request) {
     }
 
     writer.Write([]byte(fmt.Sprintf(authorizedPageHtmlFormat, redirectUrl)))
+}
+
+// /authorize-corp-component/{codeName:string}
+const authorizeCorpComponentPath = "/authorize-corp-component/"
+const corpRedirectPageHtmlFormat = `
+<html><head><script>
+    redirect_uri = location.href.substring(0, location.href.indexOf("/authorize-corp-component/")) + "/authorize-corp-redirect/%s";
+    location.replace(
+        "https://open.work.weixin.qq.com/3rdapp/install?suite_id=%s&pre_auth_code=%s&redirect_uri=" + encodeURIComponent(redirect_uri) + "&state=%s"
+    );
+</script></head></html>
+`
+
+func authorizeCorpComponent(writer http.ResponseWriter, request *http.Request) {
+    codeName := strings.TrimPrefix(request.URL.Path, _path+authorizeCorpComponentPath)
+    if 0 == len(codeName) {
+        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
+        return
+    }
+
+    response, err := wechatCorpThirdPlatformPreAuthCodeRequestor(codeName)
+    if nil != err {
+        writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
+        return
+    }
+    suiteId := response["SUITE_ID"]
+    preAuthCode := response["PRE_AUTH_CODE"]
+    state := request.URL.Query().Get("state")
+
+    writer.Write([]byte(fmt.Sprintf(corpRedirectPageHtmlFormat,
+        codeName, suiteId, preAuthCode, state)))
+}
+
+// /authorize-corp-redirect/{codeName:string}
+const authorizeCorpRedirectPath = "/authorize-corp-redirect/"
+const authorizedCorpPageHtmlFormat = `
+<html><head><title>index</title><style type="text/css">
+    body{max-width:640px;margin:0 auto;font-size:14px;-webkit-text-size-adjust:none;-moz-text-size-adjust:none;-ms-text-size-adjust:none;text-size-adjust:none}
+    .tips{margin-top:40px;text-align:center;color:green}
+</style><script>var p="%s";0!=p.length&&location.replace(p);</script></head><body><div class="tips">授权成功</div></body></html>
+`
+
+func authorizeCorpRedirect(writer http.ResponseWriter, request *http.Request) {
+    codeName := strings.TrimPrefix(request.URL.Path, _path+authorizeCorpRedirectPath)
+    if 0 == len(codeName) {
+        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
+        return
+    }
+
+    cache, err := wechatCorpThirdPlatformConfigCache.Value(codeName)
+    if nil != err {
+        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Illegal"})))
+        return
+    }
+    config := cache.Data().(*WechatCorpThirdPlatformConfig)
+    redirectUrl := config.RedirectURL
+    redirectQuery := request.URL.RawQuery
+
+    // TODO auth_code for permanent_code
+
+    if 0 != len(redirectUrl) && 0 != len(redirectQuery) {
+        redirectUrl = redirectUrl + "?" + redirectQuery
+    }
+
+    writer.Write([]byte(fmt.Sprintf(authorizedCorpPageHtmlFormat, redirectUrl)))
 }

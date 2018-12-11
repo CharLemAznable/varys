@@ -35,7 +35,7 @@ func wechatCorpTokenRequestor(codeName interface{}) (map[string]string, error) {
     response := UnJson(result, new(WechatCorpTokenResponse)).(*WechatCorpTokenResponse)
     if nil == response || 0 != response.Errcode || 0 == len(response.AccessToken) {
         return nil, &UnexpectedError{Message:
-        "Request access_token Failed: " + result}
+        "Request Corp access_token Failed: " + result}
     }
 
     // 过期时间增量: token实际有效时长

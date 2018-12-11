@@ -8,13 +8,20 @@ import (
     "time"
 )
 
-var wechatCorpThirdPlatformConfigLifeSpan = time.Minute * 60  // config cache 60 min default
-var wechatCorpThirdPlatformCryptorLifeSpan = time.Minute * 60 // cryptor cache 60 min default
+var wechatCorpThirdPlatformConfigLifeSpan = time.Minute * 60         // config cache 60 min default
+var wechatCorpThirdPlatformCryptorLifeSpan = time.Minute * 60        // cryptor cache 60 min default
+var wechatCorpThirdPlatformTokenMaxLifeSpan = time.Minute * 5        // stable token cache 5 min max
+var wechatCorpThirdPlatformTokenExpireCriticalSpan = time.Second * 1 // token about to expire critical time span
 
 var wechatCorpThirdPlatformConfigCache *gcache.CacheTable
 var wechatCorpThirdPlatformCryptorCache *gcache.CacheTable
+var wechatCorpThirdPlatformTokenCache *gcache.CacheTable
 
 func wechatCorpThirdPlatformAuthorizerTokenInitialize(configMap map[string]string) {
+    urlConfigLoader(configMap["wechatCorpThirdPlatformTokenURL"],
+        func(configURL string) {
+            wechatCorpThirdPlatformTokenURL = configURL
+        })
 
     lifeSpanConfigLoader(
         configMap["wechatCorpThirdPlatformConfigLifeSpan"],
@@ -26,11 +33,23 @@ func wechatCorpThirdPlatformAuthorizerTokenInitialize(configMap map[string]strin
         func(configVal time.Duration) {
             wechatCorpThirdPlatformCryptorLifeSpan = configVal * time.Minute
         })
+    lifeSpanConfigLoader(
+        configMap["wechatCorpThirdPlatformTokenMaxLifeSpan"],
+        func(configVal time.Duration) {
+            wechatCorpThirdPlatformTokenMaxLifeSpan = configVal * time.Minute
+        })
+    lifeSpanConfigLoader(
+        configMap["wechatCorpThirdPlatformTokenExpireCriticalSpan"],
+        func(configVal time.Duration) {
+            wechatCorpThirdPlatformTokenExpireCriticalSpan = configVal * time.Second
+        })
 
     wechatCorpThirdPlatformConfigCache = gcache.CacheExpireAfterWrite("wechatCorpThirdPlatformConfig")
     wechatCorpThirdPlatformConfigCache.SetDataLoader(wechatCorpThirdPlatformConfigLoader)
     wechatCorpThirdPlatformCryptorCache = gcache.CacheExpireAfterWrite("wechatCorpThirdPlatformCryptor")
     wechatCorpThirdPlatformCryptorCache.SetDataLoader(wechatCorpThirdPlatformCryptorLoader)
+    wechatCorpThirdPlatformTokenCache = gcache.CacheExpireAfterWrite("wechatCorpThirdPlatformCryptor")
+    wechatCorpThirdPlatformTokenCache.SetDataLoader(wechatCorpThirdPlatformTokenLoader)
 }
 
 type WechatCorpThirdPlatformConfig struct {
@@ -77,4 +96,35 @@ func wechatCorpThirdPlatformCryptorLoader(codeName interface{}, args ...interfac
     }
     log.Info("Load WechatCorpThirdPlatformCryptor Cache:(%s) %s", codeName, cryptor)
     return gcache.NewCacheItem(codeName, wechatCorpThirdPlatformCryptorLifeSpan, cryptor), nil
+}
+
+type WechatCorpThirdPlatformToken struct {
+    SuiteId          string
+    SuiteAccessToken string
+}
+
+func wechatCorpThirdPlatformTokenBuilder(resultItem map[string]string) interface{} {
+    tokenItem := new(WechatCorpThirdPlatformToken)
+    tokenItem.SuiteId = resultItem["SUITE_ID"]
+    tokenItem.SuiteAccessToken = resultItem["SUITE_ACCESS_TOKEN"]
+    return tokenItem
+}
+
+func wechatCorpThirdPlatformTokenSQLParamBuilder(resultItem map[string]string, codeName interface{}) []interface{} {
+    expireTime, _ := Int64FromStr(resultItem["EXPIRE_TIME"])
+    return []interface{}{resultItem["SUITE_ACCESS_TOKEN"], expireTime, codeName}
+}
+
+func wechatCorpThirdPlatformTokenLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+    return tokenLoaderStrict(
+        "WechatCorpThirdPlatformToken",
+        queryWechatCorpThirdPlatformTokenSQL,
+        createWechatCorpThirdPlatformTokenUpdating,
+        updateWechatCorpThirdPlatformTokenUpdating,
+        wechatCorpThirdPlatformTokenMaxLifeSpan,
+        wechatCorpThirdPlatformTokenExpireCriticalSpan,
+        wechatCorpThirdPlatformTokenBuilder,
+        wechatCorpThirdPlatformTokenRequestor,
+        wechatCorpThirdPlatformTokenSQLParamBuilder,
+        codeName, args...)
 }
