@@ -199,7 +199,7 @@ func wechatThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface
         Params(tokenKey.CodeName, tokenKey.AuthorizerAppId).Query()
     if nil != err || 1 != len(resultMap) {
         return nil, DefaultIfNil(err, &UnexpectedError{Message:
-        "Unauthorized authorizer app_id"}).(error) // requires that the token already exists
+        "Unauthorized authorizer: " + Json(key)}).(error) // requires that the token already exists
     }
     log.Trace("Query WechatThirdPlatformAuthorizerToken:(%s) %s", Json(key), resultMap)
 

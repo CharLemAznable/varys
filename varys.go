@@ -207,11 +207,18 @@ func acceptCorpAuthorization(writer http.ResponseWriter, request *http.Request) 
                 updateWechatCorpThirdPlatformTicket(codeName, authorizeData.SuiteTicket)
 
             case "create_auth":
-                // TODO auth_code for permanent_code
+                go wechatCorpThirdPlatformAuthorizeCreator(codeName, authorizeData.AuthCode)
 
             case "change_auth":
+                // ignore
 
             case "cancel_auth":
+                authCorpId := authorizeData.AuthCorpId
+                disableWechatCorpThirdPlatformAuthorizer(codeName, authCorpId)
+                // delete cache
+                key := WechatCorpThirdPlatformAuthorizerKey{CodeName: codeName, CorpId: authCorpId}
+                wechatCorpThirdPlatformPermanentCodeCache.Delete(key)
+                wechatCorpThirdPlatformCorpTokenCache.Delete(key)
 
             }
         }
@@ -369,6 +376,13 @@ func authorizeCorpRedirect(writer http.ResponseWriter, request *http.Request) {
         return
     }
 
+    redirectQuery := request.URL.RawQuery
+    authCode := request.URL.Query().Get("auth_code")
+    if 0 == len(authCode) {
+        writer.Write([]byte(Json(map[string]string{"error": "Corp Unauthorized"})))
+        return
+    }
+
     cache, err := wechatCorpThirdPlatformConfigCache.Value(codeName)
     if nil != err {
         writer.Write([]byte(Json(map[string]string{"error": "CodeName is Illegal"})))
@@ -376,9 +390,8 @@ func authorizeCorpRedirect(writer http.ResponseWriter, request *http.Request) {
     }
     config := cache.Data().(*WechatCorpThirdPlatformConfig)
     redirectUrl := config.RedirectURL
-    redirectQuery := request.URL.RawQuery
 
-    // TODO auth_code for permanent_code
+    go wechatCorpThirdPlatformAuthorizeCreator(codeName, authCode)
 
     if 0 != len(redirectUrl) && 0 != len(redirectQuery) {
         redirectUrl = redirectUrl + "?" + redirectQuery
