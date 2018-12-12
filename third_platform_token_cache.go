@@ -195,7 +195,7 @@ func wechatThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface
         "WechatThirdPlatformAuthorizerTokenKey type error"} // key type error
     }
 
-    resultMap, err := db.Sql(queryWechatThirdPlatformAuthorizerTokenSQL).
+    resultMap, err := db.New().Sql(queryWechatThirdPlatformAuthorizerTokenSQL).
         Params(tokenKey.CodeName, tokenKey.AuthorizerAppId).Query()
     if nil != err || 1 != len(resultMap) {
         return nil, DefaultIfNil(err, &UnexpectedError{Message:
@@ -214,17 +214,17 @@ func wechatThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface
     isUpdated := "1" == updated
     if isExpired && isUpdated { // 已过期 && 是最新记录 -> 触发更新
         log.Info("Try to request and update WechatThirdPlatformAuthorizerToken:(%s)", Json(key))
-        count, err := db.Sql(updateWechatThirdPlatformAuthorizerTokenUpdating).
+        count, err := db.New().Sql(updateWechatThirdPlatformAuthorizerTokenUpdating).
             Params(tokenKey.CodeName, tokenKey.AuthorizerAppId).Execute()
         if nil == err && count > 0 {
             resultItem, err := wechatThirdPlatformRefreshAuthRequestor(
                 tokenKey.CodeName, tokenKey.AuthorizerAppId, authorizerRefreshToken)
             if nil != err {
-                db.Sql(uncompleteWechatThirdPlatformAuthorizerTokenSQL).
+                db.New().Sql(uncompleteWechatThirdPlatformAuthorizerTokenSQL).
                     Params(tokenKey.CodeName, tokenKey.AuthorizerAppId).Execute()
                 return nil, err
             }
-            count, err := db.Sql(completeWechatThirdPlatformAuthorizerTokenSQL).
+            count, err := db.New().Sql(completeWechatThirdPlatformAuthorizerTokenSQL).
                 Params(wechatThirdPlatformAuthorizerTokenCompleteParamBuilder(
                     resultItem, wechatThirdPlatformAuthorizerTokenLifeSpan,
                     tokenKey.CodeName, tokenKey.AuthorizerAppId)...).Execute()
@@ -252,14 +252,14 @@ func wechatThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface
 }
 
 func wechatThirdPlatformAuthorizerTokenCreator(codeName, authorizerAppId, authorizationCode interface{}) {
-    count, err := db.Sql(createWechatThirdPlatformAuthorizerTokenUpdating).
+    count, err := db.New().Sql(createWechatThirdPlatformAuthorizerTokenUpdating).
         Params(codeName, authorizerAppId).Execute()
     if nil != err { // 尝试插入记录失败, 则尝试更新记录
-        count, err = db.Sql(updateWechatThirdPlatformAuthorizerTokenUpdating).
+        count, err = db.New().Sql(updateWechatThirdPlatformAuthorizerTokenUpdating).
             Params(codeName, authorizerAppId).Execute()
         for nil != err || count < 1 { // 尝试更新记录失败, 则休眠(1 sec)后再次尝试更新记录
             time.Sleep(1 * time.Second)
-            count, err = db.Sql(updateWechatThirdPlatformAuthorizerTokenUpdating).
+            count, err = db.New().Sql(updateWechatThirdPlatformAuthorizerTokenUpdating).
                 Params(codeName, authorizerAppId).Execute()
         }
     }
@@ -267,12 +267,12 @@ func wechatThirdPlatformAuthorizerTokenCreator(codeName, authorizerAppId, author
     // 锁定成功, 开始更新
     resultItem, err := wechatThirdPlatformQueryAuthRequestor(codeName, authorizationCode)
     if nil != err {
-        db.Sql(uncompleteWechatThirdPlatformAuthorizerTokenSQL).
+        db.New().Sql(uncompleteWechatThirdPlatformAuthorizerTokenSQL).
             Params(codeName, authorizerAppId).Execute()
         log.Warn("Request WechatThirdPlatformAuthorizerToken Failed:(%s, %s) %s",
             codeName, authorizerAppId, err.Error())
     }
-    count, err = db.Sql(completeWechatThirdPlatformAuthorizerTokenSQL).
+    count, err = db.New().Sql(completeWechatThirdPlatformAuthorizerTokenSQL).
         Params(wechatThirdPlatformAuthorizerTokenCompleteParamBuilder(
             resultItem, wechatThirdPlatformAuthorizerTokenLifeSpan,
             codeName, authorizerAppId)...).Execute()

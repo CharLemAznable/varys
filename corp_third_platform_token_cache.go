@@ -185,7 +185,7 @@ func wechatCorpThirdPlatformPermanentCodeLoader(key interface{}, args ...interfa
         "WechatCorpThirdPlatformAuthorizerKey type error"} // key type error
     }
 
-    resultMap, err := db.Sql(queryWechatCorpThirdPlatformPermanentCodeSQL).
+    resultMap, err := db.New().Sql(queryWechatCorpThirdPlatformPermanentCodeSQL).
         Params(corpKey.CodeName, corpKey.CorpId).Query()
     if nil != err || 1 != len(resultMap) {
         return nil, DefaultIfNil(err, &UnexpectedError{Message:
@@ -223,7 +223,7 @@ func wechatCorpThirdPlatformCorpTokenLoader(key interface{}, args ...interface{}
         "WechatCorpThirdPlatformAuthorizerKey type error"} // key type error
     }
 
-    resultMap, err := db.Sql(queryWechatCorpThirdPlatformCorpTokenSQL).
+    resultMap, err := db.New().Sql(queryWechatCorpThirdPlatformCorpTokenSQL).
         Params(corpKey.CodeName, corpKey.CorpId).Query()
     if nil != err || 1 != len(resultMap) {
         return nil, DefaultIfNil(err, &UnexpectedError{Message:
@@ -249,10 +249,10 @@ func wechatCorpThirdPlatformCorpTokenLoader(key interface{}, args ...interface{}
         }
 
         expireTime, _ := Int64FromStr(resultItem["EXPIRE_TIME"])
-        count, err := db.Sql(updateWechatCorpThirdPlatformCorpTokenSQL).
+        count, err := db.New().Sql(updateWechatCorpThirdPlatformCorpTokenSQL).
             Params(resultItem["CORP_ACCESS_TOKEN"], expireTime, corpKey.CodeName, corpKey.CorpId).Execute()
         if nil != err || count < 1 { // 记录入库失败, 则查询记录并返回
-            resultMap, err := db.Sql(queryWechatCorpThirdPlatformCorpTokenSQL).
+            resultMap, err := db.New().Sql(queryWechatCorpThirdPlatformCorpTokenSQL).
                 Params(corpKey.CodeName, corpKey.CorpId).Query()
             if nil != err || 1 != len(resultMap) {
                 return nil, DefaultIfNil(err, &UnexpectedError{Message:

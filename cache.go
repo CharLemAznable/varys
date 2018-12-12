@@ -16,7 +16,7 @@ func configLoader(
     key interface{},
     args ...interface{}) (*gcache.CacheItem, error) {
 
-    resultMap, err := db.Sql(sql).Params(key).Query()
+    resultMap, err := db.New().Sql(sql).Params(key).Query()
     if nil != err || 1 != len(resultMap) {
         return nil, &UnexpectedError{Message:
         "Require " + name + " Config with key: " + key.(string)} // require config
@@ -48,10 +48,10 @@ func tokenLoader(
     key interface{},
     args ...interface{}) (*gcache.CacheItem, error) {
 
-    resultMap, err := db.Sql(querySql).Params(key).Query()
+    resultMap, err := db.New().Sql(querySql).Params(key).Query()
     if nil != err || 1 != len(resultMap) {
         log.Info("Try to request %s:(%s)", name, key)
-        count, err := db.Sql(createSql).Params(key).Execute()
+        count, err := db.New().Sql(createSql).Params(key).Execute()
         if nil == err && count > 0 {
             tokenItem, err := requestUpdater(name, uncompleteSql, completeSql, lifeSpan,
                 builder, requestor, completeParamBuilder, key, args...)
@@ -76,7 +76,7 @@ func tokenLoader(
     isUpdated := "1" == updated
     if isExpired && isUpdated { // 已过期 && 是最新记录 -> 触发更新
         log.Info("Try to request and update %s:(%s)", name, key)
-        count, err := db.Sql(updateSql).Params(key).Execute()
+        count, err := db.New().Sql(updateSql).Params(key).Execute()
         if nil == err && count > 0 {
             tokenItem, err := requestUpdater(name, uncompleteSql, completeSql, lifeSpan,
                 builder, requestor, completeParamBuilder, key, args...)
@@ -112,13 +112,13 @@ func requestUpdater(
 
     resultItem, err := requestor(key)
     if nil != err {
-        db.Sql(uncompleteSql).Params(key).Execute()
+        db.New().Sql(uncompleteSql).Params(key).Execute()
         return nil, err
     }
     // // 过期时间增量: token实际有效时长 - token缓存时长 * 缓存提前更新系数(1.1)
     // expireTimeInc := expiresIn - int(lifeSpan.Seconds()*1.1)
     // count, err := db.Sql(completeSql).Params(token, expireTimeInc, key).Execute()
-    count, err := db.Sql(completeSql).Params(completeParamBuilder(resultItem, lifeSpan, key)...).Execute()
+    count, err := db.New().Sql(completeSql).Params(completeParamBuilder(resultItem, lifeSpan, key)...).Execute()
     if nil != err {
         return nil, err
     }
@@ -148,7 +148,7 @@ func tokenLoaderStrict(
     key interface{},
     args ...interface{}) (*gcache.CacheItem, error) {
 
-    resultMap, err := db.Sql(querySql).Params(key).Query()
+    resultMap, err := db.New().Sql(querySql).Params(key).Query()
     if nil != err || 1 != len(resultMap) {
         log.Info("Try to request %s:(%s)", name, key)
 
@@ -197,9 +197,9 @@ func requestUpdaterStrict(
         return nil, err
     }
 
-    count, err := db.Sql(completeSql).Params(sqlParamBuilder(resultItem, key)...).Execute()
+    count, err := db.New().Sql(completeSql).Params(sqlParamBuilder(resultItem, key)...).Execute()
     if nil != err || count < 1 { // 记录入库失败, 则查询记录并返回
-        resultMap, err := db.Sql(querySql).Params(key).Query()
+        resultMap, err := db.New().Sql(querySql).Params(key).Query()
         if nil != err || 1 != len(resultMap) {
             return nil, DefaultIfNil(err, &UnexpectedError{
                 Message: fmt.Sprintf("Query %s:(%s) Failed", name, key)}).(error)

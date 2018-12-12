@@ -23,7 +23,7 @@ func load() {
     db = _db
 
     // query app config -> map[string]string
-    configs, err := db.Sql(`
+    configs, err := db.New().Sql(`
 SELECT C.CONFIG_NAME ,C.CONFIG_VALUE
   FROM APP_CONFIG C
  WHERE C.ENABLED = 1

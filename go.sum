@@ -10,6 +10,8 @@ github.com/CharLemAznable/goutils v0.0.2 h1:w8cc5C4pQfAlpFKT9pD0D6Uik0pQrEngONlG
 github.com/CharLemAznable/goutils v0.0.2/go.mod h1:5k65ATR9RePdTPxeel4ynWcaB/g1rrT+034kzs+sw5g=
 github.com/CharLemAznable/gql v0.0.1 h1:k+OsQT/6QVHD9CP001sYb8x7WMzH80hP2CVhBjiEmo4=
 github.com/CharLemAznable/gql v0.0.1/go.mod h1:zainiq/tZGLcbHvu0XdAwbRU4Xu6s0dkhTYTakmfHNQ=
+github.com/CharLemAznable/gql v0.0.2 h1:VZEFb4l9MIilS66jaRg/zqjZSuRhyrDSw+S98D+9MyQ=
+github.com/CharLemAznable/gql v0.0.2/go.mod h1:zainiq/tZGLcbHvu0XdAwbRU4Xu6s0dkhTYTakmfHNQ=
 github.com/CharLemAznable/httpreq v0.0.1 h1:ASEOgJAHS4HtBG/7DXi3Emak3AOK0gi8uLcW1OPSH0Q=
 github.com/CharLemAznable/httpreq v0.0.1/go.mod h1:fg5+er8nSSLNNYjLKWt9YLQb1E/4k6YOJQJPF1ig+JQ=
 github.com/CharLemAznable/httpreq v0.0.2 h1:lYygv+HyBBJWmiijLhun9Vk5R42gXnJXNZ64cgTmfPc=
