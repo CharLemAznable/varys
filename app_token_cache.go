@@ -6,53 +6,53 @@ import (
     "time"
 )
 
-var wechatAPITokenConfigLifeSpan = time.Minute * 60 // config cache 60 min default
-var wechatAPITokenLifeSpan = time.Minute * 5        // stable token cache 5 min default
-var wechatAPITokenTempLifeSpan = time.Minute * 1    // temporary token cache 1 min default
+var wechatAppTokenConfigLifeSpan = time.Minute * 60 // config cache 60 min default
+var wechatAppTokenLifeSpan = time.Minute * 5        // stable token cache 5 min default
+var wechatAppTokenTempLifeSpan = time.Minute * 1    // temporary token cache 1 min default
 
-var wechatAPITokenConfigCache *gcache.CacheTable
-var wechatAPITokenCache *gcache.CacheTable
+var wechatAppTokenConfigCache *gcache.CacheTable
+var wechatAppTokenCache *gcache.CacheTable
 
-func wechatAPITokenInitialize(configMap map[string]string) {
-    urlConfigLoader(configMap["wechatAPITokenURL"],
+func wechatAppTokenInitialize(configMap map[string]string) {
+    urlConfigLoader(configMap["wechatAppTokenURL"],
         func(configURL string) {
-            wechatAPITokenURL = configURL
+            wechatAppTokenURL = configURL
         })
 
     lifeSpanConfigLoader(
-        configMap["wechatAPITokenConfigLifeSpan"],
+        configMap["wechatAppTokenConfigLifeSpan"],
         func(configVal time.Duration) {
-            wechatAPITokenConfigLifeSpan = configVal * time.Minute
+            wechatAppTokenConfigLifeSpan = configVal * time.Minute
         })
     lifeSpanConfigLoader(
-        configMap["wechatAPITokenLifeSpan"],
+        configMap["wechatAppTokenLifeSpan"],
         func(configVal time.Duration) {
-            wechatAPITokenLifeSpan = configVal * time.Minute
+            wechatAppTokenLifeSpan = configVal * time.Minute
         })
     lifeSpanConfigLoader(
-        configMap["wechatAPITokenTempLifeSpan"],
+        configMap["wechatAppTokenTempLifeSpan"],
         func(configVal time.Duration) {
-            wechatAPITokenTempLifeSpan = configVal * time.Minute
+            wechatAppTokenTempLifeSpan = configVal * time.Minute
         })
 
-    wechatAPITokenConfigCache = gcache.CacheExpireAfterWrite("WechatAPITokenConfig")
-    wechatAPITokenConfigCache.SetDataLoader(wechatAPITokenConfigLoader)
-    wechatAPITokenCache = gcache.CacheExpireAfterWrite("wechatAPIToken")
-    wechatAPITokenCache.SetDataLoader(wechatAPITokenLoader)
+    wechatAppTokenConfigCache = gcache.CacheExpireAfterWrite("WechatAppTokenConfig")
+    wechatAppTokenConfigCache.SetDataLoader(wechatAppTokenConfigLoader)
+    wechatAppTokenCache = gcache.CacheExpireAfterWrite("wechatAppToken")
+    wechatAppTokenCache.SetDataLoader(wechatAppTokenLoader)
 }
 
-type WechatAPITokenConfig struct {
+type WechatAppTokenConfig struct {
     AppId     string
     AppSecret string
 }
 
-func wechatAPITokenConfigLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+func wechatAppTokenConfigLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
     return configLoader(
-        "WechatAPITokenConfig",
-        queryWechatAPITokenConfigSQL,
-        wechatAPITokenConfigLifeSpan,
+        "WechatAppTokenConfig",
+        queryWechatAppTokenConfigSQL,
+        wechatAppTokenConfigLifeSpan,
         func(resultItem map[string]string) interface{} {
-            config := new(WechatAPITokenConfig)
+            config := new(WechatAppTokenConfig)
             config.AppId = resultItem["APP_ID"]
             config.AppSecret = resultItem["APP_SECRET"]
             if 0 == len(config.AppId) || 0 == len(config.AppSecret) {
@@ -63,37 +63,37 @@ func wechatAPITokenConfigLoader(codeName interface{}, args ...interface{}) (*gca
         codeName, args...)
 }
 
-type WechatAPIToken struct {
+type WechatAppToken struct {
     AppId       string
     AccessToken string
 }
 
-func wechatAPITokenBuilder(resultItem map[string]string) interface{} {
-    tokenItem := new(WechatAPIToken)
+func wechatAppTokenBuilder(resultItem map[string]string) interface{} {
+    tokenItem := new(WechatAppToken)
     tokenItem.AppId = resultItem["APP_ID"]
     tokenItem.AccessToken = resultItem["ACCESS_TOKEN"]
     return tokenItem
 }
 
-func wechatAPITokenCompleteParamBuilder(resultItem map[string]string, lifeSpan time.Duration, key interface{}) []interface{} {
+func wechatAppTokenCompleteParamBuilder(resultItem map[string]string, lifeSpan time.Duration, key interface{}) []interface{} {
     expiresIn, _ := IntFromStr(resultItem["EXPIRES_IN"])
     return []interface{}{resultItem["ACCESS_TOKEN"],
         // 过期时间增量: token实际有效时长 - token缓存时长 * 缓存提前更新系数(1.1)
         expiresIn - int(lifeSpan.Seconds()*1.1), key}
 }
 
-func wechatAPITokenLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+func wechatAppTokenLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
     return tokenLoader(
-        "WechatAPIToken",
-        queryWechatAPITokenSQL,
-        createWechatAPITokenUpdating,
-        updateWechatAPITokenUpdating,
-        uncompleteWechatAPITokenSQL,
-        completeWechatAPITokenSQL,
-        wechatAPITokenLifeSpan,
-        wechatAPITokenTempLifeSpan,
-        wechatAPITokenBuilder,
-        wechatAPITokenRequestor,
-        wechatAPITokenCompleteParamBuilder,
+        "WechatAppToken",
+        queryWechatAppTokenSQL,
+        createWechatAppTokenSQL,
+        updateWechatAppTokenSQL,
+        uncompleteWechatAppTokenSQL,
+        completeWechatAppTokenSQL,
+        wechatAppTokenLifeSpan,
+        wechatAppTokenTempLifeSpan,
+        wechatAppTokenBuilder,
+        wechatAppTokenRequestor,
+        wechatAppTokenCompleteParamBuilder,
         codeName, args...)
 }

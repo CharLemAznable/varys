@@ -6,34 +6,34 @@ import (
     log "github.com/CharLemAznable/log4go"
 )
 
-var wechatAPITokenURL = "https://api.weixin.qq.com/cgi-bin/token"
+var wechatAppTokenURL = "https://api.weixin.qq.com/cgi-bin/token"
 
-type WechatAPITokenResponse struct {
+type WechatAppTokenResponse struct {
     AccessToken string `json:"access_token"`
     ExpiresIn   int    `json:"expires_in"`
 }
 
-func wechatAPITokenRequestor(codeName interface{}) (map[string]string, error) {
-    cache, err := wechatAPITokenConfigCache.Value(codeName)
+func wechatAppTokenRequestor(codeName interface{}) (map[string]string, error) {
+    cache, err := wechatAppTokenConfigCache.Value(codeName)
     if nil != err {
         return nil, err
     }
-    config := cache.Data().(*WechatAPITokenConfig)
+    config := cache.Data().(*WechatAppTokenConfig)
 
-    result, err := httpreq.New(wechatAPITokenURL).Params(
+    result, err := httpreq.New(wechatAppTokenURL).Params(
         "grant_type", "client_credential",
         "appid", config.AppId, "secret", config.AppSecret).
         Prop("Content-Type",
             "application/x-www-form-urlencoded").Get()
-    log.Trace("Request WechatAPIToken Response:(%s) %s", codeName, result)
+    log.Trace("Request WechatAppToken Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }
 
-    response := UnJson(result, new(WechatAPITokenResponse)).(*WechatAPITokenResponse)
+    response := UnJson(result, new(WechatAppTokenResponse)).(*WechatAppTokenResponse)
     if nil == response || 0 == len(response.AccessToken) {
         return nil, &UnexpectedError{Message:
-        "Request access_token Failed: " + result}
+        "Request WechatAppToken Failed: " + result}
     }
     return map[string]string{
         "APP_ID":       config.AppId,

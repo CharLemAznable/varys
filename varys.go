@@ -26,7 +26,7 @@ func NewVarys(path, port string) *varys {
     varysMux := http.NewServeMux()
     varysMux.Handle("/", http.FileServer(http.Dir("varys"))) // static resources
     varysMux.HandleFunc(_path+welcomePath, welcome)
-    varysMux.HandleFunc(_path+queryWechatAPITokenPath, queryWechatAPIToken)
+    varysMux.HandleFunc(_path+queryWechatAppTokenPath, queryWechatAppToken)
     varysMux.HandleFunc(_path+queryWechatAuthorizerTokenPath, queryWechatAuthorizerToken)
     varysMux.HandleFunc(_path+queryWechatCorpTokenPath, queryWechatCorpToken)
     varysMux.HandleFunc(_path+queryWechatCorpAuthorizerTokenPath, queryWechatCorpAuthorizerToken)
@@ -67,26 +67,26 @@ Who lives, who dies?
 `))
 }
 
-// /query-wechat-api-token/{codeName:string}
-const queryWechatAPITokenPath = "/query-wechat-api-token/"
+// /query-wechat-app-token/{codeName:string}
+const queryWechatAppTokenPath = "/query-wechat-app-token/"
 
-func queryWechatAPIToken(writer http.ResponseWriter, request *http.Request) {
+func queryWechatAppToken(writer http.ResponseWriter, request *http.Request) {
     writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-    codeName := strings.TrimPrefix(request.URL.Path, _path+queryWechatAPITokenPath)
+    codeName := strings.TrimPrefix(request.URL.Path, _path+queryWechatAppTokenPath)
     if 0 == len(codeName) {
         writer.Write([]byte(Json(map[string]string{
             "error": "codeName is Empty"})))
         return
     }
 
-    cache, err := wechatAPITokenCache.Value(codeName)
+    cache, err := wechatAppTokenCache.Value(codeName)
     if nil != err {
         writer.Write([]byte(Json(map[string]string{
             "error": err.Error()})))
         return
     }
-    token := cache.Data().(*WechatAPIToken)
+    token := cache.Data().(*WechatAppToken)
     writer.Write([]byte(Json(map[string]string{
         "appId": token.AppId, "token": token.AccessToken})))
 }

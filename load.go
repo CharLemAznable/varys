@@ -41,7 +41,7 @@ SELECT C.CONFIG_NAME ,C.CONFIG_VALUE
         }
     }
 
-    wechatAPITokenInitialize(configMap)
+    wechatAppTokenInitialize(configMap)
     wechatThirdPlatformAuthorizerTokenInitialize(configMap)
     wechatCorpTokenInitialize(configMap)
     wechatCorpThirdPlatformAuthorizerTokenInitialize(configMap)

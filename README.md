@@ -41,7 +41,7 @@
 http://localhost:4236/varys
 ```
 ```http
-/query-wechat-api-token/{codeName:string}
+/query-wechat-app-token/{codeName:string}
 
 获取指定codeName对应的公众号当前的access_token
 返回数据:
