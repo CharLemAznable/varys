@@ -162,9 +162,22 @@ func wechatCorpThirdPlatformAuthorizeCreator(codeName, authCode interface{}) {
         return
     }
 
-    enableWechatCorpThirdPlatformAuthorizer(codeName.(string), resultItem["CORP_ID"], resultItem["PERMANENT_CODE"])
+    corpId := resultItem["CORP_ID"]
+    enableWechatCorpThirdPlatformAuthorizer(codeName.(string), corpId, resultItem["PERMANENT_CODE"])
 
-    // TODO insert/upate access_token, cache it
+    accessToken := resultItem["ACCESS_TOKEN"]
+    expireTime := resultItem["EXPIRE_TIME"]
+    _, err = db.New().Sql(createWechatCorpThirdPlatformCorpTokenSQL).
+        Params(corpId, accessToken, expireTime, codeName).Execute()
+    if nil != err { // 尝试插入记录失败, 则尝试更新记录
+        log.Warn("Create WechatCorpThirdPlatformCorpToken Failed:(%s, corpId:%s) %s",
+            codeName, corpId, err.Error())
+
+        db.New().Sql(updateWechatCorpThirdPlatformCorpTokenSQL).
+            Params(accessToken, expireTime, codeName, corpId).Execute()
+        // 忽略更新记录的结果
+        // 如果当前存在有效期内的token, 则token不会被更新, 重复请求微信也会返回同样的token
+    }
 }
 
 type WechatCorpThirdPlatformAuthorizerKey struct {
@@ -256,7 +269,7 @@ func wechatCorpThirdPlatformCorpTokenLoader(key interface{}, args ...interface{}
                 Params(corpKey.CodeName, corpKey.CorpId).Query()
             if nil != err || 1 != len(resultMap) {
                 return nil, DefaultIfNil(err, &UnexpectedError{Message:
-                    fmt.Sprintf("Query WechatCorpThirdPlatformCorpToken:(%s) Failed", Json(key))}).(error)
+                fmt.Sprintf("Query WechatCorpThirdPlatformCorpToken:(%s) Failed", Json(key))}).(error)
             }
 
             resultItem := resultMap[0]

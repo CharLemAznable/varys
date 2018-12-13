@@ -29,6 +29,7 @@ func NewVarys(path, port string) *varys {
     varysMux.HandleFunc(_path+queryWechatAPITokenPath, queryWechatAPIToken)
     varysMux.HandleFunc(_path+queryWechatAuthorizerTokenPath, queryWechatAuthorizerToken)
     varysMux.HandleFunc(_path+queryWechatCorpTokenPath, queryWechatCorpToken)
+    varysMux.HandleFunc(_path+queryWechatCorpAuthorizerTokenPath, queryWechatCorpAuthorizerToken)
     varysMux.HandleFunc(_path+acceptAuthorizationPath, acceptAuthorization)
     varysMux.HandleFunc(_path+acceptCorpAuthorizationPath, acceptCorpAuthorization)
     varysMux.HandleFunc(_path+authorizeComponentScanPath, authorizeComponentScan)
@@ -111,9 +112,8 @@ func queryWechatAuthorizerToken(writer http.ResponseWriter, request *http.Reques
 
     codeName := ids[0]
     authorizerAppId := ids[1]
-    cache, err := wechatThirdPlatformAuthorizerTokenCache.
-        Value(WechatThirdPlatformAuthorizerTokenKey{
-            CodeName: codeName, AuthorizerAppId: authorizerAppId})
+    cache, err := wechatThirdPlatformAuthorizerTokenCache.Value(
+        WechatThirdPlatformAuthorizerTokenKey{CodeName: codeName, AuthorizerAppId: authorizerAppId})
     if nil != err {
         writer.Write([]byte(Json(map[string]string{
             "error": err.Error()})))
@@ -147,6 +147,40 @@ func queryWechatCorpToken(writer http.ResponseWriter, request *http.Request) {
     token := cache.Data().(*WechatCorpToken)
     writer.Write([]byte(Json(map[string]string{
         "corpId": token.CorpId, "token": token.AccessToken})))
+}
+
+// /query-wechat-corp-authorizer-token/{codeName:string}/{corpId:string}
+const queryWechatCorpAuthorizerTokenPath = "/query-wechat-corp-authorizer-token/"
+
+func queryWechatCorpAuthorizerToken(writer http.ResponseWriter, request *http.Request) {
+    writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+    pathParams := strings.TrimPrefix(request.URL.Path, _path+queryWechatCorpAuthorizerTokenPath)
+    if 0 == len(pathParams) {
+        writer.Write([]byte(Json(map[string]string{
+            "error": "Path Params is Empty"})))
+        return
+    }
+    ids := strings.Split(pathParams, "/")
+    if 2 != len(ids) {
+        writer.Write([]byte(Json(map[string]string{
+            "error": "Missing param codeName/corpId"})))
+        return
+    }
+
+    codeName := ids[0]
+    corpId := ids[1]
+    cache, err := wechatCorpThirdPlatformCorpTokenCache.Value(
+        WechatCorpThirdPlatformAuthorizerKey{CodeName: codeName, CorpId: corpId})
+    if nil != err {
+        writer.Write([]byte(Json(map[string]string{
+            "error": err.Error()})))
+        return
+    }
+    token := cache.Data().(*WechatCorpThirdPlatformCorpToken)
+    writer.Write([]byte(Json(map[string]string{
+        "suiteId": token.SuiteId, "corpId": token.CorpId,
+        "token": token.CorpAccessToken})))
 }
 
 // /accept-authorization/{codeName:string}

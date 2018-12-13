@@ -70,7 +70,16 @@ SELECT C.CODE_NAME  ,C.SUITE_ID
    AND C.CODE_NAME = ?
 `
 
-// TODO insert/upate access_token
+const createWechatCorpThirdPlatformCorpTokenSQL = `
+INSERT INTO WECHAT_CORP_THIRD_PLATFORM_CORP_TOKEN
+      (CODE_NAME    ,SUITE_ID
+      ,CORP_ID      ,CORP_ACCESS_TOKEN  ,EXPIRE_TIME)
+SELECT C.CODE_NAME  ,C.SUITE_ID
+      ,?            ,?                  ,FROM_UNIXTIME(?)
+  FROM WECHAT_CORP_THIRD_PLATFORM_CONFIG C
+ WHERE C.ENABLED   = 1
+   AND C.CODE_NAME = ?
+`
 
 const queryWechatCorpThirdPlatformPermanentCodeSQL = `
 SELECT A.SUITE_ID ,A.CORP_ID ,A.PERMANENT_CODE
