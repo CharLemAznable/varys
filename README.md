@@ -16,6 +16,8 @@
 
   1) 公众号配置缓存默认1小时
   2) access_token缓存默认5分钟, 当access_token即将过期并被其他分布式节点更新时缓存1分钟
+  
+  [app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/app_token_cache.go)
 
   包含微信第三方平台配置缓存和报文解密器缓存, 其中
 
@@ -26,6 +28,8 @@
 
   1) component_access_token缓存默认5分钟, 当component_access_token即将过期并被其他分布式节点更新时缓存1分钟
   2) authorizer_access_token缓存默认5分钟, 当authorizer_access_token即将过期并被其他分布式节点更新时缓存1分钟
+  
+  [app_third_platform_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/app_third_platform_token_cache.go)
   
   包含企业微信配置缓存和```access_token```缓存, 其中:
 
