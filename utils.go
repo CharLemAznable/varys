@@ -8,7 +8,7 @@ import (
     "net/http"
 )
 
-type WechatAuthorizeData struct {
+type WechatAppThirdPlatformAuthorizeData struct {
     XMLName                      xml.Name `xml:"xml"`
     AppId                        string   `xml:"AppId"`
     CreateTime                   string   `xml:"CreateTime"`
@@ -20,10 +20,10 @@ type WechatAuthorizeData struct {
     PreAuthCode                  string   `xml:"PreAuthCode"`
 }
 
-func parseWechatAuthorizeData(codeName string, request *http.Request) (*WechatAuthorizeData, error) {
-    cache, err := wechatThirdPlatformCryptorCache.Value(codeName)
+func parseWechatAppThirdPlatformAuthorizeData(codeName string, request *http.Request) (*WechatAppThirdPlatformAuthorizeData, error) {
+    cache, err := wechatAppThirdPlatformCryptorCache.Value(codeName)
     if nil != err {
-        log.Warn("GetWechatThirdPlatformCryptor error:(%s) %s", codeName, err.Error())
+        log.Warn("Load WechatAppThirdPlatformCryptor Cache error:(%s) %s", codeName, err.Error())
         return nil, err
     }
     cryptor := cache.Data().(*wechataes.WechatCryptor)
@@ -50,8 +50,8 @@ func parseWechatAuthorizeData(codeName string, request *http.Request) (*WechatAu
         return nil, err
     }
 
-    log.Info("微信推送消息(明文):(%s) %s", codeName, decryptMsg)
-    authorizeData := new(WechatAuthorizeData)
+    log.Info("WechatAppThirdPlatformAuthorizeData:(%s) %s", codeName, decryptMsg)
+    authorizeData := new(WechatAppThirdPlatformAuthorizeData)
     err = xml.Unmarshal([]byte(decryptMsg), authorizeData)
     if nil != err {
         log.Warn("Unmarshal DecryptMsg error:(%s) %s", codeName, err.Error())

@@ -26,21 +26,24 @@ func NewVarys(path, port string) *varys {
     varysMux := http.NewServeMux()
     varysMux.Handle("/", http.FileServer(http.Dir("varys"))) // static resources
     varysMux.HandleFunc(_path+welcomePath, welcome)
+
     varysMux.HandleFunc(_path+queryWechatAppTokenPath, queryWechatAppToken)
-    varysMux.HandleFunc(_path+queryWechatAuthorizerTokenPath, queryWechatAuthorizerToken)
+
+    varysMux.HandleFunc(_path+acceptAppAuthorizationPath, acceptAppAuthorization)
+    varysMux.HandleFunc(_path+appAuthorizeComponentScanPath, appAuthorizeComponentScan)
+    varysMux.HandleFunc(_path+appAuthorizeComponentLinkPath, appAuthorizeComponentLink)
+    varysMux.HandleFunc(_path+appAuthorizeRedirectPath, appAuthorizeRedirect)
+    varysMux.HandleFunc(_path+queryWechatAppAuthorizerTokenPath, queryWechatAppAuthorizerToken)
+
     varysMux.HandleFunc(_path+queryWechatCorpTokenPath, queryWechatCorpToken)
-    varysMux.HandleFunc(_path+queryWechatCorpAuthorizerTokenPath, queryWechatCorpAuthorizerToken)
-    varysMux.HandleFunc(_path+acceptAuthorizationPath, acceptAuthorization)
+
     varysMux.HandleFunc(_path+acceptCorpAuthorizationPath, acceptCorpAuthorization)
-    varysMux.HandleFunc(_path+authorizeComponentScanPath, authorizeComponentScan)
-    varysMux.HandleFunc(_path+authorizeComponentLinkPath, authorizeComponentLink)
-    varysMux.HandleFunc(_path+authorizeRedirectPath, authorizeRedirect)
     varysMux.HandleFunc(_path+authorizeCorpComponentPath, authorizeCorpComponent)
     varysMux.HandleFunc(_path+authorizeCorpRedirectPath, authorizeCorpRedirect)
-    varysServer := &http.Server{Addr: _port, Handler: varysMux}
+    varysMux.HandleFunc(_path+queryWechatCorpAuthorizerTokenPath, queryWechatCorpAuthorizerToken)
 
     varys := new(varys)
-    varys.server = varysServer
+    varys.server = &http.Server{Addr: _port, Handler: varysMux}
     return varys
 }
 
@@ -91,13 +94,160 @@ func queryWechatAppToken(writer http.ResponseWriter, request *http.Request) {
         "appId": token.AppId, "token": token.AccessToken})))
 }
 
-// /query-wechat-authorizer-token/{codeName:string}/{authorizerAppId:string}
-const queryWechatAuthorizerTokenPath = "/query-wechat-authorizer-token/"
+// /accept-app-authorization/{codeName:string}
+const acceptAppAuthorizationPath = "/accept-app-authorization/"
 
-func queryWechatAuthorizerToken(writer http.ResponseWriter, request *http.Request) {
+func acceptAppAuthorization(writer http.ResponseWriter, request *http.Request) {
+    codeName := strings.TrimPrefix(request.URL.Path, _path+acceptAppAuthorizationPath)
+    if 0 != len(codeName) {
+        authorizeData, err := parseWechatAppThirdPlatformAuthorizeData(codeName, request)
+        if nil == err {
+            switch authorizeData.InfoType {
+
+            case "component_verify_ticket":
+                updateWechatAppThirdPlatformTicket(codeName, authorizeData.ComponentVerifyTicket)
+
+            case "authorized":
+                AuthorizerAppid := authorizeData.AuthorizerAppid
+                AuthorizationCode := authorizeData.AuthorizationCode
+                enableWechatAppThirdPlatformAuthorizer(codeName,
+                    AuthorizerAppid, AuthorizationCode, authorizeData.PreAuthCode)
+                go wechatAppThirdPlatformAuthorizerTokenCreator(codeName,
+                    AuthorizerAppid, AuthorizationCode)
+
+            case "updateauthorized":
+                AuthorizerAppid := authorizeData.AuthorizerAppid
+                AuthorizationCode := authorizeData.AuthorizationCode
+                enableWechatAppThirdPlatformAuthorizer(codeName,
+                    AuthorizerAppid, AuthorizationCode, authorizeData.PreAuthCode)
+                go wechatAppThirdPlatformAuthorizerTokenCreator(codeName,
+                    AuthorizerAppid, AuthorizationCode)
+
+            case "unauthorized":
+                AuthorizerAppid := authorizeData.AuthorizerAppid
+                disableWechatAppThirdPlatformAuthorizer(codeName, AuthorizerAppid)
+                // delete cache
+                wechatAppThirdPlatformAuthorizerTokenCache.Delete(
+                    WechatAppThirdPlatformAuthorizerKey{
+                        CodeName: codeName, AuthorizerAppId: AuthorizerAppid})
+
+            }
+        }
+    }
+
+    // 接收到定时推送component_verify_ticket后必须直接返回字符串success
+    writer.Write([]byte("success"))
+}
+
+// /app-authorize-component-scan/{codeName:string}
+const appAuthorizeComponentScanPath = "/app-authorize-component-scan/"
+const scanRedirectPageHtmlFormat = `
+<html><head><script>
+    redirect_uri = location.href.substring(0, location.href.indexOf("/app-authorize-component-scan/")) + "/app-authorize-redirect/%s" + "%s";
+    location.replace(
+        "https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=%s&pre_auth_code=%s&redirect_uri=" + encodeURIComponent(redirect_uri)
+    );
+</script></head></html>
+`
+
+func appAuthorizeComponentScan(writer http.ResponseWriter, request *http.Request) {
+    codeName := strings.TrimPrefix(request.URL.Path, _path+appAuthorizeComponentScanPath)
+    if 0 == len(codeName) {
+        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
+        return
+    }
+
+    response, err := wechatAppThirdPlatformPreAuthCodeRequestor(codeName)
+    if nil != err {
+        writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
+        return
+    }
+    appId := response["APP_ID"]
+    preAuthCode := response["PRE_AUTH_CODE"]
+
+    redirectQuery := request.URL.RawQuery
+    if 0 != len(redirectQuery) {
+        redirectQuery = "?" + redirectQuery
+    }
+
+    writer.Write([]byte(fmt.Sprintf(scanRedirectPageHtmlFormat,
+        codeName, redirectQuery, appId, preAuthCode)))
+}
+
+// /app-authorize-component-link/{codeName:string}
+const appAuthorizeComponentLinkPath = "/app-authorize-component-link/"
+const linkRedirectPageHtmlFormat = `
+<html><head><script>
+    redirect_uri = location.href.substring(0, location.href.indexOf("/app-authorize-component-link/")) + "/app-authorize-redirect/%s" + "%s";
+    location.replace(
+        "https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid=%s&pre_auth_code=%s&redirect_uri=" + encodeURIComponent(redirect_uri) + "#wechat_redirect"
+    );
+</script></head></html>
+`
+
+func appAuthorizeComponentLink(writer http.ResponseWriter, request *http.Request) {
+    codeName := strings.TrimPrefix(request.URL.Path, _path+appAuthorizeComponentLinkPath)
+    if 0 == len(codeName) {
+        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
+        return
+    }
+
+    response, err := wechatAppThirdPlatformPreAuthCodeRequestor(codeName)
+    if nil != err {
+        writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
+        return
+    }
+    appId := response["APP_ID"]
+    preAuthCode := response["PRE_AUTH_CODE"]
+
+    redirectQuery := request.URL.RawQuery
+    if 0 != len(redirectQuery) {
+        redirectQuery = "?" + redirectQuery
+    }
+
+    writer.Write([]byte(fmt.Sprintf(linkRedirectPageHtmlFormat,
+        codeName, redirectQuery, appId, preAuthCode)))
+}
+
+// /authorize-redirect/{codeName:string}
+const appAuthorizeRedirectPath = "/app-authorize-redirect/"
+const appAuthorizedPageHtmlFormat = `
+<html><head><title>index</title><style type="text/css">
+    body{max-width:640px;margin:0 auto;font-size:14px;-webkit-text-size-adjust:none;-moz-text-size-adjust:none;-ms-text-size-adjust:none;text-size-adjust:none}
+    .tips{margin-top:40px;text-align:center;color:green}
+</style><script>var p="%s";0!=p.length&&location.replace(p);</script></head><body><div class="tips">授权成功</div></body></html>
+`
+
+func appAuthorizeRedirect(writer http.ResponseWriter, request *http.Request) {
+    codeName := strings.TrimPrefix(request.URL.Path, _path+appAuthorizeRedirectPath)
+    if 0 == len(codeName) {
+        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
+        return
+    }
+
+    cache, err := wechatAppThirdPlatformConfigCache.Value(codeName)
+    if nil != err {
+        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Illegal"})))
+        return
+    }
+    config := cache.Data().(*WechatAppThirdPlatformConfig)
+    redirectUrl := config.RedirectURL
+    redirectQuery := request.URL.RawQuery
+
+    if 0 != len(redirectUrl) && 0 != len(redirectQuery) {
+        redirectUrl = redirectUrl + "?" + redirectQuery
+    }
+
+    writer.Write([]byte(fmt.Sprintf(appAuthorizedPageHtmlFormat, redirectUrl)))
+}
+
+// /query-wechat-app-authorizer-token/{codeName:string}/{authorizerAppId:string}
+const queryWechatAppAuthorizerTokenPath = "/query-wechat-app-authorizer-token/"
+
+func queryWechatAppAuthorizerToken(writer http.ResponseWriter, request *http.Request) {
     writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-    pathParams := strings.TrimPrefix(request.URL.Path, _path+queryWechatAuthorizerTokenPath)
+    pathParams := strings.TrimPrefix(request.URL.Path, _path+queryWechatAppAuthorizerTokenPath)
     if 0 == len(pathParams) {
         writer.Write([]byte(Json(map[string]string{
             "error": "Path Params is Empty"})))
@@ -112,16 +262,17 @@ func queryWechatAuthorizerToken(writer http.ResponseWriter, request *http.Reques
 
     codeName := ids[0]
     authorizerAppId := ids[1]
-    cache, err := wechatThirdPlatformAuthorizerTokenCache.Value(
-        WechatThirdPlatformAuthorizerTokenKey{CodeName: codeName, AuthorizerAppId: authorizerAppId})
+    cache, err := wechatAppThirdPlatformAuthorizerTokenCache.Value(
+        WechatAppThirdPlatformAuthorizerKey{CodeName: codeName, AuthorizerAppId: authorizerAppId})
     if nil != err {
         writer.Write([]byte(Json(map[string]string{
             "error": err.Error()})))
         return
     }
-    token := cache.Data().(*WechatThirdPlatformAuthorizerToken)
+    token := cache.Data().(*WechatAppThirdPlatformAuthorizerToken)
     writer.Write([]byte(Json(map[string]string{
-        "appId": token.AppId, "authorizerAppId": token.AuthorizerAppId,
+        "appId": token.AppId,
+        "authorizerAppId": token.AuthorizerAppId,
         "token": token.AuthorizerAccessToken})))
 }
 
@@ -184,46 +335,6 @@ func queryWechatCorpAuthorizerToken(writer http.ResponseWriter, request *http.Re
 }
 
 // /accept-authorization/{codeName:string}
-const acceptAuthorizationPath = "/accept-authorization/"
-
-func acceptAuthorization(writer http.ResponseWriter, request *http.Request) {
-    codeName := strings.TrimPrefix(request.URL.Path, _path+acceptAuthorizationPath)
-    if 0 != len(codeName) {
-        authorizeData, err := parseWechatAuthorizeData(codeName, request)
-        if nil == err {
-            switch authorizeData.InfoType {
-
-            case "component_verify_ticket":
-                updateWechatThirdPlatformTicket(codeName, authorizeData.ComponentVerifyTicket)
-
-            case "authorized":
-                enableWechatThirdPlatformAuthorizer(codeName, authorizeData.AuthorizerAppid,
-                    authorizeData.AuthorizationCode, authorizeData.PreAuthCode)
-                go wechatThirdPlatformAuthorizerTokenCreator(codeName,
-                    authorizeData.AuthorizerAppid, authorizeData.AuthorizationCode)
-
-            case "updateauthorized":
-                enableWechatThirdPlatformAuthorizer(codeName, authorizeData.AuthorizerAppid,
-                    authorizeData.AuthorizationCode, authorizeData.PreAuthCode)
-                go wechatThirdPlatformAuthorizerTokenCreator(codeName,
-                    authorizeData.AuthorizerAppid, authorizeData.AuthorizationCode)
-
-            case "unauthorized":
-                disableWechatThirdPlatformAuthorizer(codeName, authorizeData.AuthorizerAppid)
-                // delete cache
-                wechatThirdPlatformAuthorizerTokenCache.Delete(
-                    WechatThirdPlatformAuthorizerTokenKey{
-                        CodeName: codeName, AuthorizerAppId: authorizeData.AuthorizerAppid})
-
-            }
-        }
-    }
-
-    // 接收到定时推送component_verify_ticket后必须直接返回字符串success
-    writer.Write([]byte("success"))
-}
-
-// /accept-authorization/{codeName:string}
 const acceptCorpAuthorizationPath = "/accept-corp-authorization/"
 
 func acceptCorpAuthorization(writer http.ResponseWriter, request *http.Request) {
@@ -259,108 +370,6 @@ func acceptCorpAuthorization(writer http.ResponseWriter, request *http.Request) 
     }
 
     writer.Write([]byte("success"))
-}
-
-// /authorize-component-scan/{codeName:string}
-const authorizeComponentScanPath = "/authorize-component-scan/"
-const scanRedirectPageHtmlFormat = `
-<html><head><script>
-    redirect_uri = location.href.substring(0, location.href.indexOf("/authorize-component-scan/")) + "/authorize-redirect/%s" + "%s";
-    location.replace(
-        "https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=%s&pre_auth_code=%s&redirect_uri=" + encodeURIComponent(redirect_uri)
-    );
-</script></head></html>
-`
-
-func authorizeComponentScan(writer http.ResponseWriter, request *http.Request) {
-    codeName := strings.TrimPrefix(request.URL.Path, _path+authorizeComponentScanPath)
-    if 0 == len(codeName) {
-        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
-        return
-    }
-
-    response, err := wechatThirdPlatformPreAuthCodeRequestor(codeName)
-    if nil != err {
-        writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
-        return
-    }
-    appId := response["APP_ID"]
-    preAuthCode := response["PRE_AUTH_CODE"]
-
-    redirectQuery := request.URL.RawQuery
-    if 0 != len(redirectQuery) {
-        redirectQuery = "?" + redirectQuery
-    }
-
-    writer.Write([]byte(fmt.Sprintf(scanRedirectPageHtmlFormat,
-        codeName, redirectQuery, appId, preAuthCode)))
-}
-
-// /authorize-component-link/{codeName:string}
-const authorizeComponentLinkPath = "/authorize-component-link/"
-const linkRedirectPageHtmlFormat = `
-<html><head><script>
-    redirect_uri = location.href.substring(0, location.href.indexOf("/authorize-component-link/")) + "/authorize-redirect/%s" + "%s";
-    location.replace(
-        "https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid=%s&pre_auth_code=%s&redirect_uri=" + encodeURIComponent(redirect_uri) + "#wechat_redirect"
-    );
-</script></head></html>
-`
-
-func authorizeComponentLink(writer http.ResponseWriter, request *http.Request) {
-    codeName := strings.TrimPrefix(request.URL.Path, _path+authorizeComponentLinkPath)
-    if 0 == len(codeName) {
-        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
-        return
-    }
-
-    response, err := wechatThirdPlatformPreAuthCodeRequestor(codeName)
-    if nil != err {
-        writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
-        return
-    }
-    appId := response["APP_ID"]
-    preAuthCode := response["PRE_AUTH_CODE"]
-
-    redirectQuery := request.URL.RawQuery
-    if 0 != len(redirectQuery) {
-        redirectQuery = "?" + redirectQuery
-    }
-
-    writer.Write([]byte(fmt.Sprintf(linkRedirectPageHtmlFormat,
-        codeName, redirectQuery, appId, preAuthCode)))
-}
-
-// /authorize-redirect/{codeName:string}
-const authorizeRedirectPath = "/authorize-redirect/"
-const authorizedPageHtmlFormat = `
-<html><head><title>index</title><style type="text/css">
-    body{max-width:640px;margin:0 auto;font-size:14px;-webkit-text-size-adjust:none;-moz-text-size-adjust:none;-ms-text-size-adjust:none;text-size-adjust:none}
-    .tips{margin-top:40px;text-align:center;color:green}
-</style><script>var p="%s";0!=p.length&&location.replace(p);</script></head><body><div class="tips">授权成功</div></body></html>
-`
-
-func authorizeRedirect(writer http.ResponseWriter, request *http.Request) {
-    codeName := strings.TrimPrefix(request.URL.Path, _path+authorizeRedirectPath)
-    if 0 == len(codeName) {
-        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
-        return
-    }
-
-    cache, err := wechatThirdPlatformConfigCache.Value(codeName)
-    if nil != err {
-        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Illegal"})))
-        return
-    }
-    config := cache.Data().(*WechatThirdPlatformConfig)
-    redirectUrl := config.RedirectURL
-    redirectQuery := request.URL.RawQuery
-
-    if 0 != len(redirectUrl) && 0 != len(redirectQuery) {
-        redirectUrl = redirectUrl + "?" + redirectQuery
-    }
-
-    writer.Write([]byte(fmt.Sprintf(authorizedPageHtmlFormat, redirectUrl)))
 }
 
 // /authorize-corp-component/{codeName:string}

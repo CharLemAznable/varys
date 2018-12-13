@@ -49,7 +49,37 @@ http://localhost:4236/varys
 错误: {"error": #ErrorMessage#}
 ```
 ```http
-/query-wechat-authorizer-token/{codeName:string}/{authorizerAppId:string}
+/accept-app-authorization/{codeName:string}
+
+第三方平台在微信配置的授权事件接收URL
+用于接收component_verify_ticket以及公众号对第三方平台进行授权、取消授权、更新授权的推送通知
+返回数据: "success"
+```
+```http
+/app-authorize-component-scan/{codeName:string}
+
+第三方平台扫码授权入口页面, 跳转到微信的扫码授权页面
+用于引导公众号和小程序管理员向第三方平台授权
+跳转页面地址:
+https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=#appId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/app-authorize-redirect/{codeName:string}#
+```
+```http
+/app-authorize-component-link/{codeName:string}
+
+第三方平台移动端链接授权入口页面, 跳转到微信的链接授权页面
+用于引导公众号和小程序管理员向第三方平台授权
+跳转页面地址:
+https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid=#appId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/app-authorize-redirect/{codeName:string}##wechat_redirect
+```
+```http
+/app-authorize-redirect/{codeName:string}
+
+第三方平台授权回调地址
+跳转页面地址:
+如果第三方平台配置了WECHAT_APP_THIRD_PLATFORM_CONFIG.REDIRECT_URL, 则跳转到此地址
+```
+```http
+/query-wechat-app-authorizer-token/{codeName:string}/{authorizerAppId:string}
 
 获取指定codeName对应的第三方平台所代理的authorizerAppId对应的公众号当前的authorizer_access_token
 返回数据:
@@ -63,36 +93,6 @@ http://localhost:4236/varys
 返回数据:
 成功: {"corpId": #corpId#, "token": #access_token#}
 错误: {"error": #ErrorMessage#}
-```
-```http
-/accept-authorization/{codeName:string}
-
-第三方平台在微信配置的授权事件接收URL
-用于接收component_verify_ticket以及公众号对第三方平台进行授权、取消授权、更新授权的推送通知
-返回数据: "success"
-```
-```http
-/authorize-component-scan/{codeName:string}
-
-第三方平台扫码授权入口页面, 跳转到微信的扫码授权页面
-用于引导公众号和小程序管理员向第三方平台授权
-跳转页面地址:
-https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=#appId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/authorize-redirect/{codeName:string}#
-```
-```http
-/authorize-component-link/{codeName:string}
-
-第三方平台移动端链接授权入口页面, 跳转到微信的链接授权页面
-用于引导公众号和小程序管理员向第三方平台授权
-跳转页面地址:
-https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid=#appId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/authorize-redirect/{codeName:string}##wechat_redirect
-```
-```http
-/authorize-redirect/{codeName:string}
-
-第三方平台授权回调地址
-跳转页面地址:
-如果第三方平台配置了WECHAT_THIRD_PLATFORM_CONFIG.REDIRECT_URL, 则跳转到此地址
 ```
 
   [varys.go](https://github.com/CharLemAznable/varys/blob/master/varys.go)
