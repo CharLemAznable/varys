@@ -28,6 +28,7 @@ UPDATE WECHAT_APP_TOKEN
    SET UPDATED      = 0
  WHERE CODE_NAME    = ?
    AND UPDATED      = 1
+   AND EXPIRE_TIME  < NOW()
 `
 
 const uncompleteWechatAppTokenSQL = `

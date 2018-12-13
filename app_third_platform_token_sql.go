@@ -43,6 +43,7 @@ UPDATE WECHAT_APP_THIRD_PLATFORM_TOKEN
    SET UPDATED      = 0
  WHERE CODE_NAME    = ?
    AND UPDATED      = 1
+   AND EXPIRE_TIME  < NOW()
 `
 
 const uncompleteWechatAppThirdPlatformTokenSQL = `
@@ -107,6 +108,7 @@ UPDATE WECHAT_APP_THIRD_PLATFORM_AUTHORIZER_TOKEN
  WHERE CODE_NAME            = ?
    AND AUTHORIZER_APP_ID    = ?
    AND UPDATED              = 1
+   AND EXPIRE_TIME          < NOW()
 `
 
 const uncompleteWechatAppThirdPlatformAuthorizerTokenSQL = `
@@ -136,4 +138,12 @@ SELECT A.CODE_NAME  ,A.APP_ID   ,A.AUTHORIZER_APP_ID    ,0
  WHERE A.AUTHORIZATION_STATE = 1
    AND A.CODE_NAME           = ?
    AND A.AUTHORIZER_APP_ID   = ?
+`
+
+const updateWechatAppThirdPlatformAuthorizerTokenForceSQL = `
+UPDATE WECHAT_APP_THIRD_PLATFORM_AUTHORIZER_TOKEN
+   SET UPDATED              = 0
+ WHERE CODE_NAME            = ?
+   AND AUTHORIZER_APP_ID    = ?
+   AND UPDATED              = 1
 `
