@@ -6,11 +6,11 @@ import (
     "time"
 )
 
-var wechatAppTokenConfigLifeSpan = time.Minute * 60 // config cache 60 min default
-var wechatAppTokenLifeSpan = time.Minute * 5        // stable token cache 5 min default
-var wechatAppTokenTempLifeSpan = time.Minute * 1    // temporary token cache 1 min default
+var wechatAppConfigLifeSpan = time.Minute * 60   // config cache 60 min default
+var wechatAppTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
+var wechatAppTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
 
-var wechatAppTokenConfigCache *gcache.CacheTable
+var wechatAppConfigCache *gcache.CacheTable
 var wechatAppTokenCache *gcache.CacheTable
 
 func wechatAppTokenInitialize(configMap map[string]string) {
@@ -20,9 +20,9 @@ func wechatAppTokenInitialize(configMap map[string]string) {
         })
 
     lifeSpanConfigLoader(
-        configMap["wechatAppTokenConfigLifeSpan"],
+        configMap["wechatAppConfigLifeSpan"],
         func(configVal time.Duration) {
-            wechatAppTokenConfigLifeSpan = configVal * time.Minute
+            wechatAppConfigLifeSpan = configVal * time.Minute
         })
     lifeSpanConfigLoader(
         configMap["wechatAppTokenLifeSpan"],
@@ -35,24 +35,24 @@ func wechatAppTokenInitialize(configMap map[string]string) {
             wechatAppTokenTempLifeSpan = configVal * time.Minute
         })
 
-    wechatAppTokenConfigCache = gcache.CacheExpireAfterWrite("WechatAppTokenConfig")
-    wechatAppTokenConfigCache.SetDataLoader(wechatAppTokenConfigLoader)
+    wechatAppConfigCache = gcache.CacheExpireAfterWrite("WechatAppConfig")
+    wechatAppConfigCache.SetDataLoader(wechatAppConfigLoader)
     wechatAppTokenCache = gcache.CacheExpireAfterWrite("wechatAppToken")
     wechatAppTokenCache.SetDataLoader(wechatAppTokenLoader)
 }
 
-type WechatAppTokenConfig struct {
+type WechatAppConfig struct {
     AppId     string
     AppSecret string
 }
 
-func wechatAppTokenConfigLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+func wechatAppConfigLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
     return configLoader(
-        "WechatAppTokenConfig",
-        queryWechatAppTokenConfigSQL,
-        wechatAppTokenConfigLifeSpan,
+        "WechatAppConfig",
+        queryWechatAppConfigSQL,
+        wechatAppConfigLifeSpan,
         func(resultItem map[string]string) interface{} {
-            config := new(WechatAppTokenConfig)
+            config := new(WechatAppConfig)
             config.AppId = resultItem["APP_ID"]
             config.AppSecret = resultItem["APP_SECRET"]
             if 0 == len(config.AppId) || 0 == len(config.AppSecret) {

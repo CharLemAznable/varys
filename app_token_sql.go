@@ -1,8 +1,8 @@
 package varys
 
-const queryWechatAppTokenConfigSQL = `
+const queryWechatAppConfigSQL = `
 SELECT C.APP_ID ,C.APP_SECRET
-  FROM WECHAT_APP_TOKEN_CONFIG C
+  FROM WECHAT_APP_CONFIG C
  WHERE C.ENABLED    = 1
    AND C.CODE_NAME  = ?
 `
@@ -18,7 +18,7 @@ const createWechatAppTokenSQL = `
 INSERT INTO WECHAT_APP_TOKEN
       (CODE_NAME    ,APP_ID     ,UPDATED)
 SELECT C.CODE_NAME  ,C.APP_ID   ,0
-  FROM WECHAT_APP_TOKEN_CONFIG C
+  FROM WECHAT_APP_CONFIG C
  WHERE C.ENABLED    = 1
    AND C.CODE_NAME  = ?
 `

@@ -14,11 +14,11 @@ type WechatAppTokenResponse struct {
 }
 
 func wechatAppTokenRequestor(codeName interface{}) (map[string]string, error) {
-    cache, err := wechatAppTokenConfigCache.Value(codeName)
+    cache, err := wechatAppConfigCache.Value(codeName)
     if nil != err {
         return nil, err
     }
-    config := cache.Data().(*WechatAppTokenConfig)
+    config := cache.Data().(*WechatAppConfig)
 
     result, err := httpreq.New(wechatAppTokenURL).Params(
         "grant_type", "client_credential",
