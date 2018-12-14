@@ -61,7 +61,7 @@ func parseWechatAppThirdPlatformAuthorizeData(codeName string, request *http.Req
     return authorizeData, nil
 }
 
-type WechatCorpAuthorizeData struct {
+type WechatCorpThirdPlatformAuthorizeData struct {
     XMLName     xml.Name `xml:"xml"`
     SuiteId     string   `xml:"SuiteId"`
     InfoType    string   `xml:"InfoType"`
@@ -72,10 +72,10 @@ type WechatCorpAuthorizeData struct {
     EchoStr     string
 }
 
-func parseWechatCorpAuthorizeData(codeName string, request *http.Request) (*WechatCorpAuthorizeData, error) {
+func parseWechatCorpThirdPlatformAuthorizeData(codeName string, request *http.Request) (*WechatCorpThirdPlatformAuthorizeData, error) {
     cache, err := wechatCorpThirdPlatformCryptorCache.Value(codeName)
     if nil != err {
-        log.Warn("GetWechatCorpThirdPlatformCryptor error:(%s) %s", codeName, err.Error())
+        log.Warn("Load WechatCorpThirdPlatformCryptor Cache error:(%s) %s", codeName, err.Error())
         return nil, err
     }
     cryptor := cache.Data().(*wechataes.WechatCryptor)
@@ -103,8 +103,8 @@ func parseWechatCorpAuthorizeData(codeName string, request *http.Request) (*Wech
             log.Warn("WechatCryptor DecryptMsg EchoStr error:(%s) %s", codeName, err.Error())
             return nil, err
         }
-        log.Info("企业微信验证消息(明文):(%s) %s", codeName, msg)
-        echoData := new(WechatCorpAuthorizeData)
+        log.Info("WechatCorpThirdPlatformVerifyEchoStrMsg:(%s) %s", codeName, msg)
+        echoData := new(WechatCorpThirdPlatformAuthorizeData)
         echoData.InfoType = "echostr"
         echoData.EchoStr = msg
         return echoData, nil
@@ -116,8 +116,8 @@ func parseWechatCorpAuthorizeData(codeName string, request *http.Request) (*Wech
         return nil, err
     }
 
-    log.Info("企业微信推送消息(明文):(%s) %s", codeName, decryptMsg)
-    authorizeData := new(WechatCorpAuthorizeData)
+    log.Info("WechatCorpThirdPlatformAuthorizeData:(%s) %s", codeName, decryptMsg)
+    authorizeData := new(WechatCorpThirdPlatformAuthorizeData)
     err = xml.Unmarshal([]byte(decryptMsg), authorizeData)
     if nil != err {
         log.Warn("Unmarshal DecryptMsg error:(%s) %s", codeName, err.Error())

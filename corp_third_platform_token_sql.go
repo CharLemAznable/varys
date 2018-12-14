@@ -23,29 +23,29 @@ SELECT T.TICKET
 `
 
 const queryWechatCorpThirdPlatformTokenSQL = `
-SELECT T.SUITE_ID ,T.SUITE_ACCESS_TOKEN 
+SELECT T.SUITE_ID ,T.ACCESS_TOKEN 
       ,UNIX_TIMESTAMP(T.EXPIRE_TIME) AS EXPIRE_TIME
   FROM WECHAT_CORP_THIRD_PLATFORM_TOKEN T
  WHERE T.CODE_NAME = ?
 `
 
-const createWechatCorpThirdPlatformTokenUpdating = `
+const createWechatCorpThirdPlatformTokenSQL = `
 INSERT INTO WECHAT_CORP_THIRD_PLATFORM_TOKEN
-      (CODE_NAME            ,SUITE_ID
-      ,SUITE_ACCESS_TOKEN   ,EXPIRE_TIME)
-SELECT C.CODE_NAME          ,C.SUITE_ID
-      ,?                    ,FROM_UNIXTIME(?)
+      (CODE_NAME    ,SUITE_ID
+      ,ACCESS_TOKEN ,EXPIRE_TIME)
+SELECT C.CODE_NAME  ,C.SUITE_ID
+      ,?            ,FROM_UNIXTIME(?)
   FROM WECHAT_CORP_THIRD_PLATFORM_CONFIG C
  WHERE C.ENABLED   = 1
    AND C.CODE_NAME = ?
 `
 
-const updateWechatCorpThirdPlatformTokenUpdating = `
+const updateWechatCorpThirdPlatformTokenSQL = `
 UPDATE WECHAT_CORP_THIRD_PLATFORM_TOKEN
-   SET SUITE_ACCESS_TOKEN   = ?
-      ,EXPIRE_TIME          = FROM_UNIXTIME(?)
- WHERE CODE_NAME            = ?
-   AND EXPIRE_TIME          < NOW()
+   SET ACCESS_TOKEN = ?
+      ,EXPIRE_TIME  = FROM_UNIXTIME(?)
+ WHERE CODE_NAME    = ?
+   AND EXPIRE_TIME  < NOW()
 `
 
 const enableWechatCorpThirdPlatformAuthorizerSQL = `

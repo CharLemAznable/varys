@@ -43,15 +43,15 @@ func wechatCorpThirdPlatformTokenRequestor(codeName interface{}) (map[string]str
     (*WechatCorpThirdPlatformTokenResponse)
     if nil == response || 0 == len(response.SuiteAccessToken) {
         return nil, &UnexpectedError{Message:
-        "Request suite_access_token Failed: " + result}
+        "Request WechatCorpThirdPlatformToken Failed: " + result}
     }
 
     // 过期时间增量: token实际有效时长
     expireTime := time.Now().Add(time.Duration(response.ExpiresIn) * time.Second).Unix()
     return map[string]string{
-        "SUITE_ID":           config.SuiteId,
-        "SUITE_ACCESS_TOKEN": response.SuiteAccessToken,
-        "EXPIRE_TIME":        StrFromInt64(expireTime)}, nil
+        "SUITE_ID":     config.SuiteId,
+        "ACCESS_TOKEN": response.SuiteAccessToken,
+        "EXPIRE_TIME":  StrFromInt64(expireTime)}, nil
 }
 
 var wechatCorpThirdPlatformPreAuthCodeURL = "https://qyapi.weixin.qq.com/cgi-bin/service/get_pre_auth_code?suite_access_token="
@@ -70,7 +70,7 @@ func wechatCorpThirdPlatformPreAuthCodeRequestor(codeName interface{}) (map[stri
     }
     tokenItem := cache.Data().(*WechatCorpThirdPlatformToken)
 
-    result, err := httpreq.New(wechatCorpThirdPlatformPreAuthCodeURL + tokenItem.SuiteAccessToken).Get()
+    result, err := httpreq.New(wechatCorpThirdPlatformPreAuthCodeURL + tokenItem.AccessToken).Get()
     log.Trace("Request WechatCorpThirdPlatformPreAuthCode Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
@@ -80,7 +80,7 @@ func wechatCorpThirdPlatformPreAuthCodeRequestor(codeName interface{}) (map[stri
     (*WechatCorpThirdPlatformPreAuthCodeResponse)
     if nil == response || 0 == len(response.PreAuthCode) {
         return nil, &UnexpectedError{Message:
-        "Request corp pre_auth_code Failed: " + result}
+        "Request WechatCorpThirdPlatformPreAuthCode Failed: " + result}
     }
     return map[string]string{
         "SUITE_ID":      tokenItem.SuiteId,
@@ -154,10 +154,10 @@ func wechatCorpThirdPlatformPermanentCodeRequestor(codeName, authCode interface{
     }
     tokenItem := cache.Data().(*WechatCorpThirdPlatformToken)
 
-    result, err := httpreq.New(wechatCorpThirdPlatformPermanentCodeURL + tokenItem.SuiteAccessToken).
+    result, err := httpreq.New(wechatCorpThirdPlatformPermanentCodeURL + tokenItem.AccessToken).
         RequestBody(Json(map[string]string{"auth_code": authCode.(string)})).
         Prop("Content-Type", "application/json").Post()
-    log.Trace("Request WechatCorpThirdPlatformQueryAuth Response:(%s) %s", codeName, result)
+    log.Trace("Request WechatCorpThirdPlatformPermanentCode Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }
@@ -165,7 +165,8 @@ func wechatCorpThirdPlatformPermanentCodeRequestor(codeName, authCode interface{
     response := UnJson(result, new(WechatCorpThirdPlatformPermanentCodeResponse)).
     (*WechatCorpThirdPlatformPermanentCodeResponse)
     if nil == response || 0 == len(response.PermanentCode) {
-        return nil, &UnexpectedError{Message: "Request corp permanent_code Failed: " + result}
+        return nil, &UnexpectedError{Message:
+            "Request WechatCorpThirdPlatformPermanentCode Failed: " + result}
     }
 
     // 过期时间增量: token实际有效时长
@@ -201,7 +202,7 @@ func wechatCorpThirdPlatformCorpTokenRequestor(codeName, corpId interface{}) (ma
     }
     codeItem := codeCache.Data().(*WechatCorpThirdPlatformPermanentCode)
 
-    result, err := httpreq.New(wechatCorpThirdPlatformCorpTokenURL + tokenItem.SuiteAccessToken).
+    result, err := httpreq.New(wechatCorpThirdPlatformCorpTokenURL + tokenItem.AccessToken).
         RequestBody(Json(map[string]string{
             "auth_corpid":    corpId.(string),
             "permanent_code": codeItem.PermanentCode})).
@@ -214,7 +215,7 @@ func wechatCorpThirdPlatformCorpTokenRequestor(codeName, corpId interface{}) (ma
     response := UnJson(result, new(WechatCorpThirdPlatformCorpTokenResponse)).
     (*WechatCorpThirdPlatformCorpTokenResponse)
     if nil == response || 0 == len(response.AccessToken) {
-        return nil, &UnexpectedError{Message: "Request corp access_token Failed: " + result}
+        return nil, &UnexpectedError{Message: "Request WechatCorpThirdPlatformCorpToken Failed: " + result}
     }
 
     // 过期时间增量: token实际有效时长

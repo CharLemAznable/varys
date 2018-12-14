@@ -38,6 +38,18 @@
 
   [corp_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/corp_token_cache.go)
 
+  包含企业微信第三方应用配置缓存和报文解密器缓存, 其中
+
+  1) 企业微信第三方应用配置缓存默认1小时
+  2) 企业微信第三方应用报文解密器缓存默认1小时
+
+  包含企业微信第三方应用```suite_access_token```/```access_token```缓存, 其中
+
+  1) suite_access_token缓存最大5分钟, 当suite_access_token即将过期时, 缓存时间最大至其有效期结束
+  2) access_token缓存最大5分钟, 当access_token即将过期时, 缓存时间最大至其有效期结束
+
+  [corp_third_platform_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/corp_third_platform_token_cache.go)
+
   #### 访问路径
 
   默认服务地址:
@@ -96,6 +108,36 @@ https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&compo
 获取指定codeName对应的企业微信当前的access_token
 返回数据:
 成功: {"corpId": #corpId#, "token": #access_token#}
+错误: {"error": #ErrorMessage#}
+```
+```http
+/accept-corp-authorization/{codeName:string}
+
+企业第三方应用在微信配置的授权事件接收URL
+用于接收suite_ticket以及企业微信对第三方应用进行授权、取消授权、更新授权的推送通知
+返回数据: "success"
+```
+```http
+/corp-authorize-component/{codeName:string}?state={state:string}
+
+企业第三方应用授权入口页面, 跳转到微信的授权页面
+用于引导企业微信管理员向第三方应用授权
+跳转页面地址:
+https://open.work.weixin.qq.com/3rdapp/install?suite_id=#suiteId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/corp-authorize-redirect/{codeName:string}#&state=#state#
+```
+```http
+/corp-authorize-redirect/{codeName:string}
+
+企业第三方应用授权回调地址
+跳转页面地址:
+如果第三方平台配置了WECHAT_CORP_THIRD_PLATFORM_CONFIG.REDIRECT_URL, 则跳转到此地址
+```
+```http
+/query-wechat-corp-authorizer-token/{codeName:string}/{corpId:string}
+
+获取指定codeName对应的企业第三方应用所代理的corpId对应的企业微信当前的access_token
+返回数据:
+成功: {"suiteId": #suiteId#, "corpId": #corpId#, "token": #access_token#}
 错误: {"error": #ErrorMessage#}
 ```
 
