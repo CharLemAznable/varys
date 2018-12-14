@@ -6,11 +6,11 @@ import (
     "time"
 )
 
-var wechatCorpTokenConfigLifeSpan = time.Minute * 60    // config cache 60 min default
+var wechatCorpConfigLifeSpan = time.Minute * 60         // config cache 60 min default
 var wechatCorpTokenMaxLifeSpan = time.Minute * 5        // stable token cache 5 min max
 var wechatCorpTokenExpireCriticalSpan = time.Second * 1 // token about to expire critical time span
 
-var wechatCorpTokenConfigCache *gcache.CacheTable
+var wechatCorpConfigCache *gcache.CacheTable
 var wechatCorpTokenCache *gcache.CacheTable
 
 func wechatCorpTokenInitialize(configMap map[string]string) {
@@ -20,9 +20,9 @@ func wechatCorpTokenInitialize(configMap map[string]string) {
         })
 
     lifeSpanConfigLoader(
-        configMap["wechatCorpTokenConfigLifeSpan"],
+        configMap["wechatCorpConfigLifeSpan"],
         func(configVal time.Duration) {
-            wechatCorpTokenConfigLifeSpan = configVal * time.Minute
+            wechatCorpConfigLifeSpan = configVal * time.Minute
         })
     lifeSpanConfigLoader(
         configMap["wechatCorpTokenMaxLifeSpan"],
@@ -35,24 +35,24 @@ func wechatCorpTokenInitialize(configMap map[string]string) {
             wechatCorpTokenExpireCriticalSpan = configVal * time.Second
         })
 
-    wechatCorpTokenConfigCache = gcache.CacheExpireAfterWrite("wechatCorpTokenConfig")
-    wechatCorpTokenConfigCache.SetDataLoader(wechatCorpTokenConfigLoader)
+    wechatCorpConfigCache = gcache.CacheExpireAfterWrite("wechatCorpConfig")
+    wechatCorpConfigCache.SetDataLoader(wechatCorpTokenConfigLoader)
     wechatCorpTokenCache = gcache.CacheExpireAfterWrite("wechatCorpToken")
     wechatCorpTokenCache.SetDataLoader(wechatCorpTokenLoader)
 }
 
-type WechatCorpTokenConfig struct {
+type WechatCorpConfig struct {
     CorpId     string
     CorpSecret string
 }
 
 func wechatCorpTokenConfigLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
     return configLoader(
-        "WechatCorpTokenConfig",
-        queryWechatCorpTokenConfigSQL,
-        wechatCorpTokenConfigLifeSpan,
+        "WechatCorpConfig",
+        queryWechatCorpConfigSQL,
+        wechatCorpConfigLifeSpan,
         func(resultItem map[string]string) interface{} {
-            config := new(WechatCorpTokenConfig)
+            config := new(WechatCorpConfig)
             config.CorpId = resultItem["CORP_ID"]
             config.CorpSecret = resultItem["CORP_SECRET"]
             if 0 == len(config.CorpId) || 0 == len(config.CorpSecret) {

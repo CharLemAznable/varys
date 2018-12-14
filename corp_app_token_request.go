@@ -17,11 +17,11 @@ type WechatCorpTokenResponse struct {
 }
 
 func wechatCorpTokenRequestor(codeName interface{}) (map[string]string, error) {
-    cache, err := wechatCorpTokenConfigCache.Value(codeName)
+    cache, err := wechatCorpConfigCache.Value(codeName)
     if nil != err {
         return nil, err
     }
-    config := cache.Data().(*WechatCorpTokenConfig)
+    config := cache.Data().(*WechatCorpConfig)
 
     result, err := httpreq.New(wechatCorpTokenURL).Params(
         "corpid", config.CorpId, "corpsecret", config.CorpSecret).

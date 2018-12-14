@@ -83,7 +83,7 @@ func tokenLoader(
             if nil != err {
                 return nil, err
             }
-            log.Info("Request %s:(%s) %s", name, key, Json(tokenItem))
+            log.Info("Request and Update %s:(%s) %s", name, key, Json(tokenItem))
             return gcache.NewCacheItem(key, lifeSpan, tokenItem), nil
         }
         log.Warn("Give up request and update %s:(%s), use Query result Temporarily", name, key)
@@ -152,8 +152,14 @@ func tokenLoaderStrict(
     if nil != err || 1 != len(resultMap) {
         log.Info("Try to request %s:(%s)", name, key)
 
-        return requestUpdaterStrict(name, querySql, createSql, maxLifeSpan,
+        tokenItem, err := requestUpdaterStrict(name, querySql, createSql,
             expireCriticalSpan, builder, requestor, sqlParamBuilder, key, args...)
+        if nil != err {
+            return nil, err
+        }
+        // 请求成功, 缓存最大缓存时长
+        log.Info("Request %s:(%s) %s", name, key, Json(tokenItem))
+        return gcache.NewCacheItem(key, maxLifeSpan, tokenItem), nil
     }
     log.Trace("Query %s:(%s) %s", name, key, resultMap)
 
@@ -168,8 +174,14 @@ func tokenLoaderStrict(
         time.Sleep(expireCriticalSpan) // 休眠后再请求最新的access_token
         log.Info("Try to request and update %s:(%s)", name, key)
 
-        return requestUpdaterStrict(name, querySql, updateSql, maxLifeSpan,
+        tokenItem, err := requestUpdaterStrict(name, querySql, updateSql,
             expireCriticalSpan, builder, requestor, sqlParamBuilder, key, args...)
+        if nil != err {
+            return nil, err
+        }
+        // 请求更新成功, 缓存最大缓存时长
+        log.Info("Request and Update %s:(%s) %s", name, key, Json(tokenItem))
+        return gcache.NewCacheItem(key, maxLifeSpan, tokenItem), nil
     }
 
     // token有效期少于最大缓存时长, 则仅缓存剩余有效期时长
@@ -183,13 +195,12 @@ func requestUpdaterStrict(
     name string,
     querySql string,
     completeSql string,
-    maxLifeSpan time.Duration,
     expireCriticalSpan time.Duration,
     builder func(resultItem map[string]string) interface{},
     requestor func(key interface{}) (map[string]string, error),
     sqlParamBuilder func(resultItem map[string]string, key interface{}) []interface{},
     key interface{},
-    args ...interface{}) (*gcache.CacheItem, error) {
+    args ...interface{}) (interface{}, error) {
 
     resultItem, err := requestor(key)
     if nil != err {
@@ -216,15 +227,8 @@ func requestUpdaterStrict(
                 fmt.Sprintf("Query %s:(%s) expireTime Failed", name, key)}
         }
 
-        // token有效期少于最大缓存时长, 则仅缓存剩余有效期时长
-        ls := Condition(effectiveSpan > maxLifeSpan, maxLifeSpan, effectiveSpan).(time.Duration)
-        tokenItem := builder(resultItem)
-        log.Info("Load %s Cache:(%s) %s, cache %3.1f min", name, key, Json(tokenItem), ls.Minutes())
-        return gcache.NewCacheItem(key, ls, tokenItem), nil
+        return builder(resultItem), nil
     }
 
-    // 记录入库成功, 缓存最大缓存时长
-    tokenItem := builder(resultItem)
-    log.Info("Load %s Cache:(%s) %s, cache %3.1f min", name, key, Json(tokenItem), maxLifeSpan.Minutes())
-    return gcache.NewCacheItem(key, maxLifeSpan, tokenItem), nil
+    return builder(resultItem), nil
 }
