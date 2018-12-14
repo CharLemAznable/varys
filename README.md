@@ -36,7 +36,7 @@
   1) 企业微信配置缓存默认1小时
   2) access_token缓存最大5分钟, 当access_token即将过期时, 缓存时间最大至其有效期结束
 
-  [cache.go](https://github.com/CharLemAznable/varys/blob/master/cache.go)
+  [corp_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/corp_token_cache.go)
 
   #### 访问路径
 
