@@ -1,5 +1,9 @@
 ## varys
 
+  [![Build Status](https://travis-ci.org/CharLemAznable/varys.svg?branch=master)](https://travis-ci.org/CharLemAznable/varys)
+  [![GitHub version](https://badge.fury.io/gh/CharLemAznable%2Fvarys.svg)](https://badge.fury.io/gh/CharLemAznable%2Fvarys)
+  [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
+
   AccessToken 中控服务器
 
   统一DB存储AccessToken, 支持分布式部署服务访问和更新.
