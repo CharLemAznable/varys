@@ -194,3 +194,15 @@ Default:
 ```bash
 $ nohup ./varys.linux.bin &
 ```
+
+  #### 其他
+
+  Java client: [varys-java-driver](https://github.com/CharLemAznable/varys-java-driver)
+  
+```xml
+<dependency>
+  <groupId>com.github.charlemaznable</groupId>
+  <artifactId>varys-java-driver</artifactId>
+  <version>0.0.1</version>
+</dependency>
+```
