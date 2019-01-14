@@ -5,10 +5,6 @@ go:
 install:
   - go get github.com/go-sql-driver/mysql
   - go get github.com/CharLemAznable/wechataes
-  - go get github.com/CharLemAznable/log4go
-  - go get github.com/CharLemAznable/httpreq
-  - go get github.com/CharLemAznable/gql
-  - go get github.com/CharLemAznable/goutils
-  - go get github.com/CharLemAznable/gcache
+  - go get github.com/CharLemAznable/gokits
   - go get github.com/CharLemAznable/varys
 script: go build
