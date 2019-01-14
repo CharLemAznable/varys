@@ -1,9 +1,7 @@
 package varys
 
 import (
-    . "github.com/CharLemAznable/goutils"
-    "github.com/CharLemAznable/httpreq"
-    log "github.com/CharLemAznable/log4go"
+    . "github.com/CharLemAznable/gokits"
     "time"
 )
 
@@ -28,13 +26,13 @@ func wechatCorpThirdPlatformTokenRequestor(codeName interface{}) (map[string]str
         return nil, err
     }
 
-    result, err := httpreq.New(wechatCorpThirdPlatformTokenURL).
+    result, err := NewHttpReq(wechatCorpThirdPlatformTokenURL).
         RequestBody(Json(map[string]string{
             "suite_id":     config.SuiteId,
             "suite_secret": config.SuiteSecret,
             "suite_ticket": ticket})).
         Prop("Content-Type", "application/json").Post()
-    log.Trace("Request WechatCorpThirdPlatformToken Response:(%s) %s", codeName, result)
+    LOG.Trace("Request WechatCorpThirdPlatformToken Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }
@@ -70,8 +68,8 @@ func wechatCorpThirdPlatformPreAuthCodeRequestor(codeName interface{}) (map[stri
     }
     tokenItem := cache.Data().(*WechatCorpThirdPlatformToken)
 
-    result, err := httpreq.New(wechatCorpThirdPlatformPreAuthCodeURL + tokenItem.AccessToken).Get()
-    log.Trace("Request WechatCorpThirdPlatformPreAuthCode Response:(%s) %s", codeName, result)
+    result, err := NewHttpReq(wechatCorpThirdPlatformPreAuthCodeURL + tokenItem.AccessToken).Get()
+    LOG.Trace("Request WechatCorpThirdPlatformPreAuthCode Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }
@@ -154,10 +152,10 @@ func wechatCorpThirdPlatformPermanentCodeRequestor(codeName, authCode interface{
     }
     tokenItem := cache.Data().(*WechatCorpThirdPlatformToken)
 
-    result, err := httpreq.New(wechatCorpThirdPlatformPermanentCodeURL + tokenItem.AccessToken).
+    result, err := NewHttpReq(wechatCorpThirdPlatformPermanentCodeURL + tokenItem.AccessToken).
         RequestBody(Json(map[string]string{"auth_code": authCode.(string)})).
         Prop("Content-Type", "application/json").Post()
-    log.Trace("Request WechatCorpThirdPlatformPermanentCode Response:(%s) %s", codeName, result)
+    LOG.Trace("Request WechatCorpThirdPlatformPermanentCode Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }
@@ -202,12 +200,12 @@ func wechatCorpThirdPlatformCorpTokenRequestor(codeName, corpId interface{}) (ma
     }
     codeItem := codeCache.Data().(*WechatCorpThirdPlatformPermanentCode)
 
-    result, err := httpreq.New(wechatCorpThirdPlatformCorpTokenURL + tokenItem.AccessToken).
+    result, err := NewHttpReq(wechatCorpThirdPlatformCorpTokenURL + tokenItem.AccessToken).
         RequestBody(Json(map[string]string{
             "auth_corpid":    corpId.(string),
             "permanent_code": codeItem.PermanentCode})).
         Prop("Content-Type", "application/json").Post()
-    log.Trace("Request WechatCorpThirdPlatformCorpToken Response:(%s, %s) %s", codeName, corpId, result)
+    LOG.Trace("Request WechatCorpThirdPlatformCorpToken Response:(%s, %s) %s", codeName, corpId, result)
     if nil != err {
         return nil, err
     }

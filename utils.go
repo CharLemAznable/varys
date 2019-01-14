@@ -2,7 +2,7 @@ package varys
 
 import (
     "encoding/xml"
-    log "github.com/CharLemAznable/log4go"
+    . "github.com/CharLemAznable/gokits"
     "github.com/CharLemAznable/wechataes"
     "io/ioutil"
     "net/http"
@@ -23,20 +23,20 @@ type WechatAppThirdPlatformAuthorizeData struct {
 func parseWechatAppThirdPlatformAuthorizeData(codeName string, request *http.Request) (*WechatAppThirdPlatformAuthorizeData, error) {
     cache, err := wechatAppThirdPlatformCryptorCache.Value(codeName)
     if nil != err {
-        log.Warn("Load WechatAppThirdPlatformCryptor Cache error:(%s) %s", codeName, err.Error())
+        LOG.Warn("Load WechatAppThirdPlatformCryptor Cache error:(%s) %s", codeName, err.Error())
         return nil, err
     }
     cryptor := cache.Data().(*wechataes.WechatCryptor)
 
     body, err := ioutil.ReadAll(request.Body)
     if nil != err {
-        log.Warn("Request read Body error:(%s) %s", codeName, err.Error())
+        LOG.Warn("Request read Body error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
     err = request.ParseForm()
     if nil != err {
-        log.Warn("Request ParseForm error:(%s) %s", codeName, err.Error())
+        LOG.Warn("Request ParseForm error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
@@ -46,15 +46,15 @@ func parseWechatAppThirdPlatformAuthorizeData(codeName string, request *http.Req
     nonce := params.Get("nonce")
     decryptMsg, err := cryptor.DecryptMsg(msgSign, timeStamp, nonce, string(body))
     if nil != err {
-        log.Warn("WechatCryptor DecryptMsg error:(%s) %s", codeName, err.Error())
+        LOG.Warn("WechatCryptor DecryptMsg error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
-    log.Info("WechatAppThirdPlatformAuthorizeData:(%s) %s", codeName, decryptMsg)
+    LOG.Info("WechatAppThirdPlatformAuthorizeData:(%s) %s", codeName, decryptMsg)
     authorizeData := new(WechatAppThirdPlatformAuthorizeData)
     err = xml.Unmarshal([]byte(decryptMsg), authorizeData)
     if nil != err {
-        log.Warn("Unmarshal DecryptMsg error:(%s) %s", codeName, err.Error())
+        LOG.Warn("Unmarshal DecryptMsg error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
@@ -75,20 +75,20 @@ type WechatCorpThirdPlatformAuthorizeData struct {
 func parseWechatCorpThirdPlatformAuthorizeData(codeName string, request *http.Request) (*WechatCorpThirdPlatformAuthorizeData, error) {
     cache, err := wechatCorpThirdPlatformCryptorCache.Value(codeName)
     if nil != err {
-        log.Warn("Load WechatCorpThirdPlatformCryptor Cache error:(%s) %s", codeName, err.Error())
+        LOG.Warn("Load WechatCorpThirdPlatformCryptor Cache error:(%s) %s", codeName, err.Error())
         return nil, err
     }
     cryptor := cache.Data().(*wechataes.WechatCryptor)
 
     body, err := ioutil.ReadAll(request.Body)
     if nil != err {
-        log.Warn("Request read Body error:(%s) %s", codeName, err.Error())
+        LOG.Warn("Request read Body error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
     err = request.ParseForm()
     if nil != err {
-        log.Warn("Request ParseForm error:(%s) %s", codeName, err.Error())
+        LOG.Warn("Request ParseForm error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
@@ -100,10 +100,10 @@ func parseWechatCorpThirdPlatformAuthorizeData(codeName string, request *http.Re
     if 0 != len(echostr) { // 验证推送URL
         msg, err := cryptor.DecryptMsgContent(msgSign, timeStamp, nonce, echostr)
         if nil != err {
-            log.Warn("WechatCryptor DecryptMsg EchoStr error:(%s) %s", codeName, err.Error())
+            LOG.Warn("WechatCryptor DecryptMsg EchoStr error:(%s) %s", codeName, err.Error())
             return nil, err
         }
-        log.Info("WechatCorpThirdPlatformVerifyEchoStrMsg:(%s) %s", codeName, msg)
+        LOG.Info("WechatCorpThirdPlatformVerifyEchoStrMsg:(%s) %s", codeName, msg)
         echoData := new(WechatCorpThirdPlatformAuthorizeData)
         echoData.InfoType = "echostr"
         echoData.EchoStr = msg
@@ -112,15 +112,15 @@ func parseWechatCorpThirdPlatformAuthorizeData(codeName string, request *http.Re
 
     decryptMsg, err := cryptor.DecryptMsg(msgSign, timeStamp, nonce, string(body))
     if nil != err {
-        log.Warn("WechatCryptor DecryptMsg error:(%s) %s", codeName, err.Error())
+        LOG.Warn("WechatCryptor DecryptMsg error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
-    log.Info("WechatCorpThirdPlatformAuthorizeData:(%s) %s", codeName, decryptMsg)
+    LOG.Info("WechatCorpThirdPlatformAuthorizeData:(%s) %s", codeName, decryptMsg)
     authorizeData := new(WechatCorpThirdPlatformAuthorizeData)
     err = xml.Unmarshal([]byte(decryptMsg), authorizeData)
     if nil != err {
-        log.Warn("Unmarshal DecryptMsg error:(%s) %s", codeName, err.Error())
+        LOG.Warn("Unmarshal DecryptMsg error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 

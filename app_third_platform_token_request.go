@@ -1,9 +1,7 @@
 package varys
 
 import (
-    . "github.com/CharLemAznable/goutils"
-    "github.com/CharLemAznable/httpreq"
-    log "github.com/CharLemAznable/log4go"
+    . "github.com/CharLemAznable/gokits"
 )
 
 var wechatAppThirdPlatformTokenURL = "https://api.weixin.qq.com/cgi-bin/component/api_component_token"
@@ -25,13 +23,13 @@ func wechatAppThirdPlatformTokenRequestor(codeName interface{}) (map[string]stri
         return nil, err
     }
 
-    result, err := httpreq.New(wechatAppThirdPlatformTokenURL).
+    result, err := NewHttpReq(wechatAppThirdPlatformTokenURL).
         RequestBody(Json(map[string]string{
             "component_appid":         config.AppId,
             "component_appsecret":     config.AppSecret,
             "component_verify_ticket": ticket})).
         Prop("Content-Type", "application/json").Post()
-    log.Trace("Request WechatAppThirdPlatformToken Response:(%s) %s", codeName, result)
+    LOG.Trace("Request WechatAppThirdPlatformToken Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }
@@ -62,10 +60,10 @@ func wechatAppThirdPlatformPreAuthCodeRequestor(codeName interface{}) (map[strin
     }
     tokenItem := cache.Data().(*WechatAppThirdPlatformToken)
 
-    result, err := httpreq.New(wechatAppThirdPlatformPreAuthCodeURL + tokenItem.AccessToken).
+    result, err := NewHttpReq(wechatAppThirdPlatformPreAuthCodeURL + tokenItem.AccessToken).
         RequestBody(Json(map[string]string{"component_appid": tokenItem.AppId})).
         Prop("Content-Type", "application/json").Post()
-    log.Trace("Request WechatAppThirdPlatformPreAuthCode Response:(%s) %s", codeName, result)
+    LOG.Trace("Request WechatAppThirdPlatformPreAuthCode Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }
@@ -111,12 +109,12 @@ func wechatAppThirdPlatformQueryAuthRequestor(codeName, authorizationCode interf
     }
     tokenItem := cache.Data().(*WechatAppThirdPlatformToken)
 
-    result, err := httpreq.New(wechatAppThirdPlatformQueryAuthURL + tokenItem.AccessToken).
+    result, err := NewHttpReq(wechatAppThirdPlatformQueryAuthURL + tokenItem.AccessToken).
         RequestBody(Json(map[string]string{
             "component_appid":    tokenItem.AppId,
             "authorization_code": authorizationCode.(string)})).
         Prop("Content-Type", "application/json").Post()
-    log.Trace("Request WechatAppThirdPlatformAuthorizerToken Response:(%s, ) %s", codeName, authorizationCode, result)
+    LOG.Trace("Request WechatAppThirdPlatformAuthorizerToken Response:(%s, ) %s", codeName, authorizationCode, result)
     if nil != err {
         return nil, err
     }
@@ -150,13 +148,13 @@ func wechatAppThirdPlatformRefreshAuthRequestor(codeName, authorizerAppId, autho
     }
     tokenItem := cache.Data().(*WechatAppThirdPlatformToken)
 
-    result, err := httpreq.New(wechatAppThirdPlatformRefreshAuthURL + tokenItem.AccessToken).
+    result, err := NewHttpReq(wechatAppThirdPlatformRefreshAuthURL + tokenItem.AccessToken).
         RequestBody(Json(map[string]string{
             "component_appid":          tokenItem.AppId,
             "authorizer_appid":         authorizerAppId,
             "authorizer_refresh_token": authorizerRefreshToken})).
         Prop("Content-Type", "application/json").Post()
-    log.Trace("Refresh WechatAppThirdPlatformAuthorizerToken Response:(%s, %s) %s", codeName, authorizerAppId, result)
+    LOG.Trace("Refresh WechatAppThirdPlatformAuthorizerToken Response:(%s, %s) %s", codeName, authorizerAppId, result)
     if nil != err {
         return nil, err
     }

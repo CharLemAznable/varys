@@ -1,9 +1,7 @@
 package varys
 
 import (
-    "github.com/CharLemAznable/gcache"
-    . "github.com/CharLemAznable/goutils"
-    log "github.com/CharLemAznable/log4go"
+    . "github.com/CharLemAznable/gokits"
     "github.com/CharLemAznable/wechataes"
     "time"
 )
@@ -15,10 +13,10 @@ var wechatAppThirdPlatformTokenTempLifeSpan = time.Minute * 1           // tempo
 var wechatAppThirdPlatformAuthorizerTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
 var wechatAppThirdPlatformAuthorizerTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
 
-var wechatAppThirdPlatformConfigCache *gcache.CacheTable
-var wechatAppThirdPlatformCryptorCache *gcache.CacheTable
-var wechatAppThirdPlatformTokenCache *gcache.CacheTable
-var wechatAppThirdPlatformAuthorizerTokenCache *gcache.CacheTable
+var wechatAppThirdPlatformConfigCache *CacheTable
+var wechatAppThirdPlatformCryptorCache *CacheTable
+var wechatAppThirdPlatformTokenCache *CacheTable
+var wechatAppThirdPlatformAuthorizerTokenCache *CacheTable
 
 func wechatAppThirdPlatformAuthorizerTokenInitialize(configMap map[string]string) {
     urlConfigLoader(configMap["wechatAppThirdPlatformTokenURL"],
@@ -69,13 +67,13 @@ func wechatAppThirdPlatformAuthorizerTokenInitialize(configMap map[string]string
             wechatAppThirdPlatformAuthorizerTokenTempLifeSpan = configVal * time.Minute
         })
 
-    wechatAppThirdPlatformConfigCache = gcache.CacheExpireAfterWrite("wechatAppThirdPlatformConfig")
+    wechatAppThirdPlatformConfigCache = CacheExpireAfterWrite("wechatAppThirdPlatformConfig")
     wechatAppThirdPlatformConfigCache.SetDataLoader(wechatAppThirdPlatformConfigLoader)
-    wechatAppThirdPlatformCryptorCache = gcache.CacheExpireAfterWrite("wechatAppThirdPlatformCryptor")
+    wechatAppThirdPlatformCryptorCache = CacheExpireAfterWrite("wechatAppThirdPlatformCryptor")
     wechatAppThirdPlatformCryptorCache.SetDataLoader(wechatAppThirdPlatformCryptorLoader)
-    wechatAppThirdPlatformTokenCache = gcache.CacheExpireAfterWrite("wechatAppThirdPlatformToken")
+    wechatAppThirdPlatformTokenCache = CacheExpireAfterWrite("wechatAppThirdPlatformToken")
     wechatAppThirdPlatformTokenCache.SetDataLoader(wechatAppThirdPlatformTokenLoader)
-    wechatAppThirdPlatformAuthorizerTokenCache = gcache.CacheExpireAfterWrite("wechatAppThirdPlatformAuthorizerToken")
+    wechatAppThirdPlatformAuthorizerTokenCache = CacheExpireAfterWrite("wechatAppThirdPlatformAuthorizerToken")
     wechatAppThirdPlatformAuthorizerTokenCache.SetDataLoader(wechatAppThirdPlatformAuthorizerTokenLoader)
 }
 
@@ -87,7 +85,7 @@ type WechatAppThirdPlatformConfig struct {
     RedirectURL string
 }
 
-func wechatAppThirdPlatformConfigLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+func wechatAppThirdPlatformConfigLoader(codeName interface{}, args ...interface{}) (*CacheItem, error) {
     return configLoader(
         "WechatAppThirdPlatformConfig",
         queryWechatAppThirdPlatformConfigSQL,
@@ -108,21 +106,21 @@ func wechatAppThirdPlatformConfigLoader(codeName interface{}, args ...interface{
         codeName, args...)
 }
 
-func wechatAppThirdPlatformCryptorLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+func wechatAppThirdPlatformCryptorLoader(codeName interface{}, args ...interface{}) (*CacheItem, error) {
     cache, err := wechatAppThirdPlatformConfigCache.Value(codeName)
     if nil != err {
         return nil, &UnexpectedError{Message:
         "Require WechatAppThirdPlatformConfig with key: " + codeName.(string)} // require config
     }
     config := cache.Data().(*WechatAppThirdPlatformConfig)
-    log.Trace("Query WechatAppThirdPlatformConfig Cache:(%s) %s", codeName, Json(config))
+    LOG.Trace("Query WechatAppThirdPlatformConfig Cache:(%s) %s", codeName, Json(config))
 
     cryptor, err := wechataes.NewWechatCryptor(config.AppId, config.Token, config.AesKey)
     if nil != err {
         return nil, err // require legal config
     }
-    log.Info("Load WechatAppThirdPlatformCryptor Cache:(%s) %s", codeName, cryptor)
-    return gcache.NewCacheItem(codeName, wechatAppThirdPlatformCryptorLifeSpan, cryptor), nil
+    LOG.Info("Load WechatAppThirdPlatformCryptor Cache:(%s) %s", codeName, cryptor)
+    return NewCacheItem(codeName, wechatAppThirdPlatformCryptorLifeSpan, cryptor), nil
 }
 
 type WechatAppThirdPlatformToken struct {
@@ -144,7 +142,7 @@ func wechatAppThirdPlatformTokenCompleteParamBuilder(resultItem map[string]strin
         expiresIn - int(lifeSpan.Seconds()*1.1), key}
 }
 
-func wechatAppThirdPlatformTokenLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+func wechatAppThirdPlatformTokenLoader(codeName interface{}, args ...interface{}) (*CacheItem, error) {
     return tokenLoader(
         "WechatAppThirdPlatformToken",
         queryWechatAppThirdPlatformTokenSQL,
@@ -188,7 +186,7 @@ func wechatAppThirdPlatformAuthorizerTokenCompleteParamBuilder(resultItem map[st
         expiresIn - int(lifeSpan.Seconds()*1.1), codeName, authorizerAppId}
 }
 
-func wechatAppThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+func wechatAppThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface{}) (*CacheItem, error) {
     tokenKey, ok := key.(WechatAppThirdPlatformAuthorizerKey)
     if !ok {
         return nil, &UnexpectedError{Message:
@@ -201,7 +199,7 @@ func wechatAppThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interf
         return nil, DefaultIfNil(err, &UnexpectedError{Message:
         "Unauthorized authorizer: " + Json(key)}).(error) // requires that the token already exists
     }
-    log.Trace("Query WechatAppThirdPlatformAuthorizerToken:(%s) %s", Json(key), resultMap)
+    LOG.Trace("Query WechatAppThirdPlatformAuthorizerToken:(%s) %s", Json(key), resultMap)
 
     resultItem := resultMap[0]
     authorizerRefreshToken := resultItem["AUTHORIZER_REFRESH_TOKEN"] // requires that the refresh token exists
@@ -213,7 +211,7 @@ func wechatAppThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interf
     isExpired := time.Now().Unix() > expireTime
     isUpdated := "1" == updated
     if isExpired && isUpdated { // 已过期 && 是最新记录 -> 触发更新
-        log.Info("Try to request and update WechatAppThirdPlatformAuthorizerToken:(%s)", Json(key))
+        LOG.Info("Try to request and update WechatAppThirdPlatformAuthorizerToken:(%s)", Json(key))
         count, err := db.New().Sql(updateWechatAppThirdPlatformAuthorizerTokenSQL).
             Params(tokenKey.CodeName, tokenKey.AuthorizerAppId).Execute()
         if nil == err && count > 0 {
@@ -234,10 +232,10 @@ func wechatAppThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interf
             }
 
             tokenItem := wechatAppThirdPlatformAuthorizerTokenBuilder(resultItem)
-            log.Info("Request WechatAppThirdPlatformAuthorizerToken:(%s) %s", Json(key), Json(tokenItem))
-            return gcache.NewCacheItem(key, wechatAppThirdPlatformAuthorizerTokenLifeSpan, tokenItem), nil
+            LOG.Info("Request WechatAppThirdPlatformAuthorizerToken:(%s) %s", Json(key), Json(tokenItem))
+            return NewCacheItem(key, wechatAppThirdPlatformAuthorizerTokenLifeSpan, tokenItem), nil
         }
-        log.Warn("Give up request and update WechatAppThirdPlatformAuthorizerToken:(%s), use Query result Temporarily", Json(key))
+        LOG.Warn("Give up request and update WechatAppThirdPlatformAuthorizerToken:(%s), use Query result Temporarily", Json(key))
     }
 
     // 未过期 || (已非最新记录 || 更新为旧记录失败)
@@ -247,8 +245,8 @@ func wechatAppThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interf
     ls := Condition(isExpired, wechatAppThirdPlatformAuthorizerTokenTempLifeSpan,
         wechatAppThirdPlatformAuthorizerTokenLifeSpan).(time.Duration)
     tokenItem := wechatAppThirdPlatformAuthorizerTokenBuilder(resultItem)
-    log.Info("Load WechatAppThirdPlatformAuthorizerToken Cache:(%s) %s, cache %3.1f min", Json(key), Json(tokenItem), ls.Minutes())
-    return gcache.NewCacheItem(key, ls, tokenItem), nil
+    LOG.Info("Load WechatAppThirdPlatformAuthorizerToken Cache:(%s) %s, cache %3.1f min", Json(key), Json(tokenItem), ls.Minutes())
+    return NewCacheItem(key, ls, tokenItem), nil
 }
 
 func wechatAppThirdPlatformAuthorizerTokenCreator(codeName, authorizerAppId, authorizationCode interface{}) {
@@ -270,7 +268,7 @@ func wechatAppThirdPlatformAuthorizerTokenCreator(codeName, authorizerAppId, aut
     if nil != err {
         db.New().Sql(uncompleteWechatAppThirdPlatformAuthorizerTokenSQL).
             Params(codeName, authorizerAppId).Execute()
-        log.Warn("Request WechatAppThirdPlatformAuthorizerToken Failed:(%s, %s) %s",
+        LOG.Warn("Request WechatAppThirdPlatformAuthorizerToken Failed:(%s, %s) %s",
             codeName, authorizerAppId, err.Error())
         return
     }
@@ -279,14 +277,14 @@ func wechatAppThirdPlatformAuthorizerTokenCreator(codeName, authorizerAppId, aut
             resultItem, wechatAppThirdPlatformAuthorizerTokenLifeSpan,
             codeName, authorizerAppId)...).Execute()
     if nil != err || count < 1 {
-        log.Warn("Record new WechatAppThirdPlatformAuthorizerToken Failed:(%s, %s) %s",
+        LOG.Warn("Record new WechatAppThirdPlatformAuthorizerToken Failed:(%s, %s) %s",
             codeName, authorizerAppId, DefaultIfNil(err, &UnexpectedError{Message:
             "Replace WechatAppThirdPlatformAuthorizerToken Failed"}).(error).Error())
         return
     }
 
     tokenItem := wechatAppThirdPlatformAuthorizerTokenBuilder(resultItem)
-    log.Info("Request WechatAppThirdPlatformAuthorizerToken:(%s, %s) %s",
+    LOG.Info("Request WechatAppThirdPlatformAuthorizerToken:(%s, %s) %s",
         codeName, authorizerAppId, Json(tokenItem))
     wechatAppThirdPlatformAuthorizerTokenCache.Add(WechatAppThirdPlatformAuthorizerKey{
         CodeName: codeName.(string), AuthorizerAppId: authorizerAppId.(string)},

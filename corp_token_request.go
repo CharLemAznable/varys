@@ -1,9 +1,7 @@
 package varys
 
 import (
-    . "github.com/CharLemAznable/goutils"
-    "github.com/CharLemAznable/httpreq"
-    log "github.com/CharLemAznable/log4go"
+    . "github.com/CharLemAznable/gokits"
     "time"
 )
 
@@ -23,11 +21,11 @@ func wechatCorpTokenRequestor(codeName interface{}) (map[string]string, error) {
     }
     config := cache.Data().(*WechatCorpConfig)
 
-    result, err := httpreq.New(wechatCorpTokenURL).Params(
+    result, err := NewHttpReq(wechatCorpTokenURL).Params(
         "corpid", config.CorpId, "corpsecret", config.CorpSecret).
         Prop("Content-Type",
             "application/x-www-form-urlencoded").Get()
-    log.Trace("Request WechatCorpToken Response:(%s) %s", codeName, result)
+    LOG.Trace("Request WechatCorpToken Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }

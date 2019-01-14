@@ -1,23 +1,21 @@
 package varys
 
 import (
-    . "github.com/CharLemAznable/goutils"
-    "github.com/CharLemAznable/gql"
-    log "github.com/CharLemAznable/log4go"
+    . "github.com/CharLemAznable/gokits"
     "os"
     "time"
 )
 
-var db *gql.Gql
+var db *Gql
 
 func load() {
-    log.LoadConfiguration("logback.xml")
+    LOG.LoadConfiguration("logback.xml")
 
     // init db config
-    gql.LoadConfigFile("gql.yaml")
-    _db, err := gql.Default()
+    LoadGqlConfigFile("gql.yaml")
+    _db, err := DefaultGql()
     if nil != err {
-        log.Error("Missing db config: Default in gql.yaml")
+        LOG.Error("Missing db config: Default in gql.yaml")
         os.Exit(-1)
     }
     db = _db
@@ -29,7 +27,7 @@ SELECT C.CONFIG_NAME ,C.CONFIG_VALUE
  WHERE C.ENABLED = 1
 `).Query()
     if nil != err {
-        log.Error("Query Configuration Err: %s", err.Error())
+        LOG.Error("Query Configuration Err: %s", err.Error())
         os.Exit(-1)
     }
     configMap := make(map[string]string)

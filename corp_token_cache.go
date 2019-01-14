@@ -1,8 +1,7 @@
 package varys
 
 import (
-    "github.com/CharLemAznable/gcache"
-    . "github.com/CharLemAznable/goutils"
+    . "github.com/CharLemAznable/gokits"
     "time"
 )
 
@@ -10,8 +9,8 @@ var wechatCorpConfigLifeSpan = time.Minute * 60         // config cache 60 min d
 var wechatCorpTokenMaxLifeSpan = time.Minute * 5        // stable token cache 5 min max
 var wechatCorpTokenExpireCriticalSpan = time.Second * 1 // token about to expire critical time span
 
-var wechatCorpConfigCache *gcache.CacheTable
-var wechatCorpTokenCache *gcache.CacheTable
+var wechatCorpConfigCache *CacheTable
+var wechatCorpTokenCache *CacheTable
 
 func wechatCorpTokenInitialize(configMap map[string]string) {
     urlConfigLoader(configMap["wechatCorpTokenURL"],
@@ -35,9 +34,9 @@ func wechatCorpTokenInitialize(configMap map[string]string) {
             wechatCorpTokenExpireCriticalSpan = configVal * time.Second
         })
 
-    wechatCorpConfigCache = gcache.CacheExpireAfterWrite("wechatCorpConfig")
+    wechatCorpConfigCache = CacheExpireAfterWrite("wechatCorpConfig")
     wechatCorpConfigCache.SetDataLoader(wechatCorpTokenConfigLoader)
-    wechatCorpTokenCache = gcache.CacheExpireAfterWrite("wechatCorpToken")
+    wechatCorpTokenCache = CacheExpireAfterWrite("wechatCorpToken")
     wechatCorpTokenCache.SetDataLoader(wechatCorpTokenLoader)
 }
 
@@ -46,7 +45,7 @@ type WechatCorpConfig struct {
     CorpSecret string
 }
 
-func wechatCorpTokenConfigLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+func wechatCorpTokenConfigLoader(codeName interface{}, args ...interface{}) (*CacheItem, error) {
     return configLoader(
         "WechatCorpConfig",
         queryWechatCorpConfigSQL,
@@ -80,7 +79,7 @@ func wechatCorpTokenSQLParamBuilder(resultItem map[string]string, codeName inter
     return []interface{}{resultItem["ACCESS_TOKEN"], expireTime, codeName}
 }
 
-func wechatCorpTokenLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+func wechatCorpTokenLoader(codeName interface{}, args ...interface{}) (*CacheItem, error) {
     return tokenLoaderStrict(
         "WechatCorpToken",
         queryWechatCorpTokenSQL,

@@ -1,9 +1,7 @@
 package varys
 
 import (
-    . "github.com/CharLemAznable/goutils"
-    "github.com/CharLemAznable/httpreq"
-    log "github.com/CharLemAznable/log4go"
+    . "github.com/CharLemAznable/gokits"
 )
 
 var wechatAppTokenURL = "https://api.weixin.qq.com/cgi-bin/token"
@@ -20,12 +18,12 @@ func wechatAppTokenRequestor(codeName interface{}) (map[string]string, error) {
     }
     config := cache.Data().(*WechatAppConfig)
 
-    result, err := httpreq.New(wechatAppTokenURL).Params(
+    result, err := NewHttpReq(wechatAppTokenURL).Params(
         "grant_type", "client_credential",
         "appid", config.AppId, "secret", config.AppSecret).
         Prop("Content-Type",
             "application/x-www-form-urlencoded").Get()
-    log.Trace("Request WechatAppToken Response:(%s) %s", codeName, result)
+    LOG.Trace("Request WechatAppToken Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }

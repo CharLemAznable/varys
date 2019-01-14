@@ -1,8 +1,7 @@
 package varys
 
 import (
-    "github.com/CharLemAznable/gcache"
-    . "github.com/CharLemAznable/goutils"
+    . "github.com/CharLemAznable/gokits"
     "time"
 )
 
@@ -10,8 +9,8 @@ var wechatAppConfigLifeSpan = time.Minute * 60   // config cache 60 min default
 var wechatAppTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
 var wechatAppTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
 
-var wechatAppConfigCache *gcache.CacheTable
-var wechatAppTokenCache *gcache.CacheTable
+var wechatAppConfigCache *CacheTable
+var wechatAppTokenCache *CacheTable
 
 func wechatAppTokenInitialize(configMap map[string]string) {
     urlConfigLoader(configMap["wechatAppTokenURL"],
@@ -35,9 +34,9 @@ func wechatAppTokenInitialize(configMap map[string]string) {
             wechatAppTokenTempLifeSpan = configVal * time.Minute
         })
 
-    wechatAppConfigCache = gcache.CacheExpireAfterWrite("WechatAppConfig")
+    wechatAppConfigCache = CacheExpireAfterWrite("WechatAppConfig")
     wechatAppConfigCache.SetDataLoader(wechatAppConfigLoader)
-    wechatAppTokenCache = gcache.CacheExpireAfterWrite("wechatAppToken")
+    wechatAppTokenCache = CacheExpireAfterWrite("wechatAppToken")
     wechatAppTokenCache.SetDataLoader(wechatAppTokenLoader)
 }
 
@@ -46,7 +45,7 @@ type WechatAppConfig struct {
     AppSecret string
 }
 
-func wechatAppConfigLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+func wechatAppConfigLoader(codeName interface{}, args ...interface{}) (*CacheItem, error) {
     return configLoader(
         "WechatAppConfig",
         queryWechatAppConfigSQL,
@@ -82,7 +81,7 @@ func wechatAppTokenCompleteParamBuilder(resultItem map[string]string, lifeSpan t
         expiresIn - int(lifeSpan.Seconds()*1.1), key}
 }
 
-func wechatAppTokenLoader(codeName interface{}, args ...interface{}) (*gcache.CacheItem, error) {
+func wechatAppTokenLoader(codeName interface{}, args ...interface{}) (*CacheItem, error) {
     return tokenLoader(
         "WechatAppToken",
         queryWechatAppTokenSQL,
