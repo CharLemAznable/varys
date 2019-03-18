@@ -6,67 +6,12 @@ import (
     "time"
 )
 
-var wechatAppThirdPlatformConfigLifeSpan = time.Minute * 60             // config cache 60 min default
-var wechatAppThirdPlatformCryptorLifeSpan = time.Minute * 60            // cryptor cache 60 min default
-var wechatAppThirdPlatformTokenLifeSpan = time.Minute * 5               // stable component token cache 5 min default
-var wechatAppThirdPlatformTokenTempLifeSpan = time.Minute * 1           // temporary component token cache 1 min default
-var wechatAppThirdPlatformAuthorizerTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
-var wechatAppThirdPlatformAuthorizerTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
-
 var wechatAppThirdPlatformConfigCache *CacheTable
 var wechatAppThirdPlatformCryptorCache *CacheTable
 var wechatAppThirdPlatformTokenCache *CacheTable
 var wechatAppThirdPlatformAuthorizerTokenCache *CacheTable
 
-func wechatAppThirdPlatformAuthorizerTokenInitialize(configMap map[string]string) {
-    urlConfigLoader(configMap["wechatAppThirdPlatformTokenURL"],
-        func(configURL string) {
-            wechatAppThirdPlatformTokenURL = configURL
-        })
-    urlConfigLoader(configMap["wechatAppThirdPlatformPreAuthCodeURL"],
-        func(configURL string) {
-            wechatAppThirdPlatformPreAuthCodeURL = configURL
-        })
-    urlConfigLoader(configMap["wechatAppThirdPlatformQueryAuthURL"],
-        func(configURL string) {
-            wechatAppThirdPlatformQueryAuthURL = configURL
-        })
-    urlConfigLoader(configMap["wechatAppThirdPlatformRefreshAuthURL"],
-        func(configURL string) {
-            wechatAppThirdPlatformRefreshAuthURL = configURL
-        })
-
-    lifeSpanConfigLoader(
-        configMap["wechatAppThirdPlatformConfigLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppThirdPlatformConfigLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppThirdPlatformCryptorLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppThirdPlatformCryptorLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppThirdPlatformTokenLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppThirdPlatformTokenLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppThirdPlatformTokenTempLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppThirdPlatformTokenTempLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppThirdPlatformAuthorizerTokenLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppThirdPlatformAuthorizerTokenLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppThirdPlatformAuthorizerTokenTempLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppThirdPlatformAuthorizerTokenTempLifeSpan = configVal * time.Minute
-        })
-
+func wechatAppThirdPlatformAuthorizerTokenInitialize() {
     wechatAppThirdPlatformConfigCache = CacheExpireAfterWrite("wechatAppThirdPlatformConfig")
     wechatAppThirdPlatformConfigCache.SetDataLoader(wechatAppThirdPlatformConfigLoader)
     wechatAppThirdPlatformCryptorCache = CacheExpireAfterWrite("wechatAppThirdPlatformCryptor")
@@ -135,6 +80,46 @@ func wechatAppThirdPlatformTokenBuilder(resultItem map[string]string) interface{
     return tokenItem
 }
 
+type WechatAppThirdPlatformTokenResponse struct {
+    ComponentAccessToken string `json:"component_access_token"`
+    ExpiresIn            int    `json:"expires_in"`
+}
+
+func wechatAppThirdPlatformTokenRequestor(codeName interface{}) (map[string]string, error) {
+    cache, err := wechatAppThirdPlatformConfigCache.Value(codeName)
+    if nil != err {
+        return nil, err
+    }
+    config := cache.Data().(*WechatAppThirdPlatformConfig)
+
+    ticket, err := queryWechatAppThirdPlatformTicket(codeName.(string))
+    if nil != err {
+        return nil, err
+    }
+
+    result, err := NewHttpReq(wechatAppThirdPlatformTokenURL).
+        RequestBody(Json(map[string]string{
+            "component_appid":         config.AppId,
+            "component_appsecret":     config.AppSecret,
+            "component_verify_ticket": ticket})).
+        Prop("Content-Type", "application/json").Post()
+    LOG.Trace("Request WechatAppThirdPlatformToken Response:(%s) %s", codeName, result)
+    if nil != err {
+        return nil, err
+    }
+
+    response := UnJson(result, new(WechatAppThirdPlatformTokenResponse)).
+    (*WechatAppThirdPlatformTokenResponse)
+    if nil == response || 0 == len(response.ComponentAccessToken) {
+        return nil, &UnexpectedError{Message:
+        "Request WechatAppThirdPlatformToken Failed: " + result}
+    }
+    return map[string]string{
+        "APP_ID":       config.AppId,
+        "ACCESS_TOKEN": response.ComponentAccessToken,
+        "EXPIRES_IN":   StrFromInt(response.ExpiresIn)}, nil
+}
+
 func wechatAppThirdPlatformTokenCompleteParamBuilder(resultItem map[string]string, lifeSpan time.Duration, key interface{}) []interface{} {
     expiresIn, _ := IntFromStr(resultItem["EXPIRES_IN"])
     return []interface{}{resultItem["ACCESS_TOKEN"],
@@ -142,6 +127,7 @@ func wechatAppThirdPlatformTokenCompleteParamBuilder(resultItem map[string]strin
         expiresIn - int(lifeSpan.Seconds()*1.1), key}
 }
 
+// 获取第三方平台component_access_token
 func wechatAppThirdPlatformTokenLoader(codeName interface{}, args ...interface{}) (*CacheItem, error) {
     return tokenLoader(
         "WechatAppThirdPlatformToken",
@@ -184,6 +170,44 @@ func wechatAppThirdPlatformAuthorizerTokenCompleteParamBuilder(resultItem map[st
         resultItem["AUTHORIZER_REFRESH_TOKEN"],
         // 过期时间增量: token实际有效时长 - token缓存时长 * 缓存提前更新系数(1.1)
         expiresIn - int(lifeSpan.Seconds()*1.1), codeName, authorizerAppId}
+}
+
+type WechatAppThirdPlatformRefreshAuthResponse struct {
+    AuthorizerAccessToken  string `json:"authorizer_access_token"`
+    ExpiresIn              int    `json:"expires_in"`
+    AuthorizerRefreshToken string `json:"authorizer_refresh_token"`
+}
+
+func wechatAppThirdPlatformRefreshAuthRequestor(codeName, authorizerAppId, authorizerRefreshToken string) (map[string]string, error) {
+    cache, err := wechatAppThirdPlatformTokenCache.Value(codeName)
+    if nil != err {
+        return nil, err
+    }
+    tokenItem := cache.Data().(*WechatAppThirdPlatformToken)
+
+    result, err := NewHttpReq(wechatAppThirdPlatformRefreshAuthURL + tokenItem.AccessToken).
+        RequestBody(Json(map[string]string{
+            "component_appid":          tokenItem.AppId,
+            "authorizer_appid":         authorizerAppId,
+            "authorizer_refresh_token": authorizerRefreshToken})).
+        Prop("Content-Type", "application/json").Post()
+    LOG.Trace("Refresh WechatAppThirdPlatformAuthorizerToken Response:(%s, %s) %s", codeName, authorizerAppId, result)
+    if nil != err {
+        return nil, err
+    }
+
+    response := UnJson(result, new(WechatAppThirdPlatformRefreshAuthResponse)).
+    (*WechatAppThirdPlatformRefreshAuthResponse)
+    if nil == response || 0 == len(response.AuthorizerAccessToken) {
+        return nil, &UnexpectedError{Message:
+        "Refresh WechatAppThirdPlatformAuthorizerToken Failed: " + result}
+    }
+    return map[string]string{
+        "APP_ID":                   tokenItem.AppId,
+        "AUTHORIZER_APPID":         authorizerAppId,
+        "AUTHORIZER_ACCESS_TOKEN":  response.AuthorizerAccessToken,
+        "AUTHORIZER_REFRESH_TOKEN": response.AuthorizerRefreshToken,
+        "EXPIRES_IN":               StrFromInt(response.ExpiresIn)}, nil
 }
 
 func wechatAppThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interface{}) (*CacheItem, error) {
@@ -247,6 +271,57 @@ func wechatAppThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interf
     tokenItem := wechatAppThirdPlatformAuthorizerTokenBuilder(resultItem)
     LOG.Info("Load WechatAppThirdPlatformAuthorizerToken Cache:(%s) %s, cache %3.1f min", Json(key), Json(tokenItem), ls.Minutes())
     return NewCacheItem(key, ls, tokenItem), nil
+}
+
+type WechatAppThirdPlatformQueryAuthResponse struct {
+    AuthorizationInfo AuthorizationInfo `json:"authorization_info"`
+}
+
+type AuthorizationInfo struct {
+    AuthorizerAppid        string     `json:"authorizer_appid"`
+    AuthorizerAccessToken  string     `json:"authorizer_access_token"`
+    ExpiresIn              int        `json:"expires_in"`
+    AuthorizerRefreshToken string     `json:"authorizer_refresh_token"`
+    FuncInfo               []FuncInfo `json:"func_info"`
+}
+
+type FuncInfo struct {
+    FuncscopeCategory FuncscopeCategory `json:"funcscope_category"`
+}
+
+type FuncscopeCategory struct {
+    Id int `json:"id"`
+}
+
+func wechatAppThirdPlatformQueryAuthRequestor(codeName, authorizationCode interface{}) (map[string]string, error) {
+    cache, err := wechatAppThirdPlatformTokenCache.Value(codeName)
+    if nil != err {
+        return nil, err
+    }
+    tokenItem := cache.Data().(*WechatAppThirdPlatformToken)
+
+    result, err := NewHttpReq(wechatAppThirdPlatformQueryAuthURL + tokenItem.AccessToken).
+        RequestBody(Json(map[string]string{
+            "component_appid":    tokenItem.AppId,
+            "authorization_code": authorizationCode.(string)})).
+        Prop("Content-Type", "application/json").Post()
+    LOG.Trace("Request WechatAppThirdPlatformAuthorizerToken Response:(%s, ) %s", codeName, authorizationCode, result)
+    if nil != err {
+        return nil, err
+    }
+
+    response := UnJson(result, new(WechatAppThirdPlatformQueryAuthResponse)).
+    (*WechatAppThirdPlatformQueryAuthResponse)
+    if nil == response || 0 == len(response.AuthorizationInfo.AuthorizerAccessToken) {
+        return nil, &UnexpectedError{Message:
+        "Request WechatAppThirdPlatformAuthorizerToken Failed: " + result}
+    }
+    return map[string]string{
+        "APP_ID":                   tokenItem.AppId,
+        "AUTHORIZER_APPID":         response.AuthorizationInfo.AuthorizerAppid,
+        "AUTHORIZER_ACCESS_TOKEN":  response.AuthorizationInfo.AuthorizerAccessToken,
+        "AUTHORIZER_REFRESH_TOKEN": response.AuthorizationInfo.AuthorizerRefreshToken,
+        "EXPIRES_IN":               StrFromInt(response.AuthorizationInfo.ExpiresIn)}, nil
 }
 
 func wechatAppThirdPlatformAuthorizerTokenCreator(codeName, authorizerAppId, authorizationCode interface{}) {

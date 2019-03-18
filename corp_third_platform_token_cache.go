@@ -7,74 +7,13 @@ import (
     "time"
 )
 
-var wechatCorpThirdPlatformConfigLifeSpan = time.Minute * 60             // config cache 60 min default
-var wechatCorpThirdPlatformCryptorLifeSpan = time.Minute * 60            // cryptor cache 60 min default
-var wechatCorpThirdPlatformTokenMaxLifeSpan = time.Minute * 5            // stable token cache 5 min max
-var wechatCorpThirdPlatformTokenExpireCriticalSpan = time.Second * 1     // token about to expire critical time span
-var wechatCorpThirdPlatformPermanentCodeLifeSpan = time.Minute * 60      // permanent_code cache 60 min default
-var wechatCorpThirdPlatformCorpTokenMaxLifeSpan = time.Minute * 5        // stable token cache 5 min max
-var wechatCorpThirdPlatformCorpTokenExpireCriticalSpan = time.Second * 1 // token about to expire critical time span
-
 var wechatCorpThirdPlatformConfigCache *CacheTable
 var wechatCorpThirdPlatformCryptorCache *CacheTable
 var wechatCorpThirdPlatformTokenCache *CacheTable
 var wechatCorpThirdPlatformPermanentCodeCache *CacheTable
 var wechatCorpThirdPlatformCorpTokenCache *CacheTable
 
-func wechatCorpThirdPlatformAuthorizerTokenInitialize(configMap map[string]string) {
-    urlConfigLoader(configMap["wechatCorpThirdPlatformTokenURL"],
-        func(configURL string) {
-            wechatCorpThirdPlatformTokenURL = configURL
-        })
-    urlConfigLoader(configMap["wechatCorpThirdPlatformPreAuthCodeURL"],
-        func(configURL string) {
-            wechatCorpThirdPlatformPreAuthCodeURL = configURL
-        })
-    urlConfigLoader(configMap["wechatCorpThirdPlatformPermanentCodeURL"],
-        func(configURL string) {
-            wechatCorpThirdPlatformPermanentCodeURL = configURL
-        })
-    urlConfigLoader(configMap["wechatCorpThirdPlatformCorpTokenURL"],
-        func(configURL string) {
-            wechatCorpThirdPlatformCorpTokenURL = configURL
-        })
-
-    lifeSpanConfigLoader(
-        configMap["wechatCorpThirdPlatformConfigLifeSpan"],
-        func(configVal time.Duration) {
-            wechatCorpThirdPlatformConfigLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatCorpThirdPlatformCryptorLifeSpan"],
-        func(configVal time.Duration) {
-            wechatCorpThirdPlatformCryptorLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatCorpThirdPlatformTokenMaxLifeSpan"],
-        func(configVal time.Duration) {
-            wechatCorpThirdPlatformTokenMaxLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatCorpThirdPlatformTokenExpireCriticalSpan"],
-        func(configVal time.Duration) {
-            wechatCorpThirdPlatformTokenExpireCriticalSpan = configVal * time.Second
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatCorpThirdPlatformPermanentCodeLifeSpan"],
-        func(configVal time.Duration) {
-            wechatCorpThirdPlatformPermanentCodeLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatCorpThirdPlatformCorpTokenMaxLifeSpan"],
-        func(configVal time.Duration) {
-            wechatCorpThirdPlatformCorpTokenMaxLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatCorpThirdPlatformCorpTokenExpireCriticalSpan"],
-        func(configVal time.Duration) {
-            wechatCorpThirdPlatformCorpTokenExpireCriticalSpan = configVal * time.Second
-        })
-
+func wechatCorpThirdPlatformAuthorizerTokenInitialize() {
     wechatCorpThirdPlatformConfigCache = CacheExpireAfterWrite("wechatCorpThirdPlatformConfig")
     wechatCorpThirdPlatformConfigCache.SetDataLoader(wechatCorpThirdPlatformConfigLoader)
     wechatCorpThirdPlatformCryptorCache = CacheExpireAfterWrite("wechatCorpThirdPlatformCryptor")
@@ -145,6 +84,51 @@ func wechatCorpThirdPlatformTokenBuilder(resultItem map[string]string) interface
     return tokenItem
 }
 
+type WechatCorpThirdPlatformTokenResponse struct {
+    Errcode          int    `json:"errcode"`
+    Errmsg           string `json:"errmsg"`
+    SuiteAccessToken string `json:"suite_access_token"`
+    ExpiresIn        int    `json:"expires_in"`
+}
+
+func wechatCorpThirdPlatformTokenRequestor(codeName interface{}) (map[string]string, error) {
+    cache, err := wechatCorpThirdPlatformConfigCache.Value(codeName)
+    if nil != err {
+        return nil, err
+    }
+    config := cache.Data().(*WechatCorpThirdPlatformConfig)
+
+    ticket, err := queryWechatCorpThirdPlatformTicket(codeName.(string))
+    if nil != err {
+        return nil, err
+    }
+
+    result, err := NewHttpReq(wechatCorpThirdPlatformTokenURL).
+        RequestBody(Json(map[string]string{
+            "suite_id":     config.SuiteId,
+            "suite_secret": config.SuiteSecret,
+            "suite_ticket": ticket})).
+        Prop("Content-Type", "application/json").Post()
+    LOG.Trace("Request WechatCorpThirdPlatformToken Response:(%s) %s", codeName, result)
+    if nil != err {
+        return nil, err
+    }
+
+    response := UnJson(result, new(WechatCorpThirdPlatformTokenResponse)).
+    (*WechatCorpThirdPlatformTokenResponse)
+    if nil == response || 0 == len(response.SuiteAccessToken) {
+        return nil, &UnexpectedError{Message:
+        "Request WechatCorpThirdPlatformToken Failed: " + result}
+    }
+
+    // 过期时间增量: token实际有效时长
+    expireTime := time.Now().Add(time.Duration(response.ExpiresIn) * time.Second).Unix()
+    return map[string]string{
+        "SUITE_ID":     config.SuiteId,
+        "ACCESS_TOKEN": response.SuiteAccessToken,
+        "EXPIRE_TIME":  StrFromInt64(expireTime)}, nil
+}
+
 func wechatCorpThirdPlatformTokenSQLParamBuilder(resultItem map[string]string, codeName interface{}) []interface{} {
     expireTime, _ := Int64FromStr(resultItem["EXPIRE_TIME"])
     return []interface{}{resultItem["ACCESS_TOKEN"], expireTime, codeName}
@@ -162,6 +146,95 @@ func wechatCorpThirdPlatformTokenLoader(codeName interface{}, args ...interface{
         wechatCorpThirdPlatformTokenRequestor,
         wechatCorpThirdPlatformTokenSQLParamBuilder,
         codeName, args...)
+}
+
+type WechatCorpThirdPlatformPermanentCodeResponse struct {
+    Errcode       int          `json:"errcode"`
+    Errmsg        string       `json:"errmsg"`
+    AccessToken   string       `json:"access_token"`
+    ExpiresIn     int          `json:"expires_in"`
+    PermanentCode string       `json:"permanent_code"`
+    AuthCorpInfo  AuthCorpInfo `json:"auth_corp_info"`
+    AuthInfo      AuthInfo     `json:"auth_info"`
+    AuthUserInfo  AuthUserInfo `json:"auth_user_info"`
+}
+
+type AuthCorpInfo struct {
+    Corpid            string `json:"corpid"`
+    CorpName          string `json:"corp_name"`
+    CorpType          string `json:"corp_type"`
+    CorpSquareLogoUrl string `json:"corp_square_logo_url"`
+    CorpUserMax       int    `json:"corp_user_max"`
+    CorpAgentMax      int    `json:"corp_agent_max"`
+    CorpFullName      string `json:"corp_full_name"`
+    VerifiedEndTime   int64  `json:"verified_end_time"`
+    SubjectType       int    `json:"subject_type"`
+    CorpWxqrcode      string `json:"corp_wxqrcode"`
+    CorpScale         string `json:"corp_scale"`
+    CorpIndustry      string `json:"corp_industry"`
+    CorpSubIndustry   string `json:"corp_sub_industry"`
+    Location          string `json:"location"`
+}
+
+type AuthInfo struct {
+    Agent []Agent `json:"agent"`
+}
+
+type Agent struct {
+    Agentid       int64     `json:"agentid"`
+    Name          string    `json:"name"`
+    RoundLogoUrl  string    `json:"round_logo_url"`
+    SquareLogoUrl string    `json:"square_logo_url"`
+    Appid         int64     `json:"appid"`
+    Privilege     Privilege `json:"privilege"`
+}
+
+type Privilege struct {
+    Level      int      `json:"level"`
+    AllowParty []int    `json:"allow_party"`
+    AllowUser  []string `json:"allow_user"`
+    AllowTag   []int    `json:"allow_tag"`
+    ExtraParty []int    `json:"extra_party"`
+    ExtraUser  []string `json:"extra_user"`
+    ExtraTag   []int    `json:"extra_tag"`
+}
+
+type AuthUserInfo struct {
+    Userid string `json:"userid"`
+    Name   string `json:"name"`
+    Avatar string `json:"avatar"`
+}
+
+func wechatCorpThirdPlatformPermanentCodeRequestor(codeName, authCode interface{}) (map[string]string, error) {
+    cache, err := wechatCorpThirdPlatformTokenCache.Value(codeName)
+    if nil != err {
+        return nil, err
+    }
+    tokenItem := cache.Data().(*WechatCorpThirdPlatformToken)
+
+    result, err := NewHttpReq(wechatCorpThirdPlatformPermanentCodeURL + tokenItem.AccessToken).
+        RequestBody(Json(map[string]string{"auth_code": authCode.(string)})).
+        Prop("Content-Type", "application/json").Post()
+    LOG.Trace("Request WechatCorpThirdPlatformPermanentCode Response:(%s) %s", codeName, result)
+    if nil != err {
+        return nil, err
+    }
+
+    response := UnJson(result, new(WechatCorpThirdPlatformPermanentCodeResponse)).
+    (*WechatCorpThirdPlatformPermanentCodeResponse)
+    if nil == response || 0 == len(response.PermanentCode) {
+        return nil, &UnexpectedError{Message:
+        "Request WechatCorpThirdPlatformPermanentCode Failed: " + result}
+    }
+
+    // 过期时间增量: token实际有效时长
+    expireTime := time.Now().Add(time.Duration(response.ExpiresIn) * time.Second).Unix()
+    return map[string]string{
+        "SUITE_ID":       tokenItem.SuiteId,
+        "CORP_ID":        response.AuthCorpInfo.Corpid,
+        "PERMANENT_CODE": response.PermanentCode,
+        "ACCESS_TOKEN":   response.AccessToken,
+        "EXPIRE_TIME":    StrFromInt64(expireTime)}, nil
 }
 
 func wechatCorpThirdPlatformAuthorizeCreator(codeName, authCode interface{}) {
@@ -237,6 +310,52 @@ func wechatCorpThirdPlatformCorpTokenBuilder(resultItem map[string]string) inter
     tokenItem.CorpId = resultItem["CORP_ID"]
     tokenItem.CorpAccessToken = resultItem["CORP_ACCESS_TOKEN"]
     return tokenItem
+}
+
+type WechatCorpThirdPlatformCorpTokenResponse struct {
+    Errcode     int    `json:"errcode"`
+    Errmsg      string `json:"errmsg"`
+    AccessToken string `json:"access_token"`
+    ExpiresIn   int    `json:"expires_in"`
+}
+
+func wechatCorpThirdPlatformCorpTokenRequestor(codeName, corpId interface{}) (map[string]string, error) {
+    tokenCache, err := wechatCorpThirdPlatformTokenCache.Value(codeName)
+    if nil != err {
+        return nil, err
+    }
+    tokenItem := tokenCache.Data().(*WechatCorpThirdPlatformToken)
+
+    codeCache, err := wechatCorpThirdPlatformPermanentCodeCache.Value(
+        WechatCorpThirdPlatformAuthorizerKey{CodeName: codeName.(string), CorpId: corpId.(string)})
+    if nil != err {
+        return nil, err
+    }
+    codeItem := codeCache.Data().(*WechatCorpThirdPlatformPermanentCode)
+
+    result, err := NewHttpReq(wechatCorpThirdPlatformCorpTokenURL + tokenItem.AccessToken).
+        RequestBody(Json(map[string]string{
+            "auth_corpid":    corpId.(string),
+            "permanent_code": codeItem.PermanentCode})).
+        Prop("Content-Type", "application/json").Post()
+    LOG.Trace("Request WechatCorpThirdPlatformCorpToken Response:(%s, %s) %s", codeName, corpId, result)
+    if nil != err {
+        return nil, err
+    }
+
+    response := UnJson(result, new(WechatCorpThirdPlatformCorpTokenResponse)).
+    (*WechatCorpThirdPlatformCorpTokenResponse)
+    if nil == response || 0 == len(response.AccessToken) {
+        return nil, &UnexpectedError{Message: "Request WechatCorpThirdPlatformCorpToken Failed: " + result}
+    }
+
+    // 过期时间增量: token实际有效时长
+    expireTime := time.Now().Add(time.Duration(response.ExpiresIn) * time.Second).Unix()
+    return map[string]string{
+        "SUITE_ID":          tokenItem.SuiteId,
+        "CORP_ID":           corpId.(string),
+        "CORP_ACCESS_TOKEN": response.AccessToken,
+        "EXPIRE_TIME":       StrFromInt64(expireTime)}, nil
 }
 
 func wechatCorpThirdPlatformCorpTokenLoader(key interface{}, args ...interface{}) (*CacheItem, error) {

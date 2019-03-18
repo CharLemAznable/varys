@@ -69,6 +69,11 @@ http://localhost:4236/varys
 错误: {"error": #ErrorMessage#}
 ```
 ```http
+/proxy-wechat-app/{codeName:string}/...
+
+代理指定codeName对应的公众号微信接口, 自动添加access_token参数
+```
+```http
 /accept-app-authorization/{codeName:string}
 
 第三方平台在微信配置的授权事件接收URL
@@ -115,6 +120,11 @@ https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&compo
 错误: {"error": #ErrorMessage#}
 ```
 ```http
+/proxy-wechat-corp/{codeName:string}/...
+
+代理指定codeName对应的企业微信接口, 自动添加access_token参数
+```
+```http
 /accept-corp-authorization/{codeName:string}
 
 企业第三方应用在微信配置的授权事件接收URL
@@ -144,8 +154,6 @@ https://open.work.weixin.qq.com/3rdapp/install?suite_id=#suiteId#&pre_auth_code=
 成功: {"suiteId": #suiteId#, "corpId": #corpId#, "token": #access_token#}
 错误: {"error": #ErrorMessage#}
 ```
-
-  [varys.go](https://github.com/CharLemAznable/varys/blob/master/varys.go)
 
   #### 打包部署
 

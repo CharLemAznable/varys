@@ -5,35 +5,10 @@ import (
     "time"
 )
 
-var wechatAppConfigLifeSpan = time.Minute * 60   // config cache 60 min default
-var wechatAppTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
-var wechatAppTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
-
 var wechatAppConfigCache *CacheTable
 var wechatAppTokenCache *CacheTable
 
-func wechatAppTokenInitialize(configMap map[string]string) {
-    urlConfigLoader(configMap["wechatAppTokenURL"],
-        func(configURL string) {
-            wechatAppTokenURL = configURL
-        })
-
-    lifeSpanConfigLoader(
-        configMap["wechatAppConfigLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppConfigLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppTokenLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppTokenLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppTokenTempLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppTokenTempLifeSpan = configVal * time.Minute
-        })
-
+func wechatAppTokenInitialize() {
     wechatAppConfigCache = CacheExpireAfterWrite("WechatAppConfig")
     wechatAppConfigCache.SetDataLoader(wechatAppConfigLoader)
     wechatAppTokenCache = CacheExpireAfterWrite("wechatAppToken")
@@ -72,6 +47,39 @@ func wechatAppTokenBuilder(resultItem map[string]string) interface{} {
     tokenItem.AppId = resultItem["APP_ID"]
     tokenItem.AccessToken = resultItem["ACCESS_TOKEN"]
     return tokenItem
+}
+
+type WechatAppTokenResponse struct {
+    AccessToken string `json:"access_token"`
+    ExpiresIn   int    `json:"expires_in"`
+}
+
+func wechatAppTokenRequestor(codeName interface{}) (map[string]string, error) {
+    cache, err := wechatAppConfigCache.Value(codeName)
+    if nil != err {
+        return nil, err
+    }
+    config := cache.Data().(*WechatAppConfig)
+
+    result, err := NewHttpReq(wechatAppTokenURL).Params(
+        "grant_type", "client_credential",
+        "appid", config.AppId, "secret", config.AppSecret).
+        Prop("Content-Type",
+            "application/x-www-form-urlencoded").Get()
+    LOG.Trace("Request WechatAppToken Response:(%s) %s", codeName, result)
+    if nil != err {
+        return nil, err
+    }
+
+    response := UnJson(result, new(WechatAppTokenResponse)).(*WechatAppTokenResponse)
+    if nil == response || 0 == len(response.AccessToken) {
+        return nil, &UnexpectedError{Message:
+        "Request WechatAppToken Failed: " + result}
+    }
+    return map[string]string{
+        "APP_ID":       config.AppId,
+        "ACCESS_TOKEN": response.AccessToken,
+        "EXPIRES_IN":   StrFromInt(response.ExpiresIn)}, nil
 }
 
 func wechatAppTokenCompleteParamBuilder(resultItem map[string]string, lifeSpan time.Duration, key interface{}) []interface{} {

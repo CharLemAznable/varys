@@ -3,7 +3,6 @@ package varys
 import (
     . "github.com/CharLemAznable/gokits"
     "os"
-    "time"
 )
 
 var db *Gql
@@ -39,23 +38,8 @@ SELECT C.CONFIG_NAME ,C.CONFIG_VALUE
         }
     }
 
-    wechatAppTokenInitialize(configMap)
-    wechatAppThirdPlatformAuthorizerTokenInitialize(configMap)
-    wechatCorpTokenInitialize(configMap)
-    wechatCorpThirdPlatformAuthorizerTokenInitialize(configMap)
-}
-
-func urlConfigLoader(configStr string, loader func(configURL string)) {
-    If(0 != len(configStr), func() {
-        loader(configStr)
-    })
-}
-
-func lifeSpanConfigLoader(configStr string, loader func(configVal time.Duration)) {
-    If(0 != len(configStr), func() {
-        lifeSpan, err := Int64FromStr(configStr)
-        if nil == err {
-            loader(time.Duration(lifeSpan))
-        }
-    })
+    wechatAppTokenLoad(configMap)
+    wechatAppThirdPlatformAuthorizerTokenLoad(configMap)
+    wechatCorpTokenLoad(configMap)
+    wechatCorpThirdPlatformAuthorizerTokenLoad(configMap)
 }

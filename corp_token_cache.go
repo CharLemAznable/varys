@@ -5,35 +5,10 @@ import (
     "time"
 )
 
-var wechatCorpConfigLifeSpan = time.Minute * 60         // config cache 60 min default
-var wechatCorpTokenMaxLifeSpan = time.Minute * 5        // stable token cache 5 min max
-var wechatCorpTokenExpireCriticalSpan = time.Second * 1 // token about to expire critical time span
-
 var wechatCorpConfigCache *CacheTable
 var wechatCorpTokenCache *CacheTable
 
-func wechatCorpTokenInitialize(configMap map[string]string) {
-    urlConfigLoader(configMap["wechatCorpTokenURL"],
-        func(configURL string) {
-            wechatCorpTokenURL = configURL
-        })
-
-    lifeSpanConfigLoader(
-        configMap["wechatCorpConfigLifeSpan"],
-        func(configVal time.Duration) {
-            wechatCorpConfigLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatCorpTokenMaxLifeSpan"],
-        func(configVal time.Duration) {
-            wechatCorpTokenMaxLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatCorpTokenExpireCriticalSpan"],
-        func(configVal time.Duration) {
-            wechatCorpTokenExpireCriticalSpan = configVal * time.Second
-        })
-
+func wechatCorpTokenInitialize() {
     wechatCorpConfigCache = CacheExpireAfterWrite("wechatCorpConfig")
     wechatCorpConfigCache.SetDataLoader(wechatCorpTokenConfigLoader)
     wechatCorpTokenCache = CacheExpireAfterWrite("wechatCorpToken")
@@ -72,6 +47,43 @@ func wechatCorpTokenBuilder(resultItem map[string]string) interface{} {
     tokenItem.CorpId = resultItem["CORP_ID"]
     tokenItem.AccessToken = resultItem["ACCESS_TOKEN"]
     return tokenItem
+}
+
+type WechatCorpTokenResponse struct {
+    Errcode     int    `json:"errcode"`
+    Errmsg      string `json:"errmsg"`
+    AccessToken string `json:"access_token"`
+    ExpiresIn   int    `json:"expires_in"`
+}
+
+func wechatCorpTokenRequestor(codeName interface{}) (map[string]string, error) {
+    cache, err := wechatCorpConfigCache.Value(codeName)
+    if nil != err {
+        return nil, err
+    }
+    config := cache.Data().(*WechatCorpConfig)
+
+    result, err := NewHttpReq(wechatCorpTokenURL).Params(
+        "corpid", config.CorpId, "corpsecret", config.CorpSecret).
+        Prop("Content-Type",
+            "application/x-www-form-urlencoded").Get()
+    LOG.Trace("Request WechatCorpToken Response:(%s) %s", codeName, result)
+    if nil != err {
+        return nil, err
+    }
+
+    response := UnJson(result, new(WechatCorpTokenResponse)).(*WechatCorpTokenResponse)
+    if nil == response || 0 != response.Errcode || 0 == len(response.AccessToken) {
+        return nil, &UnexpectedError{Message:
+        "Request Corp access_token Failed: " + result}
+    }
+
+    // 过期时间增量: token实际有效时长
+    expireTime := time.Now().Add(time.Duration(response.ExpiresIn) * time.Second).Unix()
+    return map[string]string{
+        "CORP_ID":      config.CorpId,
+        "ACCESS_TOKEN": response.AccessToken,
+        "EXPIRE_TIME":  StrFromInt64(expireTime)}, nil
 }
 
 func wechatCorpTokenSQLParamBuilder(resultItem map[string]string, codeName interface{}) []interface{} {
