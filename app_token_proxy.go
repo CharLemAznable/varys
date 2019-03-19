@@ -12,5 +12,5 @@ func wechatAppProxyInitialize() {
     if err != nil {
         baseURL, _ = url.Parse("https://api.weixin.qq.com/cgi-bin/")
     }
-    wechatAppProxy = httputil.NewSingleHostReverseProxy(baseURL)
+    wechatAppProxy = reverseProxy(baseURL)
 }
