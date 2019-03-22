@@ -47,7 +47,16 @@ func NewVarys(path, port string) *varys {
 }
 
 func Default() *varys {
-    return NewVarys("", "")
+    path, port := "", ""
+    configFile, err := ReadYamlFile("varys.yaml")
+    if nil == err {
+        configMap, err := MapOfYaml(configFile.Root, "root")
+        if nil == err {
+            path, _ = StringOfYaml(configMap["path"], "path")
+            port, _ = StringOfYaml(configMap["port"], "port")
+        }
+    }
+    return NewVarys(path, port)
 }
 
 func (varys *varys) Run() {

@@ -164,6 +164,8 @@ package main
 import "github.com/CharLemAznable/varys"
 
 func main() {
+    // 默认路径端口 localhost:4236/varys
+    // 支持配置文件 -> 同路径下 varys.yaml
     varys.Default().Run()
     // 或自定义路径和端口
     // varys.NewVarys("/varys", ":4236").Run()
@@ -172,6 +174,11 @@ func main() {
   命令行```build```: (Linux AMD64主机环境)
 ```bash
 $ env GOOS=linux GOARCH=amd64 go build -o varys.linux.bin
+```
+  同路径下新建服务部署配置文件```varys.yaml```: (可选)
+```yaml
+path: /varys
+port: 4236
 ```
   同路径下新建日志配置文件```logback.xml```:
 ```xml
@@ -211,6 +218,6 @@ $ nohup ./varys.linux.bin &
 <dependency>
   <groupId>com.github.charlemaznable</groupId>
   <artifactId>varys-java-driver</artifactId>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
 </dependency>
 ```
