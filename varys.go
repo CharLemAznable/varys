@@ -5,6 +5,7 @@ import (
     _ "github.com/go-sql-driver/mysql"
     "net/http"
     "os"
+    "strings"
 )
 
 type varys struct {
@@ -17,8 +18,16 @@ var _port = ":4236"
 func NewVarys(path, port string) *varys {
     load()
 
-    If(0 != len(path), func() { _path = path })
-    If(0 != len(port), func() { _port = port })
+    If(0 != len(path), func() {
+        Condition(strings.HasPrefix(path, "/"),
+            func() { _path = path },
+            func() { _path = "/" + path })
+    })
+    If(0 != len(port), func() {
+        Condition(strings.HasPrefix(port, ":"),
+            func() { _port = port },
+            func() { _port = ":" + port })
+    })
 
     varysMux := http.NewServeMux()
     varysMux.Handle("/", http.FileServer(http.Dir("varys"))) // static resources
