@@ -75,12 +75,12 @@ func (varys *varys) Run() {
         _ = LOG.Error("Initial varys Error")
         os.Exit(-1)
     }
+    LOG.Info("varys Server Started ...")
     err := varys.server.ListenAndServe()
     if nil != err {
         _ = LOG.Error("Start varys Error: %s", err.Error())
         os.Exit(-1)
     }
-    LOG.Info("varys Server Started...")
 }
 
 const welcomePath = "/welcome"
