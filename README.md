@@ -178,7 +178,7 @@ $ env GOOS=linux GOARCH=amd64 go build -o varys.linux.bin
   同路径下新建服务部署配置文件```varys.yaml```: (可选)
 ```yaml
 path: /varys
-port: 4236
+port: :4236
 ```
   同路径下新建日志配置文件```logback.xml```:
 ```xml
