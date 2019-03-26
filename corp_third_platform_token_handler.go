@@ -24,20 +24,20 @@ type WechatCorpThirdPlatformAuthorizeData struct {
 func parseWechatCorpThirdPlatformAuthorizeData(codeName string, request *http.Request) (*WechatCorpThirdPlatformAuthorizeData, error) {
     cache, err := wechatCorpThirdPlatformCryptorCache.Value(codeName)
     if nil != err {
-        LOG.Warn("Load WechatCorpThirdPlatformCryptor Cache error:(%s) %s", codeName, err.Error())
+        _ = LOG.Warn("Load WechatCorpThirdPlatformCryptor Cache error:(%s) %s", codeName, err.Error())
         return nil, err
     }
     cryptor := cache.Data().(*wechataes.WechatCryptor)
 
     body, err := ioutil.ReadAll(request.Body)
     if nil != err {
-        LOG.Warn("Request read Body error:(%s) %s", codeName, err.Error())
+        _ = LOG.Warn("Request read Body error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
     err = request.ParseForm()
     if nil != err {
-        LOG.Warn("Request ParseForm error:(%s) %s", codeName, err.Error())
+        _ = LOG.Warn("Request ParseForm error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
@@ -49,7 +49,7 @@ func parseWechatCorpThirdPlatformAuthorizeData(codeName string, request *http.Re
     if 0 != len(echostr) { // 验证推送URL
         msg, err := cryptor.DecryptMsgContent(msgSign, timeStamp, nonce, echostr)
         if nil != err {
-            LOG.Warn("WechatCryptor DecryptMsg EchoStr error:(%s) %s", codeName, err.Error())
+            _ = LOG.Warn("WechatCryptor DecryptMsg EchoStr error:(%s) %s", codeName, err.Error())
             return nil, err
         }
         LOG.Info("WechatCorpThirdPlatformVerifyEchoStrMsg:(%s) %s", codeName, msg)
@@ -61,7 +61,7 @@ func parseWechatCorpThirdPlatformAuthorizeData(codeName string, request *http.Re
 
     decryptMsg, err := cryptor.DecryptMsg(msgSign, timeStamp, nonce, string(body))
     if nil != err {
-        LOG.Warn("WechatCryptor DecryptMsg error:(%s) %s", codeName, err.Error())
+        _ = LOG.Warn("WechatCryptor DecryptMsg error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
@@ -69,7 +69,7 @@ func parseWechatCorpThirdPlatformAuthorizeData(codeName string, request *http.Re
     authorizeData := new(WechatCorpThirdPlatformAuthorizeData)
     err = xml.Unmarshal([]byte(decryptMsg), authorizeData)
     if nil != err {
-        LOG.Warn("Unmarshal DecryptMsg error:(%s) %s", codeName, err.Error())
+        _ = LOG.Warn("Unmarshal DecryptMsg error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
@@ -87,11 +87,11 @@ func acceptCorpAuthorization(writer http.ResponseWriter, request *http.Request) 
             switch authorizeData.InfoType {
 
             case "echostr": // 验证推送URL
-                writer.Write([]byte(authorizeData.EchoStr))
+                _, _ = writer.Write([]byte(authorizeData.EchoStr))
                 return
 
             case "suite_ticket":
-                updateWechatCorpThirdPlatformTicket(codeName, authorizeData.SuiteTicket)
+                _, _ = updateWechatCorpThirdPlatformTicket(codeName, authorizeData.SuiteTicket)
 
             case "create_auth":
                 go wechatCorpThirdPlatformAuthorizeCreator(codeName, authorizeData.AuthCode)
@@ -101,17 +101,17 @@ func acceptCorpAuthorization(writer http.ResponseWriter, request *http.Request) 
 
             case "cancel_auth":
                 authCorpId := authorizeData.AuthCorpId
-                disableWechatCorpThirdPlatformAuthorizer(codeName, authCorpId)
+                _, _ = disableWechatCorpThirdPlatformAuthorizer(codeName, authCorpId)
                 // delete cache
                 key := WechatCorpThirdPlatformAuthorizerKey{CodeName: codeName, CorpId: authCorpId}
-                wechatCorpThirdPlatformPermanentCodeCache.Delete(key)
-                wechatCorpThirdPlatformCorpTokenCache.Delete(key)
+                _, _ = wechatCorpThirdPlatformPermanentCodeCache.Delete(key)
+                _, _ = wechatCorpThirdPlatformCorpTokenCache.Delete(key)
 
             }
         }
     }
 
-    writer.Write([]byte("success"))
+    _, _ = writer.Write([]byte("success"))
 }
 
 type WechatCorpThirdPlatformPreAuthCodeResponse struct {
@@ -160,20 +160,20 @@ const corpRedirectPageHtmlFormat = `
 func corpAuthorizeComponent(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, corpAuthorizeComponentPath)
     if 0 == len(codeName) {
-        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
+        _, _ = writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
         return
     }
 
     response, err := wechatCorpThirdPlatformPreAuthCodeRequestor(codeName)
     if nil != err {
-        writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
+        _, _ = writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
         return
     }
     suiteId := response["SUITE_ID"]
     preAuthCode := response["PRE_AUTH_CODE"]
     state := request.URL.Query().Get("state")
 
-    writer.Write([]byte(fmt.Sprintf(corpRedirectPageHtmlFormat,
+    _, _ = writer.Write([]byte(fmt.Sprintf(corpRedirectPageHtmlFormat,
         codeName, suiteId, preAuthCode, state)))
 }
 
@@ -189,20 +189,20 @@ const corpAuthorizedPageHtmlFormat = `
 func corpAuthorizeRedirect(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, corpAuthorizeRedirectPath)
     if 0 == len(codeName) {
-        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
+        _, _ = writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
         return
     }
 
     redirectQuery := request.URL.RawQuery
     authCode := request.URL.Query().Get("auth_code")
     if 0 == len(authCode) {
-        writer.Write([]byte(Json(map[string]string{"error": "Corp Unauthorized"})))
+        _, _ = writer.Write([]byte(Json(map[string]string{"error": "Corp Unauthorized"})))
         return
     }
 
     cache, err := wechatCorpThirdPlatformConfigCache.Value(codeName)
     if nil != err {
-        writer.Write([]byte(Json(map[string]string{"error": "CodeName is Illegal"})))
+        _, _ = writer.Write([]byte(Json(map[string]string{"error": "CodeName is Illegal"})))
         return
     }
     config := cache.Data().(*WechatCorpThirdPlatformConfig)
@@ -214,7 +214,7 @@ func corpAuthorizeRedirect(writer http.ResponseWriter, request *http.Request) {
         redirectUrl = redirectUrl + "?" + redirectQuery
     }
 
-    writer.Write([]byte(fmt.Sprintf(corpAuthorizedPageHtmlFormat, redirectUrl)))
+    _, _ = writer.Write([]byte(fmt.Sprintf(corpAuthorizedPageHtmlFormat, redirectUrl)))
 }
 
 // /query-wechat-corp-authorizer-token/{codeName:string}/{corpId:string}
@@ -225,13 +225,13 @@ func queryWechatCorpAuthorizerToken(writer http.ResponseWriter, request *http.Re
 
     pathParams := trimPrefixPath(request, queryWechatCorpAuthorizerTokenPath)
     if 0 == len(pathParams) {
-        writer.Write([]byte(Json(map[string]string{
+        _, _ = writer.Write([]byte(Json(map[string]string{
             "error": "Path Params is Empty"})))
         return
     }
     ids := strings.Split(pathParams, "/")
     if 2 != len(ids) {
-        writer.Write([]byte(Json(map[string]string{
+        _, _ = writer.Write([]byte(Json(map[string]string{
             "error": "Missing param codeName/corpId"})))
         return
     }
@@ -241,12 +241,12 @@ func queryWechatCorpAuthorizerToken(writer http.ResponseWriter, request *http.Re
     cache, err := wechatCorpThirdPlatformCorpTokenCache.Value(
         WechatCorpThirdPlatformAuthorizerKey{CodeName: codeName, CorpId: corpId})
     if nil != err {
-        writer.Write([]byte(Json(map[string]string{
+        _, _ = writer.Write([]byte(Json(map[string]string{
             "error": err.Error()})))
         return
     }
     token := cache.Data().(*WechatCorpThirdPlatformCorpToken)
-    writer.Write([]byte(Json(map[string]string{
+    _, _ = writer.Write([]byte(Json(map[string]string{
         "suiteId": token.SuiteId, "corpId": token.CorpId,
         "token": token.CorpAccessToken})))
 }

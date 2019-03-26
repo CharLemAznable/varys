@@ -242,7 +242,7 @@ func wechatAppThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interf
             resultItem, err := wechatAppThirdPlatformRefreshAuthRequestor(
                 tokenKey.CodeName, tokenKey.AuthorizerAppId, authorizerRefreshToken)
             if nil != err {
-                db.New().Sql(uncompleteWechatAppThirdPlatformAuthorizerTokenSQL).
+                _, _ = db.New().Sql(uncompleteWechatAppThirdPlatformAuthorizerTokenSQL).
                     Params(tokenKey.CodeName, tokenKey.AuthorizerAppId).Execute()
                 return nil, err
             }
@@ -259,7 +259,7 @@ func wechatAppThirdPlatformAuthorizerTokenLoader(key interface{}, args ...interf
             LOG.Info("Request WechatAppThirdPlatformAuthorizerToken:(%s) %s", Json(key), Json(tokenItem))
             return NewCacheItem(key, wechatAppThirdPlatformAuthorizerTokenLifeSpan, tokenItem), nil
         }
-        LOG.Warn("Give up request and update WechatAppThirdPlatformAuthorizerToken:(%s), use Query result Temporarily", Json(key))
+        _ = LOG.Warn("Give up request and update WechatAppThirdPlatformAuthorizerToken:(%s), use Query result Temporarily", Json(key))
     }
 
     // 未过期 || (已非最新记录 || 更新为旧记录失败)
@@ -341,9 +341,9 @@ func wechatAppThirdPlatformAuthorizerTokenCreator(codeName, authorizerAppId, aut
     // 锁定成功, 开始更新
     resultItem, err := wechatAppThirdPlatformQueryAuthRequestor(codeName, authorizationCode)
     if nil != err {
-        db.New().Sql(uncompleteWechatAppThirdPlatformAuthorizerTokenSQL).
+        _, _ = db.New().Sql(uncompleteWechatAppThirdPlatformAuthorizerTokenSQL).
             Params(codeName, authorizerAppId).Execute()
-        LOG.Warn("Request WechatAppThirdPlatformAuthorizerToken Failed:(%s, %s) %s",
+        _ = LOG.Warn("Request WechatAppThirdPlatformAuthorizerToken Failed:(%s, %s) %s",
             codeName, authorizerAppId, err.Error())
         return
     }
@@ -352,7 +352,7 @@ func wechatAppThirdPlatformAuthorizerTokenCreator(codeName, authorizerAppId, aut
             resultItem, wechatAppThirdPlatformAuthorizerTokenLifeSpan,
             codeName, authorizerAppId)...).Execute()
     if nil != err || count < 1 {
-        LOG.Warn("Record new WechatAppThirdPlatformAuthorizerToken Failed:(%s, %s) %s",
+        _ = LOG.Warn("Record new WechatAppThirdPlatformAuthorizerToken Failed:(%s, %s) %s",
             codeName, authorizerAppId, DefaultIfNil(err, &UnexpectedError{Message:
             "Replace WechatAppThirdPlatformAuthorizerToken Failed"}).(error).Error())
         return

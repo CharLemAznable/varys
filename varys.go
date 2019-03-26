@@ -72,17 +72,17 @@ func Default() *varys {
 
 func (varys *varys) Run() {
     if nil == varys.server {
-        LOG.Error("Initial varys Error")
+        _ = LOG.Error("Initial varys Error")
         os.Exit(-1)
     }
+    _ = varys.server.ListenAndServe()
     LOG.Info("varys Server Started...")
-    varys.server.ListenAndServe()
 }
 
 const welcomePath = "/welcome"
 
 func welcome(writer http.ResponseWriter, request *http.Request) {
-    writer.Write([]byte(`Three great men, a king, a priest, and a rich man.
+    _, _ = writer.Write([]byte(`Three great men, a king, a priest, and a rich man.
 Between them stands a common sellsword.
 Each great man bids the sellsword kill the other two.
 Who lives, who dies?

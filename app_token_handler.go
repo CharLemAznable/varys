@@ -14,19 +14,19 @@ func queryWechatAppToken(writer http.ResponseWriter, request *http.Request) {
 
     codeName := trimPrefixPath(request, queryWechatAppTokenPath)
     if 0 == len(codeName) {
-        writer.Write([]byte(Json(map[string]string{
+        _, _ = writer.Write([]byte(Json(map[string]string{
             "error": "codeName is Empty"})))
         return
     }
 
     cache, err := wechatAppTokenCache.Value(codeName)
     if nil != err {
-        writer.Write([]byte(Json(map[string]string{
+        _, _ = writer.Write([]byte(Json(map[string]string{
             "error": err.Error()})))
         return
     }
     token := cache.Data().(*WechatAppToken)
-    writer.Write([]byte(Json(map[string]string{
+    _, _ = writer.Write([]byte(Json(map[string]string{
         "appId": token.AppId, "token": token.AccessToken})))
 }
 
@@ -39,14 +39,14 @@ func proxyWechatApp(writer http.ResponseWriter, request *http.Request) {
 
     codeName := splits[0]
     if 0 == len(codeName) {
-        writer.Write([]byte(Json(map[string]string{
+        _, _ = writer.Write([]byte(Json(map[string]string{
             "error": "codeName is Empty"})))
         return
     }
 
     cache, err := wechatAppTokenCache.Value(codeName)
     if nil != err {
-        writer.Write([]byte(Json(map[string]string{
+        _, _ = writer.Write([]byte(Json(map[string]string{
             "error": err.Error()})))
         return
     }
@@ -54,7 +54,7 @@ func proxyWechatApp(writer http.ResponseWriter, request *http.Request) {
 
     actualPath := splits[1]
     if 0 == len(actualPath) {
-        writer.Write([]byte(Json(map[string]string{
+        _, _ = writer.Write([]byte(Json(map[string]string{
             "error": "proxy PATH is Empty"})))
         return
     }

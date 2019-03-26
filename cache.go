@@ -59,7 +59,7 @@ func tokenLoader(
             LOG.Info("Request %s:(%s) %s", name, key, Json(tokenItem))
             return NewCacheItem(key, lifeSpan, tokenItem), nil
         }
-        LOG.Warn("Give up request %s:(%s), wait for next cache Query", name, key)
+        _ = LOG.Warn("Give up request %s:(%s), wait for next cache Query", name, key)
         return nil, &UnexpectedError{Message: "Query " + name + " Later"}
     }
     LOG.Trace("Query %s:(%s) %s", name, key, resultMap)
@@ -84,7 +84,7 @@ func tokenLoader(
             LOG.Info("Request and Update %s:(%s) %s", name, key, Json(tokenItem))
             return NewCacheItem(key, lifeSpan, tokenItem), nil
         }
-        LOG.Warn("Give up request and update %s:(%s), use Query result Temporarily", name, key)
+        _ = LOG.Warn("Give up request and update %s:(%s), use Query result Temporarily", name, key)
     }
 
     // 未过期 || (已非最新记录 || 更新为旧记录失败)
@@ -110,7 +110,7 @@ func requestUpdater(
 
     resultItem, err := requestor(key)
     if nil != err {
-        db.New().Sql(uncompleteSql).Params(key).Execute()
+        _, _ = db.New().Sql(uncompleteSql).Params(key).Execute()
         return nil, err
     }
     // // 过期时间增量: token实际有效时长 - token缓存时长 * 缓存提前更新系数(1.1)
@@ -202,7 +202,7 @@ func requestUpdaterStrict(
 
     resultItem, err := requestor(key)
     if nil != err {
-        LOG.Warn("Request %s Failed:(%s) %s", name, key, err.Error())
+        _ = LOG.Warn("Request %s Failed:(%s) %s", name, key, err.Error())
         return nil, err
     }
 

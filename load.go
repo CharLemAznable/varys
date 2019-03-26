@@ -14,7 +14,7 @@ func load() {
     LoadGqlConfigFile("gql.yaml")
     _db, err := DefaultGql()
     if nil != err {
-        LOG.Error("Missing db config: Default in gql.yaml")
+        _ = LOG.Error("Missing db config: Default in gql.yaml")
         os.Exit(-1)
     }
     db = _db
@@ -26,7 +26,7 @@ SELECT C.CONFIG_NAME ,C.CONFIG_VALUE
  WHERE C.ENABLED = 1
 `).Query()
     if nil != err {
-        LOG.Error("Query Configuration Err: %s", err.Error())
+        _ = LOG.Error("Query Configuration Err: %s", err.Error())
         os.Exit(-1)
     }
     configMap := make(map[string]string)

@@ -240,23 +240,23 @@ func wechatCorpThirdPlatformPermanentCodeRequestor(codeName, authCode interface{
 func wechatCorpThirdPlatformAuthorizeCreator(codeName, authCode interface{}) {
     resultItem, err := wechatCorpThirdPlatformPermanentCodeRequestor(codeName, authCode)
     if nil != err {
-        LOG.Warn("Request WechatCorpThirdPlatformPermanentCode Failed:(%s, authCode:%s) %s",
+        _ = LOG.Warn("Request WechatCorpThirdPlatformPermanentCode Failed:(%s, authCode:%s) %s",
             codeName, authCode, err.Error())
         return
     }
 
     corpId := resultItem["CORP_ID"]
-    enableWechatCorpThirdPlatformAuthorizer(codeName.(string), corpId, resultItem["PERMANENT_CODE"])
+    _, _ = enableWechatCorpThirdPlatformAuthorizer(codeName.(string), corpId, resultItem["PERMANENT_CODE"])
 
     accessToken := resultItem["ACCESS_TOKEN"]
     expireTime := resultItem["EXPIRE_TIME"]
     _, err = db.New().Sql(createWechatCorpThirdPlatformCorpTokenSQL).
         Params(corpId, accessToken, expireTime, codeName).Execute()
     if nil != err { // 尝试插入记录失败, 则尝试更新记录
-        LOG.Warn("Create WechatCorpThirdPlatformCorpToken Failed:(%s, corpId:%s) %s",
+        _ = LOG.Warn("Create WechatCorpThirdPlatformCorpToken Failed:(%s, corpId:%s) %s",
             codeName, corpId, err.Error())
 
-        db.New().Sql(updateWechatCorpThirdPlatformCorpTokenSQL).
+        _, _ = db.New().Sql(updateWechatCorpThirdPlatformCorpTokenSQL).
             Params(accessToken, expireTime, codeName, corpId).Execute()
         // 忽略更新记录的结果
         // 如果当前存在有效期内的token, 则token不会被更新, 重复请求微信也会返回同样的token
@@ -386,7 +386,7 @@ func wechatCorpThirdPlatformCorpTokenLoader(key interface{}, args ...interface{}
 
         resultItem, err := wechatCorpThirdPlatformCorpTokenRequestor(corpKey.CodeName, corpKey.CorpId)
         if nil != err {
-            LOG.Warn("Request WechatCorpThirdPlatformCorpToken Failed:(%s) %s", key, err.Error())
+            _ = LOG.Warn("Request WechatCorpThirdPlatformCorpToken Failed:(%s) %s", key, err.Error())
             return nil, err
         }
 
