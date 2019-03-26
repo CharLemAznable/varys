@@ -22,6 +22,8 @@ func NewVarys(path, port string) *varys {
         Condition(strings.HasPrefix(path, "/"),
             func() { _path = path },
             func() { _path = "/" + path })
+        If(strings.HasSuffix(_path, "/"),
+            func() { _path = _path[:len(_path)-1] })
     })
     If(0 != len(port), func() {
         Condition(strings.HasPrefix(port, ":"),
