@@ -10,24 +10,19 @@ import (
 const queryWechatCorpTokenPath = "/query-wechat-corp-token/"
 
 func queryWechatCorpToken(writer http.ResponseWriter, request *http.Request) {
-    writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-
     codeName := trimPrefixPath(request, queryWechatCorpTokenPath)
     if 0 == len(codeName) {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": "codeName is Empty"})))
+        ResponseJson(writer, Json(map[string]string{"error": "codeName is Empty"}))
         return
     }
 
     cache, err := wechatCorpTokenCache.Value(codeName)
     if nil != err {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": err.Error()})))
+        ResponseJson(writer, Json(map[string]string{"error": err.Error()}))
         return
     }
     token := cache.Data().(*WechatCorpToken)
-    _, _ = writer.Write([]byte(Json(map[string]string{
-        "corpId": token.CorpId, "token": token.AccessToken})))
+    ResponseJson(writer, Json(map[string]string{"corpId": token.CorpId, "token": token.AccessToken}))
 }
 
 // /proxy-wechat-corp/{codeName:string}/...
@@ -39,23 +34,20 @@ func proxyWechatCorp(writer http.ResponseWriter, request *http.Request) {
 
     codeName := splits[0]
     if 0 == len(codeName) {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": "codeName is Empty"})))
+        ResponseJson(writer, Json(map[string]string{"error": "codeName is Empty"}))
         return
     }
 
     cache, err := wechatCorpTokenCache.Value(codeName)
     if nil != err {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": err.Error()})))
+        ResponseJson(writer, Json(map[string]string{"error": err.Error()}))
         return
     }
     token := cache.Data().(*WechatCorpToken).AccessToken
 
     actualPath := splits[1]
     if 0 == len(actualPath) {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": "proxy PATH is Empty"})))
+        ResponseJson(writer, Json(map[string]string{"error": "proxy PATH is Empty"}))
         return
     }
 

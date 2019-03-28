@@ -105,7 +105,7 @@ func acceptAppAuthorization(writer http.ResponseWriter, request *http.Request) {
     }
 
     // 接收到定时推送component_verify_ticket后必须直接返回字符串success
-    _, _ = writer.Write([]byte("success"))
+    ResponseText(writer, "success")
 }
 
 type WechatAppThirdPlatformPreAuthCodeResponse struct {
@@ -154,13 +154,13 @@ const scanRedirectPageHtmlFormat = `
 func appAuthorizeComponentScan(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, appAuthorizeComponentScanPath)
     if 0 == len(codeName) {
-        _, _ = writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
+        ResponseJson(writer, Json(map[string]string{"error": "CodeName is Empty"}))
         return
     }
 
     response, err := wechatAppThirdPlatformPreAuthCodeRequestor(codeName)
     if nil != err {
-        _, _ = writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
+        ResponseJson(writer, Json(map[string]string{"error": err.Error()}))
         return
     }
     appId := response["APP_ID"]
@@ -171,8 +171,7 @@ func appAuthorizeComponentScan(writer http.ResponseWriter, request *http.Request
         redirectQuery = "?" + redirectQuery
     }
 
-    _, _ = writer.Write([]byte(fmt.Sprintf(scanRedirectPageHtmlFormat,
-        codeName, redirectQuery, appId, preAuthCode)))
+    ResponseHtml(writer, fmt.Sprintf(scanRedirectPageHtmlFormat, codeName, redirectQuery, appId, preAuthCode))
 }
 
 // /app-authorize-component-link/{codeName:string}
@@ -189,13 +188,13 @@ const linkRedirectPageHtmlFormat = `
 func appAuthorizeComponentLink(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, appAuthorizeComponentLinkPath)
     if 0 == len(codeName) {
-        _, _ = writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
+        ResponseJson(writer, Json(map[string]string{"error": "CodeName is Empty"}))
         return
     }
 
     response, err := wechatAppThirdPlatformPreAuthCodeRequestor(codeName)
     if nil != err {
-        _, _ = writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
+        ResponseJson(writer, Json(map[string]string{"error": err.Error()}))
         return
     }
     appId := response["APP_ID"]
@@ -206,8 +205,7 @@ func appAuthorizeComponentLink(writer http.ResponseWriter, request *http.Request
         redirectQuery = "?" + redirectQuery
     }
 
-    _, _ = writer.Write([]byte(fmt.Sprintf(linkRedirectPageHtmlFormat,
-        codeName, redirectQuery, appId, preAuthCode)))
+    ResponseHtml(writer, fmt.Sprintf(linkRedirectPageHtmlFormat, codeName, redirectQuery, appId, preAuthCode))
 }
 
 // /authorize-redirect/{codeName:string}
@@ -222,13 +220,13 @@ const appAuthorizedPageHtmlFormat = `
 func appAuthorizeRedirect(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, appAuthorizeRedirectPath)
     if 0 == len(codeName) {
-        _, _ = writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
+        ResponseJson(writer, Json(map[string]string{"error": "CodeName is Empty"}))
         return
     }
 
     cache, err := wechatAppThirdPlatformConfigCache.Value(codeName)
     if nil != err {
-        _, _ = writer.Write([]byte(Json(map[string]string{"error": "CodeName is Illegal"})))
+        ResponseJson(writer, Json(map[string]string{"error": "CodeName is Illegal"}))
         return
     }
     config := cache.Data().(*WechatAppThirdPlatformConfig)
@@ -239,25 +237,21 @@ func appAuthorizeRedirect(writer http.ResponseWriter, request *http.Request) {
         redirectUrl = redirectUrl + "?" + redirectQuery
     }
 
-    _, _ = writer.Write([]byte(fmt.Sprintf(appAuthorizedPageHtmlFormat, redirectUrl)))
+    ResponseHtml(writer, fmt.Sprintf(appAuthorizedPageHtmlFormat, redirectUrl))
 }
 
 // /query-wechat-app-authorizer-token/{codeName:string}/{authorizerAppId:string}
 const queryWechatAppAuthorizerTokenPath = "/query-wechat-app-authorizer-token/"
 
 func queryWechatAppAuthorizerToken(writer http.ResponseWriter, request *http.Request) {
-    writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-
     pathParams := trimPrefixPath(request, queryWechatAppAuthorizerTokenPath)
     if 0 == len(pathParams) {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": "Path Params is Empty"})))
+        ResponseJson(writer, Json(map[string]string{"error": "Path Params is Empty"}))
         return
     }
     ids := strings.Split(pathParams, "/")
     if 2 != len(ids) {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": "Missing param codeName/authorizerAppId"})))
+        ResponseJson(writer, Json(map[string]string{"error": "Missing param codeName/authorizerAppId"}))
         return
     }
 
@@ -266,13 +260,12 @@ func queryWechatAppAuthorizerToken(writer http.ResponseWriter, request *http.Req
     cache, err := wechatAppThirdPlatformAuthorizerTokenCache.Value(
         WechatAppThirdPlatformAuthorizerKey{CodeName: codeName, AuthorizerAppId: authorizerAppId})
     if nil != err {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": err.Error()})))
+        ResponseJson(writer, Json(map[string]string{"error": err.Error()}))
         return
     }
     token := cache.Data().(*WechatAppThirdPlatformAuthorizerToken)
-    _, _ = writer.Write([]byte(Json(map[string]string{
+    ResponseJson(writer, Json(map[string]string{
         "appId":           token.AppId,
         "authorizerAppId": token.AuthorizerAppId,
-        "token":           token.AuthorizerAccessToken})))
+        "token":           token.AuthorizerAccessToken}))
 }

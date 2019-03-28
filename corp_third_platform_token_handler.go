@@ -87,7 +87,7 @@ func acceptCorpAuthorization(writer http.ResponseWriter, request *http.Request) 
             switch authorizeData.InfoType {
 
             case "echostr": // 验证推送URL
-                _, _ = writer.Write([]byte(authorizeData.EchoStr))
+                ResponseText(writer, authorizeData.EchoStr)
                 return
 
             case "suite_ticket":
@@ -111,7 +111,7 @@ func acceptCorpAuthorization(writer http.ResponseWriter, request *http.Request) 
         }
     }
 
-    _, _ = writer.Write([]byte("success"))
+    ResponseText(writer, "success")
 }
 
 type WechatCorpThirdPlatformPreAuthCodeResponse struct {
@@ -160,21 +160,20 @@ const corpRedirectPageHtmlFormat = `
 func corpAuthorizeComponent(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, corpAuthorizeComponentPath)
     if 0 == len(codeName) {
-        _, _ = writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
+        ResponseJson(writer, Json(map[string]string{"error": "CodeName is Empty"}))
         return
     }
 
     response, err := wechatCorpThirdPlatformPreAuthCodeRequestor(codeName)
     if nil != err {
-        _, _ = writer.Write([]byte(Json(map[string]string{"error": err.Error()})))
+        ResponseJson(writer, Json(map[string]string{"error": err.Error()}))
         return
     }
     suiteId := response["SUITE_ID"]
     preAuthCode := response["PRE_AUTH_CODE"]
     state := request.URL.Query().Get("state")
 
-    _, _ = writer.Write([]byte(fmt.Sprintf(corpRedirectPageHtmlFormat,
-        codeName, suiteId, preAuthCode, state)))
+    ResponseHtml(writer, fmt.Sprintf(corpRedirectPageHtmlFormat, codeName, suiteId, preAuthCode, state))
 }
 
 // /corp-authorize-redirect/{codeName:string}
@@ -189,20 +188,20 @@ const corpAuthorizedPageHtmlFormat = `
 func corpAuthorizeRedirect(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, corpAuthorizeRedirectPath)
     if 0 == len(codeName) {
-        _, _ = writer.Write([]byte(Json(map[string]string{"error": "CodeName is Empty"})))
+        ResponseJson(writer, Json(map[string]string{"error": "CodeName is Empty"}))
         return
     }
 
     redirectQuery := request.URL.RawQuery
     authCode := request.URL.Query().Get("auth_code")
     if 0 == len(authCode) {
-        _, _ = writer.Write([]byte(Json(map[string]string{"error": "Corp Unauthorized"})))
+        ResponseJson(writer, Json(map[string]string{"error": "Corp Unauthorized"}))
         return
     }
 
     cache, err := wechatCorpThirdPlatformConfigCache.Value(codeName)
     if nil != err {
-        _, _ = writer.Write([]byte(Json(map[string]string{"error": "CodeName is Illegal"})))
+        ResponseJson(writer, Json(map[string]string{"error": "CodeName is Illegal"}))
         return
     }
     config := cache.Data().(*WechatCorpThirdPlatformConfig)
@@ -214,25 +213,21 @@ func corpAuthorizeRedirect(writer http.ResponseWriter, request *http.Request) {
         redirectUrl = redirectUrl + "?" + redirectQuery
     }
 
-    _, _ = writer.Write([]byte(fmt.Sprintf(corpAuthorizedPageHtmlFormat, redirectUrl)))
+    ResponseHtml(writer, fmt.Sprintf(corpAuthorizedPageHtmlFormat, redirectUrl))
 }
 
 // /query-wechat-corp-authorizer-token/{codeName:string}/{corpId:string}
 const queryWechatCorpAuthorizerTokenPath = "/query-wechat-corp-authorizer-token/"
 
 func queryWechatCorpAuthorizerToken(writer http.ResponseWriter, request *http.Request) {
-    writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-
     pathParams := trimPrefixPath(request, queryWechatCorpAuthorizerTokenPath)
     if 0 == len(pathParams) {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": "Path Params is Empty"})))
+        ResponseJson(writer, Json(map[string]string{"error": "Path Params is Empty"}))
         return
     }
     ids := strings.Split(pathParams, "/")
     if 2 != len(ids) {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": "Missing param codeName/corpId"})))
+        ResponseJson(writer, Json(map[string]string{"error": "Missing param codeName/corpId"}))
         return
     }
 
@@ -241,12 +236,12 @@ func queryWechatCorpAuthorizerToken(writer http.ResponseWriter, request *http.Re
     cache, err := wechatCorpThirdPlatformCorpTokenCache.Value(
         WechatCorpThirdPlatformAuthorizerKey{CodeName: codeName, CorpId: corpId})
     if nil != err {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": err.Error()})))
+        ResponseJson(writer, Json(map[string]string{"error": err.Error()}))
         return
     }
     token := cache.Data().(*WechatCorpThirdPlatformCorpToken)
-    _, _ = writer.Write([]byte(Json(map[string]string{
-        "suiteId": token.SuiteId, "corpId": token.CorpId,
-        "token": token.CorpAccessToken})))
+    ResponseJson(writer, Json(map[string]string{
+        "suiteId": token.SuiteId,
+        "corpId":  token.CorpId,
+        "token":   token.CorpAccessToken}))
 }

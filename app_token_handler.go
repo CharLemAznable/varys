@@ -10,24 +10,19 @@ import (
 const queryWechatAppTokenPath = "/query-wechat-app-token/"
 
 func queryWechatAppToken(writer http.ResponseWriter, request *http.Request) {
-    writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-
     codeName := trimPrefixPath(request, queryWechatAppTokenPath)
     if 0 == len(codeName) {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": "codeName is Empty"})))
+        ResponseJson(writer, Json(map[string]string{"error": "codeName is Empty"}))
         return
     }
 
     cache, err := wechatAppTokenCache.Value(codeName)
     if nil != err {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": err.Error()})))
+        ResponseJson(writer, Json(map[string]string{"error": err.Error()}))
         return
     }
     token := cache.Data().(*WechatAppToken)
-    _, _ = writer.Write([]byte(Json(map[string]string{
-        "appId": token.AppId, "token": token.AccessToken})))
+    ResponseJson(writer, Json(map[string]string{"appId": token.AppId, "token": token.AccessToken}))
 }
 
 // /proxy-wechat-app/{codeName:string}/...
@@ -39,23 +34,20 @@ func proxyWechatApp(writer http.ResponseWriter, request *http.Request) {
 
     codeName := splits[0]
     if 0 == len(codeName) {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": "codeName is Empty"})))
+        ResponseJson(writer, Json(map[string]string{"error": "codeName is Empty"}))
         return
     }
 
     cache, err := wechatAppTokenCache.Value(codeName)
     if nil != err {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": err.Error()})))
+        ResponseJson(writer, Json(map[string]string{"error": err.Error()}))
         return
     }
     token := cache.Data().(*WechatAppToken).AccessToken
 
     actualPath := splits[1]
     if 0 == len(actualPath) {
-        _, _ = writer.Write([]byte(Json(map[string]string{
-            "error": "proxy PATH is Empty"})))
+        ResponseJson(writer, Json(map[string]string{"error": "proxy PATH is Empty"}))
         return
     }
 

@@ -83,9 +83,9 @@ func (varys *varys) Run() {
 const welcomePath = "/welcome"
 
 func welcome(writer http.ResponseWriter, request *http.Request) {
-    _, _ = writer.Write([]byte(`Three great men, a king, a priest, and a rich man.
+    ResponseText(writer, `Three great men, a king, a priest, and a rich man.
 Between them stands a common sellsword.
 Each great man bids the sellsword kill the other two.
 Who lives, who dies?
-`))
+`)
 }
