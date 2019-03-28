@@ -5,6 +5,7 @@ github.com/CharLemAznable/gokits v0.2.1/go.mod h1:AvomWm62m4+pqZFc+sNmyirSdEoTXS
 github.com/CharLemAznable/gokits v0.3.0 h1:NxY6Y4G6ouw3X0Ilz9iHhY6vDV0ksbicKCJlXtt5t24=
 github.com/CharLemAznable/gokits v0.3.0/go.mod h1:AvomWm62m4+pqZFc+sNmyirSdEoTXSi1Ffv9TEqme0I=
 github.com/CharLemAznable/gokits v0.4.0/go.mod h1:AvomWm62m4+pqZFc+sNmyirSdEoTXSi1Ffv9TEqme0I=
+github.com/CharLemAznable/gokits v0.5.0/go.mod h1:AvomWm62m4+pqZFc+sNmyirSdEoTXSi1Ffv9TEqme0I=
 github.com/CharLemAznable/wechataes v0.0.4 h1:2IAtIVabdKclwpYuj15+fKXZQIBRsSg6NEmZhzQtdwI=
 github.com/CharLemAznable/wechataes v0.0.4/go.mod h1:uoRY3t3wxhZY2jIgeMKn25iWPBdvPOTGw6LqpIVC+Sc=
 github.com/CharLemAznable/wechataes v0.1.0 h1:WBH5D8wu2Q8RnFt2vxbZSb3YpLlkRVeYDQ4LdcLynKc=
