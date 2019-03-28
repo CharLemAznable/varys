@@ -33,24 +33,24 @@ func NewVarys(path, port string) *varys {
 
     varysMux := http.NewServeMux()
     varysMux.Handle("/", http.FileServer(http.Dir("varys"))) // static resources
-    varysMux.HandleFunc(JoinPathComponent(_path, welcomePath), welcome)
+    varysMux.HandleFunc(PathJoin(_path, welcomePath), welcome)
 
-    varysMux.HandleFunc(JoinPathComponent(_path, queryWechatAppTokenPath), queryWechatAppToken)
-    varysMux.HandleFunc(JoinPathComponent(_path, proxyWechatAppPath), proxyWechatApp)
+    varysMux.HandleFunc(PathJoin(_path, queryWechatAppTokenPath), queryWechatAppToken)
+    varysMux.HandleFunc(PathJoin(_path, proxyWechatAppPath), proxyWechatApp)
 
-    varysMux.HandleFunc(JoinPathComponent(_path, acceptAppAuthorizationPath), acceptAppAuthorization)
-    varysMux.HandleFunc(JoinPathComponent(_path, appAuthorizeComponentScanPath), appAuthorizeComponentScan)
-    varysMux.HandleFunc(JoinPathComponent(_path, appAuthorizeComponentLinkPath), appAuthorizeComponentLink)
-    varysMux.HandleFunc(JoinPathComponent(_path, appAuthorizeRedirectPath), appAuthorizeRedirect)
-    varysMux.HandleFunc(JoinPathComponent(_path, queryWechatAppAuthorizerTokenPath), queryWechatAppAuthorizerToken)
+    varysMux.HandleFunc(PathJoin(_path, acceptAppAuthorizationPath), acceptAppAuthorization)
+    varysMux.HandleFunc(PathJoin(_path, appAuthorizeComponentScanPath), appAuthorizeComponentScan)
+    varysMux.HandleFunc(PathJoin(_path, appAuthorizeComponentLinkPath), appAuthorizeComponentLink)
+    varysMux.HandleFunc(PathJoin(_path, appAuthorizeRedirectPath), appAuthorizeRedirect)
+    varysMux.HandleFunc(PathJoin(_path, queryWechatAppAuthorizerTokenPath), queryWechatAppAuthorizerToken)
 
-    varysMux.HandleFunc(JoinPathComponent(_path, queryWechatCorpTokenPath), queryWechatCorpToken)
-    varysMux.HandleFunc(JoinPathComponent(_path, proxyWechatCorpPath), proxyWechatCorp)
+    varysMux.HandleFunc(PathJoin(_path, queryWechatCorpTokenPath), queryWechatCorpToken)
+    varysMux.HandleFunc(PathJoin(_path, proxyWechatCorpPath), proxyWechatCorp)
 
-    varysMux.HandleFunc(JoinPathComponent(_path, acceptCorpAuthorizationPath), acceptCorpAuthorization)
-    varysMux.HandleFunc(JoinPathComponent(_path, corpAuthorizeComponentPath), corpAuthorizeComponent)
-    varysMux.HandleFunc(JoinPathComponent(_path, corpAuthorizeRedirectPath), corpAuthorizeRedirect)
-    varysMux.HandleFunc(JoinPathComponent(_path, queryWechatCorpAuthorizerTokenPath), queryWechatCorpAuthorizerToken)
+    varysMux.HandleFunc(PathJoin(_path, acceptCorpAuthorizationPath), acceptCorpAuthorization)
+    varysMux.HandleFunc(PathJoin(_path, corpAuthorizeComponentPath), corpAuthorizeComponent)
+    varysMux.HandleFunc(PathJoin(_path, corpAuthorizeRedirectPath), corpAuthorizeRedirect)
+    varysMux.HandleFunc(PathJoin(_path, queryWechatCorpAuthorizerTokenPath), queryWechatCorpAuthorizerToken)
 
     varys := new(varys)
     varys.server = &http.Server{Addr: _port, Handler: varysMux}

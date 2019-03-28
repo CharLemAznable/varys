@@ -25,7 +25,7 @@ func lifeSpanConfigLoader(configStr string, loader func(configVal time.Duration)
 }
 
 func trimPrefixPath(request *http.Request, subPath string) string {
-    return strings.TrimPrefix(request.URL.Path, JoinPathComponent(_path, subPath))
+    return strings.TrimPrefix(request.URL.Path, PathJoin(_path, subPath))
 }
 
 func reverseProxy(target *url.URL) *httputil.ReverseProxy {
@@ -35,7 +35,7 @@ func reverseProxy(target *url.URL) *httputil.ReverseProxy {
 
         req.URL.Scheme = target.Scheme
         req.URL.Host = target.Host
-        req.URL.Path = JoinPathComponent(target.Path, req.URL.Path)
+        req.URL.Path = PathJoin(target.Path, req.URL.Path)
         if targetQuery == "" || req.URL.RawQuery == "" {
             req.URL.RawQuery = targetQuery + req.URL.RawQuery
         } else {
