@@ -1,10 +1,47 @@
+arch: amd64
+dist: trusty
 language: go
 go:
-  - 1.11.x
-  - master
-install:
-  - go get github.com/go-sql-driver/mysql
-  - go get github.com/CharLemAznable/wechataes
-  - go get github.com/CharLemAznable/gokits
-  - go get github.com/CharLemAznable/varys
-script: go build
+  - 1.12.x
+before_install:
+  - export GO111MODULE=on
+before_script:
+  - |
+    if [ -z "$TRAVIS_TAG" ]; then
+      export VARYS_NAME=varys-dev
+    else
+      export VARYS_NAME=varys-$TRAVIS_TAG
+    fi
+script:
+  - echo "building "$VARYS_NAME" ..."
+  - env GOOS=linux GOARCH=386 go build -ldflags="-s -w" -o $VARYS_NAME.linux.386.bin
+  - env GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o $VARYS_NAME.linux.amd64.bin
+  - env GOOS=darwin GOARCH=386 go build -ldflags="-s -w" -o $VARYS_NAME.darwin.386.bin
+  - env GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o $VARYS_NAME.darwin.amd64.bin
+  - env GOOS=windows GOARCH=386 go build -ldflags="-s -w" -o $VARYS_NAME.windows.386.exe
+  - env GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o $VARYS_NAME.windows.amd64.exe
+before_deploy:
+  - wget https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
+  - tar -xvJf upx-3.95-amd64_linux.tar.xz
+  - ./upx-3.95-amd64_linux/upx --brute $VARYS_NAME.linux.386.bin
+  - tar -cvJf $VARYS_NAME.linux.386.tar.xz $VARYS_NAME.linux.386.bin
+  - ./upx-3.95-amd64_linux/upx --brute $VARYS_NAME.linux.amd64.bin
+  - tar -cvJf $VARYS_NAME.linux.amd64.tar.xz $VARYS_NAME.linux.amd64.bin
+  - ./upx-3.95-amd64_linux/upx --brute $VARYS_NAME.darwin.386.bin
+  - tar -cvJf $VARYS_NAME.darwin.386.tar.xz $VARYS_NAME.darwin.386.bin
+  - ./upx-3.95-amd64_linux/upx --brute $VARYS_NAME.darwin.amd64.bin
+  - tar -cvJf $VARYS_NAME.darwin.amd64.tar.xz $VARYS_NAME.darwin.amd64.bin
+  - ./upx-3.95-amd64_linux/upx --brute $VARYS_NAME.windows.386.exe
+  - tar -cvJf $VARYS_NAME.windows.386.tar.xz $VARYS_NAME.windows.386.exe
+  - ./upx-3.95-amd64_linux/upx --brute $VARYS_NAME.windows.amd64.exe
+  - tar -cvJf $VARYS_NAME.windows.amd64.tar.xz $VARYS_NAME.windows.amd64.exe
+deploy:
+  provider: releases
+  api_key:
+    secure: XboOHZgYKTa47MnrVn+ywVlW5P+Y5kVFIBkUC05ua42OEc511iEV5qBGoW3iPREmlvSh2RhvzalKrCp71CDhPMYcMFY9cyjpxG1OOMDGjzyTN4558/eeaDM5BVxnh0+UWvr3bXJ2mOgW/WyXnF6mIOhCShgplgUhrE5NYUoOvxKFlr0bYhT2FVf68J8qxr64AW7BKGK33MacJiBn5S8i07VOCshY7ltHIZXSPfc8yv43VeIn7xv7xaa3WsJwaklz0P2NG+1C34RDrAgClPwKyR+zuf9m3gy+ltFzA7h7ZEBKRrqizOdDN5mY9LMFaXW34R/v9BMIRuGN7OFhqnU/Rf3D/V3rCqchbftyT6ftQL6yEd3m6WXH4LnPKsNhYG/dtogAorb73tzRGDJMuHMNBxJiym0VQy1UG/tW6s4vJ5Oa90WXYeKVU2x8o6O0NL1Rqor1CCbOcNQmiHvH68nWZd5Wgs/lVvN/hJpwvH6WP1Kt7xVEFoPgKtrbg3JFj8/6WTxvhbp6IQSbhkJcpjguuZg1deI8IfoDLFxtM3SXZgVQBcH1oCmgDyhO/1pp8BsqI3pmi1GGJaIBrTtFqrQO6TDFq+Dt2HxHhMb3ZpOy73GZF+ZOgyqY7FLhcfjqMqQC2+G/nhx9vYgNLeXzSBX35cHfH63RXELMnFg0pvBNn8A=
+  file_glob: true
+  file: $VARYS_NAME.*.tar.xz
+  skip_cleanup: true
+  on:
+    repo: CharLemAznable/varys
+    tags: true
