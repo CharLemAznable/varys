@@ -1,4 +1,4 @@
-package varys
+package main
 
 const queryWechatAppThirdPlatformConfigSQL = `
 SELECT C.APP_ID ,C.APP_SECRET ,C.TOKEN ,C.AES_KEY ,C.REDIRECT_URL

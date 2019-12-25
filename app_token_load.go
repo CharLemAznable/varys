@@ -1,7 +1,7 @@
-package varys
+package main
 
 import (
-    "time"
+	"time"
 )
 
 var wechatAppTokenURL = "https://api.weixin.qq.com/cgi-bin/token"
@@ -13,32 +13,32 @@ var wechatAppTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min 
 var wechantAppProxyURL = "https://api.weixin.qq.com/cgi-bin/"
 
 func wechatAppTokenLoad(configMap map[string]string) {
-    urlConfigLoader(configMap["wechatAppTokenURL"],
-        func(configURL string) {
-            wechatAppTokenURL = configURL
-        })
+	urlConfigLoader(configMap["wechatAppTokenURL"],
+		func(configURL string) {
+			wechatAppTokenURL = configURL
+		})
 
-    lifeSpanConfigLoader(
-        configMap["wechatAppConfigLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppConfigLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppTokenLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppTokenLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppTokenTempLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppTokenTempLifeSpan = configVal * time.Minute
-        })
+	lifeSpanConfigLoader(
+		configMap["wechatAppConfigLifeSpan"],
+		func(configVal time.Duration) {
+			wechatAppConfigLifeSpan = configVal * time.Minute
+		})
+	lifeSpanConfigLoader(
+		configMap["wechatAppTokenLifeSpan"],
+		func(configVal time.Duration) {
+			wechatAppTokenLifeSpan = configVal * time.Minute
+		})
+	lifeSpanConfigLoader(
+		configMap["wechatAppTokenTempLifeSpan"],
+		func(configVal time.Duration) {
+			wechatAppTokenTempLifeSpan = configVal * time.Minute
+		})
 
-    urlConfigLoader(configMap["wechantAppProxyURL"],
-        func(configURL string) {
-            wechantAppProxyURL = configURL
-        })
+	urlConfigLoader(configMap["wechantAppProxyURL"],
+		func(configURL string) {
+			wechantAppProxyURL = configURL
+		})
 
-    wechatAppTokenInitialize()
-    wechatAppProxyInitialize()
+	wechatAppTokenInitialize()
+	wechatAppProxyInitialize()
 }

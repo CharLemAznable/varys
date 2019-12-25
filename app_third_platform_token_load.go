@@ -1,7 +1,7 @@
-package varys
+package main
 
 import (
-    "time"
+	"time"
 )
 
 var wechatAppThirdPlatformTokenURL = "https://api.weixin.qq.com/cgi-bin/component/api_component_token"
@@ -17,53 +17,53 @@ var wechatAppThirdPlatformAuthorizerTokenLifeSpan = time.Minute * 5     // stabl
 var wechatAppThirdPlatformAuthorizerTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
 
 func wechatAppThirdPlatformAuthorizerTokenLoad(configMap map[string]string) {
-    urlConfigLoader(configMap["wechatAppThirdPlatformTokenURL"],
-        func(configURL string) {
-            wechatAppThirdPlatformTokenURL = configURL
-        })
-    urlConfigLoader(configMap["wechatAppThirdPlatformPreAuthCodeURL"],
-        func(configURL string) {
-            wechatAppThirdPlatformPreAuthCodeURL = configURL
-        })
-    urlConfigLoader(configMap["wechatAppThirdPlatformQueryAuthURL"],
-        func(configURL string) {
-            wechatAppThirdPlatformQueryAuthURL = configURL
-        })
-    urlConfigLoader(configMap["wechatAppThirdPlatformRefreshAuthURL"],
-        func(configURL string) {
-            wechatAppThirdPlatformRefreshAuthURL = configURL
-        })
+	urlConfigLoader(configMap["wechatAppThirdPlatformTokenURL"],
+		func(configURL string) {
+			wechatAppThirdPlatformTokenURL = configURL
+		})
+	urlConfigLoader(configMap["wechatAppThirdPlatformPreAuthCodeURL"],
+		func(configURL string) {
+			wechatAppThirdPlatformPreAuthCodeURL = configURL
+		})
+	urlConfigLoader(configMap["wechatAppThirdPlatformQueryAuthURL"],
+		func(configURL string) {
+			wechatAppThirdPlatformQueryAuthURL = configURL
+		})
+	urlConfigLoader(configMap["wechatAppThirdPlatformRefreshAuthURL"],
+		func(configURL string) {
+			wechatAppThirdPlatformRefreshAuthURL = configURL
+		})
 
-    lifeSpanConfigLoader(
-        configMap["wechatAppThirdPlatformConfigLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppThirdPlatformConfigLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppThirdPlatformCryptorLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppThirdPlatformCryptorLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppThirdPlatformTokenLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppThirdPlatformTokenLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppThirdPlatformTokenTempLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppThirdPlatformTokenTempLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppThirdPlatformAuthorizerTokenLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppThirdPlatformAuthorizerTokenLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["wechatAppThirdPlatformAuthorizerTokenTempLifeSpan"],
-        func(configVal time.Duration) {
-            wechatAppThirdPlatformAuthorizerTokenTempLifeSpan = configVal * time.Minute
-        })
+	lifeSpanConfigLoader(
+		configMap["wechatAppThirdPlatformConfigLifeSpan"],
+		func(configVal time.Duration) {
+			wechatAppThirdPlatformConfigLifeSpan = configVal * time.Minute
+		})
+	lifeSpanConfigLoader(
+		configMap["wechatAppThirdPlatformCryptorLifeSpan"],
+		func(configVal time.Duration) {
+			wechatAppThirdPlatformCryptorLifeSpan = configVal * time.Minute
+		})
+	lifeSpanConfigLoader(
+		configMap["wechatAppThirdPlatformTokenLifeSpan"],
+		func(configVal time.Duration) {
+			wechatAppThirdPlatformTokenLifeSpan = configVal * time.Minute
+		})
+	lifeSpanConfigLoader(
+		configMap["wechatAppThirdPlatformTokenTempLifeSpan"],
+		func(configVal time.Duration) {
+			wechatAppThirdPlatformTokenTempLifeSpan = configVal * time.Minute
+		})
+	lifeSpanConfigLoader(
+		configMap["wechatAppThirdPlatformAuthorizerTokenLifeSpan"],
+		func(configVal time.Duration) {
+			wechatAppThirdPlatformAuthorizerTokenLifeSpan = configVal * time.Minute
+		})
+	lifeSpanConfigLoader(
+		configMap["wechatAppThirdPlatformAuthorizerTokenTempLifeSpan"],
+		func(configVal time.Duration) {
+			wechatAppThirdPlatformAuthorizerTokenTempLifeSpan = configVal * time.Minute
+		})
 
-    wechatAppThirdPlatformAuthorizerTokenInitialize()
+	wechatAppThirdPlatformAuthorizerTokenInitialize()
 }

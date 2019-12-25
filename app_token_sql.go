@@ -1,4 +1,4 @@
-package varys
+package main
 
 const queryWechatAppConfigSQL = `
 SELECT C.APP_ID ,C.APP_SECRET

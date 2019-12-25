@@ -1,4 +1,4 @@
-package varys
+package main
 
 const queryWechatCorpConfigSQL = `
 SELECT C.CORP_ID ,C.CORP_SECRET
