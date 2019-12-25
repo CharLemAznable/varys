@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
+    "fmt"
 )
 
 type UnexpectedError struct {
-	Message string
+    Message string
 }
 
 func (e *UnexpectedError) Error() string {
-	return fmt.Sprintf("UnexpectedError: %s", e.Message)
+    return fmt.Sprintf("UnexpectedError: %s", e.Message)
 }

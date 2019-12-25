@@ -1,7 +1,7 @@
 package main
 
 import (
-	"time"
+    "time"
 )
 
 var wechatCorpTokenURL = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
@@ -13,32 +13,32 @@ var wechatCorpTokenExpireCriticalSpan = time.Second * 1 // token about to expire
 var wechatCorpProxyURL = "https://qyapi.weixin.qq.com/cgi-bin/"
 
 func wechatCorpTokenLoad(configMap map[string]string) {
-	urlConfigLoader(configMap["wechatCorpTokenURL"],
-		func(configURL string) {
-			wechatCorpTokenURL = configURL
-		})
+    urlConfigLoader(configMap["wechatCorpTokenURL"],
+        func(configURL string) {
+            wechatCorpTokenURL = configURL
+        })
 
-	lifeSpanConfigLoader(
-		configMap["wechatCorpConfigLifeSpan"],
-		func(configVal time.Duration) {
-			wechatCorpConfigLifeSpan = configVal * time.Minute
-		})
-	lifeSpanConfigLoader(
-		configMap["wechatCorpTokenMaxLifeSpan"],
-		func(configVal time.Duration) {
-			wechatCorpTokenMaxLifeSpan = configVal * time.Minute
-		})
-	lifeSpanConfigLoader(
-		configMap["wechatCorpTokenExpireCriticalSpan"],
-		func(configVal time.Duration) {
-			wechatCorpTokenExpireCriticalSpan = configVal * time.Second
-		})
+    lifeSpanConfigLoader(
+        configMap["wechatCorpConfigLifeSpan"],
+        func(configVal time.Duration) {
+            wechatCorpConfigLifeSpan = configVal * time.Minute
+        })
+    lifeSpanConfigLoader(
+        configMap["wechatCorpTokenMaxLifeSpan"],
+        func(configVal time.Duration) {
+            wechatCorpTokenMaxLifeSpan = configVal * time.Minute
+        })
+    lifeSpanConfigLoader(
+        configMap["wechatCorpTokenExpireCriticalSpan"],
+        func(configVal time.Duration) {
+            wechatCorpTokenExpireCriticalSpan = configVal * time.Second
+        })
 
-	urlConfigLoader(configMap["wechatCorpProxyURL"],
-		func(configURL string) {
-			wechatCorpProxyURL = configURL
-		})
+    urlConfigLoader(configMap["wechatCorpProxyURL"],
+        func(configURL string) {
+            wechatCorpProxyURL = configURL
+        })
 
-	wechatCorpTokenInitialize()
-	wechatCorpProxyInitialize()
+    wechatCorpTokenInitialize()
+    wechatCorpProxyInitialize()
 }
