@@ -114,7 +114,7 @@ $ nohup ./varys-[version].[arch].[os].bin &
 
 默认服务地址:
 ```http
-http://localhost:4236/varys
+http://localhost:4236
 ```
 ```http
 /query-wechat-app-token/{codeName:string}
@@ -210,6 +210,10 @@ https://open.work.weixin.qq.com/3rdapp/install?suite_id=#suiteId#&pre_auth_code=
 成功: {"suiteId": #suiteId#, "corpId": #corpId#, "token": #access_token#}
 错误: {"error": #ErrorMessage#}
 ```
+
+#### Golang Kits
+
+  [varys-go-driver](https://github.com/CharLemAznable/varys-go-driver)
 
 #### Java Kits
 
