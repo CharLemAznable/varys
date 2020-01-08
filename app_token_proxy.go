@@ -1,6 +1,7 @@
 package main
 
 import (
+    "github.com/CharLemAznable/gokits"
     "net/http/httputil"
     "net/url"
 )
@@ -12,5 +13,5 @@ func wechatAppProxyInitialize() {
     if err != nil {
         baseURL, _ = url.Parse("https://api.weixin.qq.com/cgi-bin/")
     }
-    wechatAppProxy = reverseProxy(baseURL)
+    wechatAppProxy = gokits.ReverseProxy(baseURL)
 }

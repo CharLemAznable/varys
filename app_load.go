@@ -6,11 +6,11 @@ import (
     "github.com/CharLemAznable/gokits"
     "os"
     "strings"
+    "unsafe"
 )
 
 type AppConfig struct {
-    Port        int
-    ContextPath string
+    gokits.HttpServerConfig
     ConnectName string
 }
 
@@ -41,6 +41,7 @@ func init() {
         appConfig.ConnectName = "Default"
     })
 
+    gokits.GlobalHttpServerConfig = (*gokits.HttpServerConfig)(unsafe.Pointer(&appConfig))
     gokits.LOG.Debug("appConfig: %s", gokits.Json(appConfig))
 
     // init db config
