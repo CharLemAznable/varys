@@ -5,7 +5,6 @@ import (
     "fmt"
     "github.com/CharLemAznable/gokits"
     "github.com/CharLemAznable/wechataes"
-    "io/ioutil"
     "net/http"
     "strings"
 )
@@ -30,7 +29,7 @@ func parseWechatAppThirdPlatformAuthorizeData(codeName string, request *http.Req
     }
     cryptor := cache.Data().(*wechataes.WechatCryptor)
 
-    body, err := ioutil.ReadAll(request.Body)
+    body, err := gokits.RequestBody(request)
     if nil != err {
         _ = gokits.LOG.Warn("Request read Body error:(%s) %s", codeName, err.Error())
         return nil, err
@@ -46,7 +45,7 @@ func parseWechatAppThirdPlatformAuthorizeData(codeName string, request *http.Req
     msgSign := params.Get("msg_signature")
     timeStamp := params.Get("timestamp")
     nonce := params.Get("nonce")
-    decryptMsg, err := cryptor.DecryptMsg(msgSign, timeStamp, nonce, string(body))
+    decryptMsg, err := cryptor.DecryptMsg(msgSign, timeStamp, nonce, body)
     if nil != err {
         _ = gokits.LOG.Warn("WechatCryptor DecryptMsg error:(%s) %s", codeName, err.Error())
         return nil, err
