@@ -11,7 +11,7 @@ func main() {
     HandleFunc(mux, welcomePath, welcome, DumpRequestDisabled)
 
     HandleFunc(mux, queryWechatAppTokenPath, queryWechatAppToken)
-    HandleFunc(mux, proxyWechatAppPath, proxyWechatApp)
+    HandleFunc(mux, proxyWechatAppPath, proxyWechatApp, GzipResponseDisabled)
 
     HandleFunc(mux, acceptAppAuthorizationPath, acceptAppAuthorization)
     HandleFunc(mux, appAuthorizeComponentScanPath, appAuthorizeComponentScan)
@@ -20,7 +20,7 @@ func main() {
     HandleFunc(mux, queryWechatAppAuthorizerTokenPath, queryWechatAppAuthorizerToken)
 
     HandleFunc(mux, queryWechatCorpTokenPath, queryWechatCorpToken)
-    HandleFunc(mux, proxyWechatCorpPath, proxyWechatCorp)
+    HandleFunc(mux, proxyWechatCorpPath, proxyWechatCorp, GzipResponseDisabled)
 
     HandleFunc(mux, acceptCorpAuthorizationPath, acceptCorpAuthorization)
     HandleFunc(mux, corpAuthorizeComponentPath, corpAuthorizeComponent)
