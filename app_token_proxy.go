@@ -9,7 +9,7 @@ import (
 var wechatAppProxy *httputil.ReverseProxy
 
 func wechatAppProxyInitialize() {
-    baseURL, err := url.Parse(wechantAppProxyURL)
+    baseURL, err := url.Parse(wechatAppProxyURL)
     if err != nil {
         baseURL, _ = url.Parse("https://api.weixin.qq.com/cgi-bin/")
     }

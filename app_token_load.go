@@ -10,7 +10,7 @@ var wechatAppConfigLifeSpan = time.Minute * 60   // config cache 60 min default
 var wechatAppTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
 var wechatAppTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
 
-var wechantAppProxyURL = "https://api.weixin.qq.com/cgi-bin/"
+var wechatAppProxyURL = "https://api.weixin.qq.com/cgi-bin/"
 
 func wechatAppTokenLoad(configMap map[string]string) {
     urlConfigLoader(configMap["wechatAppTokenURL"],
@@ -34,9 +34,9 @@ func wechatAppTokenLoad(configMap map[string]string) {
             wechatAppTokenTempLifeSpan = configVal * time.Minute
         })
 
-    urlConfigLoader(configMap["wechantAppProxyURL"],
+    urlConfigLoader(configMap["wechatAppProxyURL"],
         func(configURL string) {
-            wechantAppProxyURL = configURL
+            wechatAppProxyURL = configURL
         })
 
     wechatAppTokenInitialize()
