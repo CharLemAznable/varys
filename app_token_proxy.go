@@ -7,11 +7,20 @@ import (
 )
 
 var wechatAppProxy *httputil.ReverseProxy
+var wechatMpProxy *httputil.ReverseProxy
 
 func wechatAppProxyInitialize() {
     baseURL, err := url.Parse(wechatAppProxyURL)
     if err != nil {
-        baseURL, _ = url.Parse("https://api.weixin.qq.com/cgi-bin/")
+        baseURL, _ = url.Parse(DefaultWechatAppProxyURL)
     }
     wechatAppProxy = gokits.ReverseProxy(baseURL)
+}
+
+func wechatMpProxyInitialize() {
+    baseURL, err := url.Parse(wechatMpProxyURL)
+    if err != nil {
+        baseURL, _ = url.Parse(DefaultWechatMpProxyURL)
+    }
+    wechatMpProxy = gokits.ReverseProxy(baseURL)
 }

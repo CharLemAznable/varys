@@ -3,6 +3,7 @@ package main
 import (
     "github.com/CharLemAznable/gokits"
     "net/http"
+    "net/http/httputil"
     "strings"
 )
 
@@ -29,7 +30,20 @@ func queryWechatAppToken(writer http.ResponseWriter, request *http.Request) {
 const proxyWechatAppPath = "/proxy-wechat-app/"
 
 func proxyWechatApp(writer http.ResponseWriter, request *http.Request) {
-    codePath := trimPrefixPath(request, proxyWechatAppPath)
+    proxyWechatAppToken(proxyWechatAppPath, wechatAppProxy, writer, request)
+}
+
+// /proxy-wechat-mp/{codeName:string}/...
+const proxyWechatMpPath = "/proxy-wechat-mp/"
+
+func proxyWechatMp(writer http.ResponseWriter, request *http.Request) {
+    proxyWechatAppToken(proxyWechatMpPath, wechatMpProxy, writer, request)
+}
+
+func proxyWechatAppToken(prefix string, proxy *httputil.ReverseProxy,
+    writer http.ResponseWriter, request *http.Request) {
+
+    codePath := trimPrefixPath(request, prefix)
     splits := strings.SplitN(codePath, "/", 2)
 
     codeName := splits[0]
@@ -58,5 +72,5 @@ func proxyWechatApp(writer http.ResponseWriter, request *http.Request) {
         req.URL.RawQuery = req.URL.RawQuery + "&" + "access_token=" + token
     }
     req.URL.Path = actualPath
-    wechatAppProxy.ServeHTTP(writer, req)
+    proxy.ServeHTTP(writer, req)
 }
