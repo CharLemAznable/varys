@@ -130,6 +130,13 @@ http://localhost:4236
 代理指定codeName对应的公众号微信接口, 自动添加access_token参数
 ```
 ```http
+/proxy-wechat-mp/{codeName:string}/...
+
+代理指定codeName对应的小程序微信接口, 自动添加access_token参数
+
+小程序的access_token可使用公众号access_token接口获取
+```
+```http
 /accept-app-authorization/{codeName:string}
 
 第三方平台在微信配置的授权事件接收URL
