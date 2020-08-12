@@ -72,9 +72,9 @@ $ nohup ./varys-[version].[arch].[os].bin &
 
 #### 本地缓存
 
-包含微信公众号配置缓存和```access_token```缓存, 其中:
+包含微信公众号/小程序配置缓存和```access_token```缓存, 其中:
 
-1) 公众号配置缓存默认1小时
+1) 公众号/小程序配置缓存默认1小时
 2) access_token缓存默认5分钟, 当access_token即将过期并被其他分布式节点更新时缓存1分钟
 
   [app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/app_token_cache.go)
@@ -110,6 +110,13 @@ $ nohup ./varys-[version].[arch].[os].bin &
 
   [corp_third_platform_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/corp_third_platform_token_cache.go)
 
+包含字节小程序配置缓存和```access_token```缓存, 其中:
+
+1) 小程序配置缓存默认1小时
+2) access_token缓存默认5分钟, 当access_token即将过期并被其他分布式节点更新时缓存1分钟
+
+  [toutiao_app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/toutiao_app_token_cache.go)
+
 #### 访问路径
 
 默认服务地址:
@@ -119,7 +126,7 @@ http://localhost:4236
 ```http
 /query-wechat-app-token/{codeName:string}
 
-获取指定codeName对应的公众号当前的access_token
+获取指定codeName对应的公众号/小程序当前的access_token
 返回数据:
 成功: {"appId": #appId#, "token": #access_token#}
 错误: {"error": #ErrorMessage#}
@@ -215,6 +222,14 @@ https://open.work.weixin.qq.com/3rdapp/install?suite_id=#suiteId#&pre_auth_code=
 获取指定codeName对应的企业第三方应用所代理的corpId对应的企业微信当前的access_token
 返回数据:
 成功: {"suiteId": #suiteId#, "corpId": #corpId#, "token": #access_token#}
+错误: {"error": #ErrorMessage#}
+```
+```http
+/query-toutiao-app-token/{codeName:string}
+
+获取指定codeName对应的字节小程序当前的access_token
+返回数据:
+成功: {"appId": #appId#, "token": #access_token#}
 错误: {"error": #ErrorMessage#}
 ```
 

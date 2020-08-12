@@ -76,4 +76,6 @@ SELECT C.CONFIG_NAME ,C.CONFIG_VALUE
     wechatAppThirdPlatformAuthorizerTokenLoad(configMap)
     wechatCorpTokenLoad(configMap)
     wechatCorpThirdPlatformAuthorizerTokenLoad(configMap)
+
+    toutiaoAppTokenLoad(configMap)
 }
