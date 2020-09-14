@@ -8,6 +8,7 @@ import (
 
 func main() {
     mux := http.NewServeMux()
+    HandleFunc(mux, "/", EmptyHandler, DumpRequestDisabled)
     HandleFunc(mux, welcomePath, welcome, DumpRequestDisabled)
 
     HandleFunc(mux, queryWechatAppTokenPath, queryWechatAppToken)
