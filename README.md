@@ -144,6 +144,14 @@ http://localhost:4236
 小程序的access_token可使用公众号access_token接口获取
 ```
 ```http
+/proxy-wechat-mp-login/{codeName:string}?js_code=JSCODE
+
+代理指定codeName对应的小程序登录凭证校验
+
+通过 wx.login 接口获得临时登录凭证 code 后调用此接口，获取微信提供的用户身份标识
+```
+详见: [微信开放文档 auth.code2Session](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/login/auth.code2Session.html)
+```http
 /accept-app-authorization/{codeName:string}
 
 第三方平台在微信配置的授权事件接收URL

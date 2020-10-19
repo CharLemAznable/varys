@@ -8,6 +8,7 @@ import (
 
 var wechatAppProxy *httputil.ReverseProxy
 var wechatMpProxy *httputil.ReverseProxy
+var wechatMpLoginProxy *httputil.ReverseProxy
 
 func wechatAppProxyInitialize() {
     baseURL, err := url.Parse(wechatAppProxyURL)
@@ -23,4 +24,12 @@ func wechatMpProxyInitialize() {
         baseURL, _ = url.Parse(DefaultWechatMpProxyURL)
     }
     wechatMpProxy = gokits.ReverseProxy(baseURL)
+}
+
+func wechatMpLoginProxyInitialize() {
+    baseURL, err := url.Parse(wechatMpLoginProxyURL)
+    if err != nil {
+        baseURL, _ = url.Parse(DefaultWechatMpLoginProxyURL)
+    }
+    wechatMpLoginProxy = gokits.ReverseProxy(baseURL)
 }

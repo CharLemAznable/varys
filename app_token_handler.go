@@ -74,3 +74,34 @@ func proxyWechatAppToken(prefix string, proxy *httputil.ReverseProxy,
     req.URL.Path = actualPath
     proxy.ServeHTTP(writer, req)
 }
+
+// /proxy-wechat-mp-login/{codeName:string}?js_code=JSCODE
+const proxyWechatMpLoginPath = "/proxy-wechat-mp-login/"
+
+func proxyWechatMpLogin(writer http.ResponseWriter, request *http.Request) {
+    codeName := trimPrefixPath(request, proxyWechatMpLoginPath)
+    if 0 == len(codeName) {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
+        return
+    }
+
+    cache, err := wechatAppConfigCache.Value(codeName)
+    if nil != err {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": err.Error()}))
+        return
+    }
+    config := cache.Data().(*WechatAppConfig)
+
+    if request.URL.Query().Get("js_code") == "" {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "js_code is Empty"}))
+        return
+    }
+
+    req := request
+    req.URL.RawQuery = req.URL.RawQuery +
+        "&appid=" + config.AppId +
+        "&secret=" + config.AppSecret +
+        "&grant_type=authorization_code"
+    req.URL.Path = "jscode2session"
+    wechatMpLoginProxy.ServeHTTP(writer, req)
+}
