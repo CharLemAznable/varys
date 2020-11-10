@@ -190,6 +190,19 @@ https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&compo
 错误: {"error": #ErrorMessage#}
 ```
 ```http
+/query-wechat-app-third-platform-token/{codeName:string}
+
+获取指定codeName对应的第三方平台当前的component_access_token
+返回数据:
+成功: {"appId": #appId#, "token": #component_access_token#}
+错误: {"error": #ErrorMessage#}
+```
+```http
+/proxy-wechat-app-third-platform/{codeName:string}/...
+
+代理指定codeName对应的第三方平台微信接口, 自动添加component_access_token参数
+```
+```http
 /query-wechat-corp-token/{codeName:string}
 
 获取指定codeName对应的企业微信当前的access_token

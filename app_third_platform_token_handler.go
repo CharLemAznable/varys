@@ -266,3 +266,58 @@ func queryWechatAppAuthorizerToken(writer http.ResponseWriter, request *http.Req
         "authorizerAppId": token.AuthorizerAppId,
         "token":           token.AuthorizerAccessToken}))
 }
+
+// /query-wechat-app-third-platform-token/{codeName:string}
+const queryWechatAppThirdPlatformTokenPath = "/query-wechat-app-third-platform-token/"
+
+func queryWechatAppThirdPlatformToken(writer http.ResponseWriter, request *http.Request) {
+    codeName := trimPrefixPath(request, queryWechatAppThirdPlatformTokenPath)
+    if 0 == len(codeName) {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
+        return
+    }
+
+    cache, err := wechatAppThirdPlatformTokenCache.Value(codeName)
+    if nil != err {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": err.Error()}))
+        return
+    }
+    token := cache.Data().(*WechatAppThirdPlatformToken)
+    gokits.ResponseJson(writer, gokits.Json(map[string]string{"appId": token.AppId, "token": token.AccessToken}))
+}
+
+// /proxy-wechat-app-third-platform/{codeName:string}/...
+const proxyWechatAppThirdPlatformPath = "/proxy-wechat-app-third-platform/"
+
+func proxyWechatAppThirdPlatform(writer http.ResponseWriter, request *http.Request) {
+    codePath := trimPrefixPath(request, proxyWechatAppThirdPlatformPath)
+    splits := strings.SplitN(codePath, "/", 2)
+
+    codeName := splits[0]
+    if 0 == len(codeName) {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
+        return
+    }
+
+    cache, err := wechatAppThirdPlatformTokenCache.Value(codeName)
+    if nil != err {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": err.Error()}))
+        return
+    }
+    token := cache.Data().(*WechatAppThirdPlatformToken).AccessToken
+
+    actualPath := splits[1]
+    if 0 == len(actualPath) {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "proxy PATH is Empty"}))
+        return
+    }
+
+    req := request
+    if req.URL.RawQuery == "" {
+        req.URL.RawQuery = req.URL.RawQuery + "component_access_token=" + token
+    } else {
+        req.URL.RawQuery = req.URL.RawQuery + "&" + "component_access_token=" + token
+    }
+    req.URL.Path = actualPath
+    wechatAppThirdPlatformProxy.ServeHTTP(writer, req)
+}

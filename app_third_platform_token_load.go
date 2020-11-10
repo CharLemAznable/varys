@@ -16,6 +16,10 @@ var wechatAppThirdPlatformTokenTempLifeSpan = time.Minute * 1           // tempo
 var wechatAppThirdPlatformAuthorizerTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
 var wechatAppThirdPlatformAuthorizerTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
 
+const DefaultWechatAppThirdPlatformProxyURL = "https://api.weixin.qq.com/cgi-bin/"
+
+var wechatAppThirdPlatformProxyURL = DefaultWechatAppThirdPlatformProxyURL
+
 func wechatAppThirdPlatformAuthorizerTokenLoad(configMap map[string]string) {
     urlConfigLoader(configMap["wechatAppThirdPlatformTokenURL"],
         func(configURL string) {
@@ -65,5 +69,11 @@ func wechatAppThirdPlatformAuthorizerTokenLoad(configMap map[string]string) {
             wechatAppThirdPlatformAuthorizerTokenTempLifeSpan = configVal * time.Minute
         })
 
+    urlConfigLoader(configMap["wechatAppThirdPlatformProxyURL"],
+        func(configURL string) {
+            wechatAppThirdPlatformProxyURL = configURL
+        })
+
     wechatAppThirdPlatformAuthorizerTokenInitialize()
+    wechatAppThirdPlatformProxyInitialize()
 }

@@ -22,6 +22,9 @@ func main() {
     HandleFunc(mux, appAuthorizeRedirectPath, appAuthorizeRedirect)
     HandleFunc(mux, queryWechatAppAuthorizerTokenPath, queryWechatAppAuthorizerToken)
 
+    HandleFunc(mux, queryWechatAppThirdPlatformTokenPath, queryWechatAppThirdPlatformToken)
+    HandleFunc(mux, proxyWechatAppThirdPlatformPath, proxyWechatAppThirdPlatform, GzipResponseDisabled)
+
     HandleFunc(mux, queryWechatCorpTokenPath, queryWechatCorpToken)
     HandleFunc(mux, proxyWechatCorpPath, proxyWechatCorp, GzipResponseDisabled)
 
