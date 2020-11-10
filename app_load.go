@@ -73,7 +73,8 @@ SELECT C.CONFIG_NAME ,C.CONFIG_VALUE
     }
 
     wechatAppTokenLoad(configMap)
-    wechatAppThirdPlatformAuthorizerTokenLoad(configMap)
+    wechatTpTokenLoad(configMap)
+    wechatTpAuthTokenLoad(configMap)
     wechatCorpTokenLoad(configMap)
     wechatCorpThirdPlatformAuthorizerTokenLoad(configMap)
 

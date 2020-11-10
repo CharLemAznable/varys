@@ -14,15 +14,15 @@ var wechatCorpThirdPlatformPermanentCodeCache *gokits.CacheTable
 var wechatCorpThirdPlatformCorpTokenCache *gokits.CacheTable
 
 func wechatCorpThirdPlatformAuthorizerTokenInitialize() {
-    wechatCorpThirdPlatformConfigCache = gokits.CacheExpireAfterWrite("wechatCorpThirdPlatformConfig")
+    wechatCorpThirdPlatformConfigCache = gokits.CacheExpireAfterWrite("WechatCorpThirdPlatformConfig")
     wechatCorpThirdPlatformConfigCache.SetDataLoader(wechatCorpThirdPlatformConfigLoader)
-    wechatCorpThirdPlatformCryptorCache = gokits.CacheExpireAfterWrite("wechatCorpThirdPlatformCryptor")
+    wechatCorpThirdPlatformCryptorCache = gokits.CacheExpireAfterWrite("WechatCorpThirdPlatformCryptor")
     wechatCorpThirdPlatformCryptorCache.SetDataLoader(wechatCorpThirdPlatformCryptorLoader)
-    wechatCorpThirdPlatformTokenCache = gokits.CacheExpireAfterWrite("wechatCorpThirdPlatformCryptor")
+    wechatCorpThirdPlatformTokenCache = gokits.CacheExpireAfterWrite("WechatCorpThirdPlatformCryptor")
     wechatCorpThirdPlatformTokenCache.SetDataLoader(wechatCorpThirdPlatformTokenLoader)
-    wechatCorpThirdPlatformPermanentCodeCache = gokits.CacheExpireAfterWrite("wechatCorpThirdPlatformPermanentCode")
+    wechatCorpThirdPlatformPermanentCodeCache = gokits.CacheExpireAfterWrite("WechatCorpThirdPlatformPermanentCode")
     wechatCorpThirdPlatformPermanentCodeCache.SetDataLoader(wechatCorpThirdPlatformPermanentCodeLoader)
-    wechatCorpThirdPlatformCorpTokenCache = gokits.CacheExpireAfterWrite("wechatCorpThirdPlatformCorpToken")
+    wechatCorpThirdPlatformCorpTokenCache = gokits.CacheExpireAfterWrite("WechatCorpThirdPlatformCorpToken")
     wechatCorpThirdPlatformCorpTokenCache.SetDataLoader(wechatCorpThirdPlatformCorpTokenLoader)
 }
 

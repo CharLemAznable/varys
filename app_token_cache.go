@@ -11,7 +11,7 @@ var wechatAppTokenCache *gokits.CacheTable
 func wechatAppTokenInitialize() {
     wechatAppConfigCache = gokits.CacheExpireAfterWrite("WechatAppConfig")
     wechatAppConfigCache.SetDataLoader(wechatAppConfigLoader)
-    wechatAppTokenCache = gokits.CacheExpireAfterWrite("wechatAppToken")
+    wechatAppTokenCache = gokits.CacheExpireAfterWrite("WechatAppToken")
     wechatAppTokenCache.SetDataLoader(wechatAppTokenLoader)
 }
 

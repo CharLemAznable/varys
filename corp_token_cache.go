@@ -9,9 +9,9 @@ var wechatCorpConfigCache *gokits.CacheTable
 var wechatCorpTokenCache *gokits.CacheTable
 
 func wechatCorpTokenInitialize() {
-    wechatCorpConfigCache = gokits.CacheExpireAfterWrite("wechatCorpConfig")
+    wechatCorpConfigCache = gokits.CacheExpireAfterWrite("WechatCorpConfig")
     wechatCorpConfigCache.SetDataLoader(wechatCorpTokenConfigLoader)
-    wechatCorpTokenCache = gokits.CacheExpireAfterWrite("wechatCorpToken")
+    wechatCorpTokenCache = gokits.CacheExpireAfterWrite("WechatCorpToken")
     wechatCorpTokenCache.SetDataLoader(wechatCorpTokenLoader)
 }
 

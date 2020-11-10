@@ -16,14 +16,14 @@ func main() {
     HandleFunc(mux, proxyWechatMpPath, proxyWechatMp, GzipResponseDisabled)
     HandleFunc(mux, proxyWechatMpLoginPath, proxyWechatMpLogin, GzipResponseDisabled)
 
-    HandleFunc(mux, acceptAppAuthorizationPath, acceptAppAuthorization)
-    HandleFunc(mux, appAuthorizeComponentScanPath, appAuthorizeComponentScan)
-    HandleFunc(mux, appAuthorizeComponentLinkPath, appAuthorizeComponentLink)
-    HandleFunc(mux, appAuthorizeRedirectPath, appAuthorizeRedirect)
-    HandleFunc(mux, queryWechatAppAuthorizerTokenPath, queryWechatAppAuthorizerToken)
+    HandleFunc(mux, acceptWechatTpInfoPath, acceptWechatTpInfo)
+    HandleFunc(mux, queryWechatTpTokenPath, queryWechatTpToken)
+    HandleFunc(mux, proxyWechatTpPath, proxyWechatTp, GzipResponseDisabled)
 
-    HandleFunc(mux, queryWechatAppThirdPlatformTokenPath, queryWechatAppThirdPlatformToken)
-    HandleFunc(mux, proxyWechatAppThirdPlatformPath, proxyWechatAppThirdPlatform, GzipResponseDisabled)
+    HandleFunc(mux, wechatTpAuthorizeScanPath, wechatTpAuthorizeScan)
+    HandleFunc(mux, wechatTpAuthorizeLinkPath, wechatTpAuthorizeLink)
+    HandleFunc(mux, wechatTpAuthorizeRedirectPath, wechatTpAuthorizeRedirect)
+    HandleFunc(mux, queryWechatTpAuthTokenPath, queryWechatTpAuthToken)
 
     HandleFunc(mux, queryWechatCorpTokenPath, queryWechatCorpToken)
     HandleFunc(mux, proxyWechatCorpPath, proxyWechatCorp, GzipResponseDisabled)
