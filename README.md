@@ -84,7 +84,7 @@ $ nohup ./varys-[version].[arch].[os].bin &
 1) 第三方平台配置缓存默认1小时
 2) 第三方平台报文解密器缓存默认1小时
 
-包含微信第三方平台```component_access_token```/```authorizer_access_token```缓存, 其中
+包含微信第三方平台```component_access_token```/授权用户```authorizer_access_token```缓存, 其中
 
 1) component_access_token缓存默认5分钟, 当component_access_token即将过期并被其他分布式节点更新时缓存1分钟
 2) authorizer_access_token缓存默认5分钟, 当authorizer_access_token即将过期并被其他分布式节点更新时缓存1分钟
@@ -152,45 +152,14 @@ http://localhost:4236
 ```
 详见: [微信开放文档 auth.code2Session](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/login/auth.code2Session.html)
 ```http
-/accept-app-authorization/{codeName:string}
+/accept-wechant-tp-info/{codeName:string}
 
 第三方平台在微信配置的授权事件接收URL
 用于接收component_verify_ticket以及公众号对第三方平台进行授权、取消授权、更新授权的推送通知
 返回数据: "success"
 ```
 ```http
-/app-authorize-component-scan/{codeName:string}
-
-第三方平台扫码授权入口页面, 跳转到微信的扫码授权页面
-用于引导公众号和小程序管理员向第三方平台授权
-跳转页面地址:
-https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=#appId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/app-authorize-redirect/{codeName:string}#
-```
-```http
-/app-authorize-component-link/{codeName:string}
-
-第三方平台移动端链接授权入口页面, 跳转到微信的链接授权页面
-用于引导公众号和小程序管理员向第三方平台授权
-跳转页面地址:
-https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid=#appId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/app-authorize-redirect/{codeName:string}##wechat_redirect
-```
-```http
-/app-authorize-redirect/{codeName:string}
-
-第三方平台授权回调地址
-跳转页面地址:
-如果第三方平台配置了WECHAT_APP_THIRD_PLATFORM_CONFIG.REDIRECT_URL, 则跳转到此地址
-```
-```http
-/query-wechat-app-authorizer-token/{codeName:string}/{authorizerAppId:string}
-
-获取指定codeName对应的第三方平台所代理的authorizerAppId对应的公众号当前的authorizer_access_token
-返回数据:
-成功: {"appId": #appId#, "authorizerAppId": #authorizerAppId#, "token": #authorizer_access_token#}
-错误: {"error": #ErrorMessage#}
-```
-```http
-/query-wechat-app-third-platform-token/{codeName:string}
+/query-wechat-tp-token/{codeName:string}
 
 获取指定codeName对应的第三方平台当前的component_access_token
 返回数据:
@@ -198,9 +167,40 @@ https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&compo
 错误: {"error": #ErrorMessage#}
 ```
 ```http
-/proxy-wechat-app-third-platform/{codeName:string}/...
+/proxy-wechat-tp/{codeName:string}/...
 
 代理指定codeName对应的第三方平台微信接口, 自动添加component_access_token参数
+```
+```http
+/wechat-tp-authorize-scan/{codeName:string}
+
+第三方平台扫码授权入口页面, 跳转到微信的扫码授权页面
+用于引导公众号和小程序管理员向第三方平台授权
+跳转页面地址:
+https://mp.weixin.qq.com/cgi-bin/componentloginpage?component_appid=#appId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/app-authorize-redirect/{codeName:string}#
+```
+```http
+/wechat-tp-authorize-link/{codeName:string}
+
+第三方平台移动端链接授权入口页面, 跳转到微信的链接授权页面
+用于引导公众号和小程序管理员向第三方平台授权
+跳转页面地址:
+https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid=#appId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/app-authorize-redirect/{codeName:string}##wechat_redirect
+```
+```http
+/wechat-tp-authorize-redirect/{codeName:string}
+
+第三方平台授权回调地址
+跳转页面地址:
+如果第三方平台配置了WECHAT_APP_THIRD_PLATFORM_CONFIG.REDIRECT_URL, 则跳转到此地址
+```
+```http
+/query-wechat-tp-auth-token/{codeName:string}/{authorizerAppId:string}
+
+获取指定codeName对应的第三方平台所代理的authorizerAppId对应的公众号当前的authorizer_access_token
+返回数据:
+成功: {"appId": #appId#, "authorizerAppId": #authorizerAppId#, "token": #authorizer_access_token#}
+错误: {"error": #ErrorMessage#}
 ```
 ```http
 /query-wechat-corp-token/{codeName:string}
