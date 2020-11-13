@@ -4,79 +4,134 @@ import (
     "flag"
     "github.com/BurntSushi/toml"
     "github.com/CharLemAznable/gokits"
-    "os"
+    "github.com/CharLemAznable/sqlx"
+    "github.com/kataras/golog"
     "strings"
+    "testing"
     "unsafe"
 )
 
-type AppConfig struct {
+type Config struct {
     gokits.HttpServerConfig
-    ConnectName string
+
+    LogLevel string
+
+    DriverName      string
+    DataSourceName  string
+    MaxOpenConns    int
+    MaxIdleConns    int
+    ConnMaxIdleTime gokits.Duration
+    ConnMaxLifetime gokits.Duration
+
+    WechatAppTokenURL          string
+    WechatAppConfigLifeSpan    gokits.Duration
+    WechatAppTokenLifeSpan     gokits.Duration
+    WechatAppTokenTempLifeSpan gokits.Duration
+    WechatAppProxyURL          string
+    WechatMpProxyURL           string
+    WechatMpLoginProxyURL      string
+
+    WechatTpTokenURL          string
+    WechatTpConfigLifeSpan    gokits.Duration
+    WechatTpCryptorLifeSpan   gokits.Duration
+    WechatTpTokenLifeSpan     gokits.Duration
+    WechatTpTokenTempLifeSpan gokits.Duration
+    WechatTpProxyURL          string
+
+    WechatTpPreAuthCodeURL        string
+    WechatTpQueryAuthURL          string
+    WechatTpRefreshAuthURL        string
+    WechatTpAuthTokenLifeSpan     gokits.Duration
+    WechatTpAuthTokenTempLifeSpan gokits.Duration
+
+    WechatCorpTokenURL                string
+    WechatCorpConfigLifeSpan          gokits.Duration
+    WechatCorpTokenMaxLifeSpan        gokits.Duration
+    WechatCorpTokenExpireCriticalSpan gokits.Duration
+    WechatCorpProxyURL                string
+
+    WechatCorpTpTokenURL                string
+    WechatCorpTpConfigLifeSpan          gokits.Duration
+    WechatCorpTpCryptorLifeSpan         gokits.Duration
+    WechatCorpTpTokenMaxLifeSpan        gokits.Duration
+    WechatCorpTpTokenExpireCriticalSpan gokits.Duration
+
+    WechatCorpTpPreAuthCodeURL              string
+    WechatCorpTpPermanentCodeURL            string
+    WechatCorpTpAuthTokenURL                string
+    WechatCorpTpPermanentCodeLifeSpan       gokits.Duration
+    WechatCorpTpAuthTokenMaxLifeSpan        gokits.Duration
+    WechatCorpTpAuthTokenExpireCriticalSpan gokits.Duration
+
+    ToutiaoAppTokenURL          string
+    ToutiaoAppConfigLifeSpan    gokits.Duration
+    ToutiaoAppTokenLifeSpan     gokits.Duration
+    ToutiaoAppTokenTempLifeSpan gokits.Duration
 }
 
-var appConfig AppConfig
-var _configFile string
-var db *gokits.Gql
+var globalConfig = &Config{}
+var db *sqlx.DB
 
 func init() {
-    gokits.LOG.LoadConfiguration("logback.xml")
-
-    flag.StringVar(&_configFile, "configFile", "appConfig.toml", "config file path")
+    testing.Init()
+    configFile := ""
+    flag.StringVar(&configFile, "configFile",
+        "config.toml", "config file path")
     flag.Parse()
-
-    if _, err := toml.DecodeFile(_configFile, &appConfig); err != nil {
-        gokits.LOG.Crashf("config file decode error: %s", err.Error())
+    if _, err := toml.DecodeFile(configFile, globalConfig); err != nil {
+        golog.Errorf("config file decode error: %s", err.Error())
     }
 
-    gokits.If(0 == appConfig.Port, func() {
-        appConfig.Port = 4236
+    fixedConfig(globalConfig)
+    db = loadSqlxDB(globalConfig)
+
+    wechatAppTokenLoad(globalConfig)
+    wechatTpTokenLoad(globalConfig)
+    wechatTpAuthTokenLoad(globalConfig)
+    wechatCorpTokenLoad(globalConfig)
+    wechatCorpTpTokenLoad(globalConfig)
+    wechatCorpTpAuthTokenLoad(globalConfig)
+    toutiaoAppTokenLoad(globalConfig)
+}
+
+func fixedConfig(config *Config) {
+    gokits.If(0 == config.Port, func() {
+        config.Port = 4236
     })
-    gokits.If(0 != len(appConfig.ContextPath), func() {
-        gokits.Unless(strings.HasPrefix(appConfig.ContextPath, "/"),
-            func() { appConfig.ContextPath = "/" + appConfig.ContextPath })
-        gokits.If(strings.HasSuffix(appConfig.ContextPath, "/"),
-            func() { appConfig.ContextPath = appConfig.ContextPath[:len(appConfig.ContextPath)-1] })
+    gokits.If("" == config.ContextPath, func() {
+        gokits.Unless(strings.HasPrefix(config.ContextPath, "/"),
+            func() { config.ContextPath = "/" + config.ContextPath })
+        gokits.If(strings.HasSuffix(config.ContextPath, "/"),
+            func() { config.ContextPath = config.ContextPath[:len(config.ContextPath)-1] })
     })
-    gokits.If(0 == len(appConfig.ConnectName), func() {
-        appConfig.ConnectName = "Default"
+    gokits.If("" == config.LogLevel, func() {
+        config.LogLevel = "info"
     })
 
-    gokits.GlobalHttpServerConfig = (*gokits.HttpServerConfig)(unsafe.Pointer(&appConfig))
-    gokits.LOG.Debug("appConfig: %s", gokits.Json(appConfig))
+    gokits.GlobalHttpServerConfig = (*gokits.HttpServerConfig)(unsafe.Pointer(config))
 
-    // init db config
-    gokits.LoadGqlConfigFile("gql.yaml")
-    _db, err := gokits.NewGql(appConfig.ConnectName)
-    if nil != err {
-        _ = gokits.LOG.Error("Missing db config: %s in gql.yaml", appConfig.ConnectName)
-        os.Exit(-1)
-    }
-    db = _db
+    golog.SetLevel(config.LogLevel)
+    golog.Infof("config: %+v", *config)
+}
 
-    // query app config -> map[string]string
-    configs, err := db.New().Sql(`
-SELECT C.CONFIG_NAME ,C.CONFIG_VALUE
-  FROM APP_CONFIG C
- WHERE C.ENABLED = 1
-`).Query()
-    if nil != err {
-        _ = gokits.LOG.Error("Query Configuration Err: %s", err.Error())
-        os.Exit(-1)
-    }
-    configMap := make(map[string]string)
-    for _, config := range configs {
-        name := config["CONFIG_NAME"]
-        value := config["CONFIG_VALUE"]
-        if 0 != len(name) && 0 != len(value) {
-            configMap[name] = value
-        }
+func loadSqlxDB(config *Config) *sqlx.DB {
+    db, err := sqlx.Open(config.DriverName, config.DataSourceName)
+    if err != nil {
+        golog.Errorf("open sqlx.DB error: %s", err.Error())
+        return nil
     }
 
-    wechatAppTokenLoad(configMap)
-    wechatTpTokenLoad(configMap)
-    wechatTpAuthTokenLoad(configMap)
-    wechatCorpTokenLoad(configMap)
-    wechatCorpThirdPlatformAuthorizerTokenLoad(configMap)
+    db.SetMaxOpenConns(config.MaxOpenConns)
+    db.SetMaxIdleConns(config.MaxIdleConns)
+    db.SetConnMaxIdleTime(config.ConnMaxIdleTime.Duration)
+    db.SetConnMaxLifetime(config.ConnMaxLifetime.Duration)
 
-    toutiaoAppTokenLoad(configMap)
+    if err = db.Ping(); err != nil {
+        golog.Errorf("connect DB error: %s", err.Error())
+        return nil
+    }
+
+    db.MapperFunc(func(s string) string { return s })
+    golog.Infof("DB: %+v", db)
+    return db
 }

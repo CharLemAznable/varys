@@ -1,234 +1,220 @@
 
--- BASE begin --
-
-DROP TABLE IF EXISTS `APP_CONFIG` ;
-
-CREATE TABLE `APP_CONFIG` (
-  `CONFIG_NAME` VARCHAR(100) NOT NULL COMMENT '配置参数名',
-  `CONFIG_VALUE` TEXT NOT NULL COMMENT '配置参数值',
-  `ENABLED` TINYINT NOT NULL DEFAULT '1' COMMENT '有效状态 0-无效 1-有效',
-  PRIMARY KEY (`CONFIG_NAME`)
-) COMMENT='应用配置表';
-
--- BASE end --
-
-
 -- WECHAT_APP_TOKEN begin --
 
-DROP TABLE IF EXISTS `WECHAT_APP_CONFIG` ;
+drop table if exists `wechat_app_config` ;
 
-CREATE TABLE `WECHAT_APP_CONFIG` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `APP_ID` VARCHAR(100) NOT NULL COMMENT '公众号APP_ID',
-  `APP_SECRET` VARCHAR(100) NOT NULL COMMENT '公众号APP_SECRET',
-  `ENABLED` TINYINT NOT NULL DEFAULT '1' COMMENT '有效状态 0-无效 1-有效',
-  PRIMARY KEY (`CODE_NAME`)
-) COMMENT='微信公众号接口access_token获取参数配置表';
+create table `wechat_app_config` (
+  `code_name` varchar(42) not null comment '代号',
+  `app_id` varchar(100) not null comment '公众号APP_ID',
+  `app_secret` varchar(100) not null comment '公众号APP_SECRET',
+  `enabled` tinyint not null default '1' comment '有效状态 0-无效 1-有效',
+  primary key (`code_name`)
+) comment='微信公众号接口access_token获取参数配置表';
 
 
-DROP TABLE IF EXISTS `WECHAT_APP_TOKEN` ;
+drop table if exists `wechat_app_token` ;
 
-CREATE TABLE `WECHAT_APP_TOKEN` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `APP_ID` VARCHAR(100) NOT NULL COMMENT '公众号APP_ID',
-  `ACCESS_TOKEN` TEXT COMMENT '公众号ACCESS_TOKEN',
-  `UPDATED` TINYINT NOT NULL DEFAULT '1' COMMENT '是否最新记录 0-否 1-是',
-  `UPDATE_TIME` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `EXPIRE_TIME` TIMESTAMP COMMENT '过期时间',
-  PRIMARY KEY (`CODE_NAME`)
-) COMMENT='微信公众号接口access_token记录表';
+create table `wechat_app_token` (
+  `code_name` varchar(42) not null comment '代号',
+  `app_id` varchar(100) not null comment '公众号APP_ID',
+  `access_token` text comment '公众号ACCESS_TOKEN',
+  `updated` tinyint not null default '1' comment '是否最新记录 0-否 1-是',
+  `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
+  `expire_time` timestamp comment '过期时间',
+  primary key (`code_name`)
+) comment='微信公众号接口access_token记录表';
 
 -- WECHAT_APP_TOKEN end --
 
 
 -- WECHAT_APP_THIRD_PLATFORM_TOKEN begin --
 
-DROP TABLE IF EXISTS `WECHAT_APP_THIRD_PLATFORM_CONFIG` ;
+drop table if exists `wechat_app_third_platform_config` ;
 
-CREATE TABLE `WECHAT_APP_THIRD_PLATFORM_CONFIG` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `APP_ID` VARCHAR(100) NOT NULL COMMENT '第三方平台APP_ID',
-  `APP_SECRET` VARCHAR(100) NOT NULL COMMENT '第三方平台APP_SECRET',
-  `TOKEN` VARCHAR(100) NOT NULL COMMENT '第三方平台接收消息的校验TOKEN',
-  `AES_KEY` VARCHAR(43) NOT NULL COMMENT '第三方平台接收消息的AES加密Key',
-  `REDIRECT_URL` TEXT COMMENT '第三方平台授权回调URL',
-  `ENABLED` TINYINT NOT NULL DEFAULT '1' COMMENT '有效状态 0-无效 1-有效',
-  PRIMARY KEY (`CODE_NAME`)
-) COMMENT='微信第三方平台配置表';
-
-
-DROP TABLE IF EXISTS `WECHAT_APP_THIRD_PLATFORM_TICKET` ;
-
-CREATE TABLE `WECHAT_APP_THIRD_PLATFORM_TICKET` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `APP_ID` VARCHAR(100) NOT NULL COMMENT '第三方平台APP_ID',
-  `TICKET` VARCHAR(100) NOT NULL COMMENT '第三方平台component_verify_ticket',
-  `UPDATE_TIME` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`CODE_NAME`)
-) COMMENT='微信第三方平台component_verify_ticket记录表';
+create table `wechat_app_third_platform_config` (
+  `code_name` varchar(42) not null comment '代号',
+  `app_id` varchar(100) not null comment '第三方平台APP_ID',
+  `app_secret` varchar(100) not null comment '第三方平台APP_SECRET',
+  `token` varchar(100) not null comment '第三方平台接收消息的校验TOKEN',
+  `aes_key` varchar(43) not null comment '第三方平台接收消息的AES加密Key',
+  `redirect_url` text comment '第三方平台授权回调URL',
+  `enabled` tinyint not null default '1' comment '有效状态 0-无效 1-有效',
+  primary key (`code_name`)
+) comment='微信第三方平台配置表';
 
 
-DROP TABLE IF EXISTS `WECHAT_APP_THIRD_PLATFORM_TOKEN` ;
+drop table if exists `wechat_app_third_platform_ticket` ;
 
-CREATE TABLE `WECHAT_APP_THIRD_PLATFORM_TOKEN` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `APP_ID` VARCHAR(100) NOT NULL COMMENT '第三方平台APP_ID',
-  `ACCESS_TOKEN` TEXT COMMENT '第三方平台component_access_token',
-  `UPDATED` TINYINT NOT NULL DEFAULT '1' COMMENT '是否最新记录 0-否 1-是',
-  `UPDATE_TIME` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `EXPIRE_TIME` TIMESTAMP COMMENT '过期时间',
-  PRIMARY KEY (`CODE_NAME`)
-) COMMENT='第三方平台component_access_token记录表';
+create table `wechat_app_third_platform_ticket` (
+  `code_name` varchar(42) not null comment '代号',
+  `app_id` varchar(100) not null comment '第三方平台APP_ID',
+  `ticket` varchar(100) not null comment '第三方平台component_verify_ticket',
+  `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
+  primary key (`code_name`)
+) comment='微信第三方平台component_verify_ticket记录表';
 
 
-DROP TABLE IF EXISTS `WECHAT_APP_THIRD_PLATFORM_AUTHORIZER` ;
+drop table if exists `wechat_app_third_platform_token` ;
 
-CREATE TABLE `WECHAT_APP_THIRD_PLATFORM_AUTHORIZER` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `APP_ID` VARCHAR(100) NOT NULL COMMENT '第三方平台APP_ID',
-  `AUTHORIZER_APP_ID` VARCHAR(100) NOT NULL COMMENT '授权方APP_ID',
-  `AUTHORIZATION_STATE` TINYINT NOT NULL DEFAULT '1' COMMENT '授权状态 0-未授权 1-已授权',
-  `AUTHORIZATION_CODE` TEXT COMMENT '授权码(code)',
-  `PRE_AUTH_CODE` TEXT COMMENT '预授权码',
-  `UPDATE_TIME` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`CODE_NAME`, `AUTHORIZER_APP_ID`)
-) COMMENT='第三方平台授权方状态表';
+create table `wechat_app_third_platform_token` (
+  `code_name` varchar(42) not null comment '代号',
+  `app_id` varchar(100) not null comment '第三方平台APP_ID',
+  `access_token` text comment '第三方平台component_access_token',
+  `updated` tinyint not null default '1' comment '是否最新记录 0-否 1-是',
+  `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
+  `expire_time` timestamp comment '过期时间',
+  primary key (`code_name`)
+) comment='第三方平台component_access_token记录表';
 
 
-DROP TABLE IF EXISTS `WECHAT_APP_THIRD_PLATFORM_AUTHORIZER_TOKEN` ;
+drop table if exists `wechat_app_third_platform_authorizer` ;
 
-CREATE TABLE `WECHAT_APP_THIRD_PLATFORM_AUTHORIZER_TOKEN` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `APP_ID` VARCHAR(100) NOT NULL COMMENT '第三方平台APP_ID',
-  `AUTHORIZER_APP_ID` VARCHAR(100) NOT NULL COMMENT '授权方APP_ID',
-  `AUTHORIZER_ACCESS_TOKEN` TEXT COMMENT '授权方接口调用凭据',
-  `AUTHORIZER_REFRESH_TOKEN` TEXT COMMENT '接口调用凭据刷新令牌',
-  `UPDATED` TINYINT NOT NULL DEFAULT '1' COMMENT '是否最新记录 0-否 1-是',
-  `UPDATE_TIME` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `EXPIRE_TIME` TIMESTAMP COMMENT '过期时间',
-  PRIMARY KEY (`CODE_NAME`, `AUTHORIZER_APP_ID`)
-) COMMENT='第三方平台授权方access_token记录表';
+create table `wechat_app_third_platform_authorizer` (
+  `code_name` varchar(42) not null comment '代号',
+  `app_id` varchar(100) not null comment '第三方平台APP_ID',
+  `authorizer_app_id` varchar(100) not null comment '授权方APP_ID',
+  `authorization_state` tinyint not null default '1' comment '授权状态 0-未授权 1-已授权',
+  `authorization_code` text comment '授权码(code)',
+  `pre_auth_code` text comment '预授权码',
+  `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
+  primary key (`code_name`, `authorizer_app_id`)
+) comment='第三方平台授权方状态表';
+
+
+drop table if exists `wechat_app_third_platform_authorizer_token` ;
+
+create table `wechat_app_third_platform_authorizer_token` (
+  `code_name` varchar(42) not null comment '代号',
+  `app_id` varchar(100) not null comment '第三方平台APP_ID',
+  `authorizer_app_id` varchar(100) not null comment '授权方APP_ID',
+  `authorizer_access_token` text comment '授权方接口调用凭据',
+  `authorizer_refresh_token` text comment '接口调用凭据刷新令牌',
+  `updated` tinyint not null default '1' comment '是否最新记录 0-否 1-是',
+  `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
+  `expire_time` timestamp comment '过期时间',
+  primary key (`code_name`, `authorizer_app_id`)
+) comment='第三方平台授权方access_token记录表';
 
 -- WECHAT_APP_THIRD_PLATFORM_TOKEN end --
 
 
 -- WECHAT_CORP_TOKEN begin --
 
-DROP TABLE IF EXISTS `WECHAT_CORP_CONFIG` ;
+drop table if exists `wechat_corp_config` ;
 
-CREATE TABLE `WECHAT_CORP_CONFIG` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `CORP_ID` VARCHAR(100) NOT NULL COMMENT '企业ID',
-  `CORP_SECRET` VARCHAR(100) NOT NULL COMMENT '应用的凭证密钥',
-  `ENABLED` TINYINT NOT NULL DEFAULT '1' COMMENT '有效状态 0-无效 1-有效',
-  PRIMARY KEY (`CODE_NAME`)
-) COMMENT='企业微信接口access_token获取参数配置表';
+create table `wechat_corp_config` (
+  `code_name` varchar(42) not null comment '代号',
+  `corp_id` varchar(100) not null comment '企业ID',
+  `corp_secret` varchar(100) not null comment '应用的凭证密钥',
+  `enabled` tinyint not null default '1' comment '有效状态 0-无效 1-有效',
+  primary key (`code_name`)
+) comment='企业微信接口access_token获取参数配置表';
 
 
-DROP TABLE IF EXISTS `WECHAT_CORP_TOKEN` ;
+drop table if exists `wechat_corp_token` ;
 
-CREATE TABLE `WECHAT_CORP_TOKEN` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `CORP_ID` VARCHAR(100) NOT NULL COMMENT '企业ID',
-  `ACCESS_TOKEN` TEXT COMMENT '企业微信ACCESS_TOKEN',
-  `UPDATE_TIME` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `EXPIRE_TIME` TIMESTAMP COMMENT '过期时间',
-  PRIMARY KEY (`CODE_NAME`)
-) COMMENT='企业微信接口access_token记录表';
+create table `wechat_corp_token` (
+  `code_name` varchar(42) not null comment '代号',
+  `corp_id` varchar(100) not null comment '企业ID',
+  `access_token` text comment '企业微信ACCESS_TOKEN',
+  `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
+  `expire_time` timestamp comment '过期时间',
+  primary key (`code_name`)
+) comment='企业微信接口access_token记录表';
 
 -- WECHAT_CORP_TOKEN end --
 
 
 -- WECHAT_CORP_THIRD_PLATFORM_TOKEN begin --
 
-DROP TABLE IF EXISTS `WECHAT_CORP_THIRD_PLATFORM_CONFIG` ;
+drop table if exists `wechat_corp_third_platform_config` ;
 
-CREATE TABLE `WECHAT_CORP_THIRD_PLATFORM_CONFIG` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `SUITE_ID` VARCHAR(100) NOT NULL COMMENT '企业微信第三方应用SUITE_ID',
-  `SUITE_SECRET` VARCHAR(100) NOT NULL COMMENT '企业微信第三方应用SUITE_SECRET',
-  `TOKEN` VARCHAR(100) NOT NULL COMMENT '第三方应用接收消息的校验TOKEN',
-  `AES_KEY` VARCHAR(43) NOT NULL COMMENT '第三方应用接收消息的AES加密Key',
-  `REDIRECT_URL` TEXT COMMENT '第三方应用授权回调URL',
-  `ENABLED` TINYINT NOT NULL DEFAULT '1' COMMENT '有效状态 0-无效 1-有效',
-  PRIMARY KEY (`CODE_NAME`)
-) COMMENT='企业微信第三方应用配置表';
-
-
-DROP TABLE IF EXISTS `WECHAT_CORP_THIRD_PLATFORM_TICKET` ;
-
-CREATE TABLE `WECHAT_CORP_THIRD_PLATFORM_TICKET` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `SUITE_ID` VARCHAR(100) NOT NULL COMMENT '企业微信第三方应用SUITE_ID',
-  `TICKET` VARCHAR(100) NOT NULL COMMENT '第三方应用suite_ticket',
-  `UPDATE_TIME` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`CODE_NAME`)
-) COMMENT='企业微信第三方应用suite_ticket记录表';
+create table `wechat_corp_third_platform_config` (
+  `code_name` varchar(42) not null comment '代号',
+  `suite_id` varchar(100) not null comment '企业微信第三方应用SUITE_ID',
+  `suite_secret` varchar(100) not null comment '企业微信第三方应用SUITE_SECRET',
+  `token` varchar(100) not null comment '第三方应用接收消息的校验TOKEN',
+  `aes_key` varchar(43) not null comment '第三方应用接收消息的AES加密Key',
+  `redirect_url` text comment '第三方应用授权回调URL',
+  `enabled` tinyint not null default '1' comment '有效状态 0-无效 1-有效',
+  primary key (`code_name`)
+) comment='企业微信第三方应用配置表';
 
 
-DROP TABLE IF EXISTS `WECHAT_CORP_THIRD_PLATFORM_TOKEN` ;
+drop table if exists `wechat_corp_third_platform_ticket` ;
 
-CREATE TABLE `WECHAT_CORP_THIRD_PLATFORM_TOKEN` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `SUITE_ID` VARCHAR(100) NOT NULL COMMENT '企业微信第三方应用SUITE_ID',
-  `ACCESS_TOKEN` TEXT COMMENT '企业微信第三方应用suite_access_token',
-  `UPDATE_TIME` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `EXPIRE_TIME` TIMESTAMP COMMENT '过期时间',
-  PRIMARY KEY (`CODE_NAME`)
-) COMMENT='企业微信第三方应用suite_access_token记录表';
-
-
-DROP TABLE IF EXISTS `WECHAT_CORP_THIRD_PLATFORM_AUTHORIZER` ;
-
-CREATE TABLE `WECHAT_CORP_THIRD_PLATFORM_AUTHORIZER` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `SUITE_ID` VARCHAR(100) NOT NULL COMMENT '企业微信第三方应用SUITE_ID',
-  `CORP_ID` VARCHAR(100) NOT NULL COMMENT '授权方企业微信ID',
-  `STATE` TINYINT NOT NULL DEFAULT '1' COMMENT '授权状态 0-未授权 1-已授权',
-  `PERMANENT_CODE` TEXT COMMENT '企业微信永久授权码',
-  `UPDATE_TIME` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`CODE_NAME`, `CORP_ID`)
-) COMMENT='企业微信授权方状态表';
+create table `wechat_corp_third_platform_ticket` (
+  `code_name` varchar(42) not null comment '代号',
+  `suite_id` varchar(100) not null comment '企业微信第三方应用SUITE_ID',
+  `ticket` varchar(100) not null comment '第三方应用suite_ticket',
+  `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
+  primary key (`code_name`)
+) comment='企业微信第三方应用suite_ticket记录表';
 
 
-DROP TABLE IF EXISTS `WECHAT_CORP_THIRD_PLATFORM_CORP_TOKEN` ;
+drop table if exists `wechat_corp_third_platform_token` ;
 
-CREATE TABLE `WECHAT_CORP_THIRD_PLATFORM_CORP_TOKEN` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `SUITE_ID` VARCHAR(100) NOT NULL COMMENT '企业微信第三方应用SUITE_ID',
-  `CORP_ID` VARCHAR(100) NOT NULL COMMENT '授权方企业微信ID',
-  `CORP_ACCESS_TOKEN` TEXT COMMENT '企业微信授权方企业access_token',
-  `UPDATE_TIME` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `EXPIRE_TIME` TIMESTAMP COMMENT '过期时间',
-  PRIMARY KEY (`CODE_NAME`, `CORP_ID`)
-) COMMENT='企业微信授权方企业access_token记录表';
+create table `wechat_corp_third_platform_token` (
+  `code_name` varchar(42) not null comment '代号',
+  `suite_id` varchar(100) not null comment '企业微信第三方应用SUITE_ID',
+  `access_token` text comment '企业微信第三方应用suite_access_token',
+  `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
+  `expire_time` timestamp comment '过期时间',
+  primary key (`code_name`)
+) comment='企业微信第三方应用suite_access_token记录表';
+
+
+drop table if exists `wechat_corp_third_platform_authorizer` ;
+
+create table `wechat_corp_third_platform_authorizer` (
+  `code_name` varchar(42) not null comment '代号',
+  `suite_id` varchar(100) not null comment '企业微信第三方应用SUITE_ID',
+  `corp_id` varchar(100) not null comment '授权方企业微信ID',
+  `state` tinyint not null default '1' comment '授权状态 0-未授权 1-已授权',
+  `permanent_code` text comment '企业微信永久授权码',
+  `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
+  primary key (`code_name`, `corp_id`)
+) comment='企业微信授权方状态表';
+
+
+drop table if exists `wechat_corp_third_platform_corp_token` ;
+
+create table `wechat_corp_third_platform_corp_token` (
+  `code_name` varchar(42) not null comment '代号',
+  `suite_id` varchar(100) not null comment '企业微信第三方应用SUITE_ID',
+  `corp_id` varchar(100) not null comment '授权方企业微信ID',
+  `corp_access_token` text comment '企业微信授权方企业access_token',
+  `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
+  `expire_time` timestamp comment '过期时间',
+  primary key (`code_name`, `corp_id`)
+) comment='企业微信授权方企业access_token记录表';
 
 -- WECHAT_CORP_THIRD_PLATFORM_TOKEN end --
 
 
 -- TOUTIAO_APP_TOKEN begin --
 
-DROP TABLE IF EXISTS `TOUTIAO_APP_CONFIG` ;
+drop table if exists `toutiao_app_config` ;
 
-CREATE TABLE `TOUTIAO_APP_CONFIG` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `APP_ID` VARCHAR(100) NOT NULL COMMENT '字节小程序APP_ID',
-  `APP_SECRET` VARCHAR(100) NOT NULL COMMENT '字节小程序APP_SECRET',
-  `ENABLED` TINYINT NOT NULL DEFAULT '1' COMMENT '有效状态 0-无效 1-有效',
-  PRIMARY KEY (`CODE_NAME`)
-) COMMENT='字节小程序access_token获取参数配置表';
+create table `toutiao_app_config` (
+  `code_name` varchar(42) not null comment '代号',
+  `app_id` varchar(100) not null comment '字节小程序APP_ID',
+  `app_secret` varchar(100) not null comment '字节小程序APP_SECRET',
+  `enabled` tinyint not null default '1' comment '有效状态 0-无效 1-有效',
+  primary key (`code_name`)
+) comment='字节小程序access_token获取参数配置表';
 
 
-DROP TABLE IF EXISTS `TOUTIAO_APP_TOKEN` ;
+drop table if exists `toutiao_app_token` ;
 
-CREATE TABLE `TOUTIAO_APP_TOKEN` (
-  `CODE_NAME` VARCHAR(42) NOT NULL COMMENT '代号',
-  `APP_ID` VARCHAR(100) NOT NULL COMMENT '字节小程序APP_ID',
-  `ACCESS_TOKEN` TEXT COMMENT '字节小程序ACCESS_TOKEN',
-  `UPDATED` TINYINT NOT NULL DEFAULT '1' COMMENT '是否最新记录 0-否 1-是',
-  `UPDATE_TIME` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `EXPIRE_TIME` TIMESTAMP COMMENT '过期时间',
-  PRIMARY KEY (`CODE_NAME`)
-) COMMENT='字节小程序access_token记录表';
+create table `toutiao_app_token` (
+  `code_name` varchar(42) not null comment '代号',
+  `app_id` varchar(100) not null comment '字节小程序APP_ID',
+  `access_token` text comment '字节小程序ACCESS_TOKEN',
+  `updated` tinyint not null default '1' comment '是否最新记录 0-否 1-是',
+  `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
+  `expire_time` timestamp comment '过期时间',
+  primary key (`code_name`)
+) comment='字节小程序access_token记录表';
 
 -- TOUTIAO_APP_TOKEN end --

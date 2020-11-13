@@ -1,27 +1,26 @@
 package main
 
 import (
+    "errors"
     "fmt"
     "github.com/CharLemAznable/gokits"
+    "github.com/kataras/golog"
     "time"
 )
 
 func configLoader(
     name string,
+    config interface{},
     sql string,
     lifeSpan time.Duration,
-    builder func(resultItem map[string]string) interface{},
     key interface{},
     args ...interface{}) (*gokits.CacheItem, error) {
 
-    resultMap, err := db.New().Sql(sql).Params(key).Query()
-    if nil != err || 1 != len(resultMap) {
-        return nil, &UnexpectedError{Message: "Require " + name + " Config with key: " + key.(string)} // require config
+    err := db.NamedGet(config, sql, map[string]interface{}{"CodeName": key})
+    if nil != err {
+        return nil, errors.New("Require " + name + " Config with key: " + key.(string))
     }
-    gokits.LOG.Trace("Query %s:(%s) %s", name, key, resultMap)
-
-    config := builder(resultMap[0])
-    gokits.LOG.Info("Load %s Cache:(%s) %s", name, key, gokits.Json(config))
+    golog.Infof("Load %s Cache:(%s) %+v", name, key, config)
     return gokits.NewCacheItem(key, lifeSpan, config), nil
 }
 
@@ -33,57 +32,58 @@ func configLoader(
 func tokenLoader(
     name string,
     querySql string,
+    queryTokenBuilder func(query map[string]string) interface{},
     createSql string,
     updateSql string,
+    requestor func(key interface{}) (map[string]string, error),
     uncompleteSql string,
     completeSql string,
+    completeArg func(response map[string]string, lifeSpan time.Duration) map[string]interface{},
+    requestTokenBuilder func(response map[string]string) interface{},
     lifeSpan time.Duration,
     lifeSpanTemp time.Duration,
-    builder func(resultItem map[string]string) interface{},
-    requestor func(key interface{}) (map[string]string, error),
-    completeParamBuilder func(resultItem map[string]string, lifeSpan time.Duration, key interface{}) []interface{},
     key interface{},
     args ...interface{}) (*gokits.CacheItem, error) {
 
-    resultMap, err := db.New().Sql(querySql).Params(key).Query()
-    if nil != err || 1 != len(resultMap) {
-        gokits.LOG.Info("Try to request %s:(%s)", name, key)
-        count, err := db.New().Sql(createSql).Params(key).Execute()
+    query := make(map[string]string)
+    err := db.NamedGet(&query, querySql, map[string]interface{}{"CodeName": key})
+    if nil != err {
+        golog.Debugf("Try to request %s:(%s)", name, key)
+        count, err := db.NamedExecX(createSql, map[string]interface{}{"CodeName": key})
         if nil == err && count > 0 {
-            tokenItem, err := requestUpdater(name, uncompleteSql, completeSql, lifeSpan,
-                builder, requestor, completeParamBuilder, key, args...)
+            token, err := requestUpdater(name, requestor, uncompleteSql,
+                completeSql, completeArg, requestTokenBuilder, lifeSpan, key, args...)
             if nil != err {
                 return nil, err
             }
-            gokits.LOG.Info("Request %s:(%s) %s", name, key, gokits.Json(tokenItem))
-            return gokits.NewCacheItem(key, lifeSpan, tokenItem), nil
+            golog.Infof("Request %s:(%s) %+v", name, key, token)
+            return gokits.NewCacheItem(key, lifeSpan, token), nil
         }
-        _ = gokits.LOG.Warn("Give up request %s:(%s), wait for next cache Query", name, key)
-        return nil, &UnexpectedError{Message: "Query " + name + " Later"}
+        golog.Warnf("Give up request %s:(%s), wait for next cache Query", name, key)
+        return nil, errors.New("Query " + name + " Later")
     }
-    gokits.LOG.Trace("Query %s:(%s) %s", name, key, resultMap)
+    golog.Debugf("Query %s:(%s) %+v", name, key, query)
 
-    resultItem := resultMap[0]
-    updated := resultItem["UPDATED"]
-    expireTime, err := gokits.Int64FromStr(resultItem["EXPIRE_TIME"])
+    updated := query["Updated"]
+    expireTime, err := gokits.Int64FromStr(query["ExpireTime"])
     if nil != err {
         return nil, err
     }
     isExpired := time.Now().Unix() > expireTime
     isUpdated := "1" == updated
     if isExpired && isUpdated { // 已过期 && 是最新记录 -> 触发更新
-        gokits.LOG.Info("Try to request and update %s:(%s)", name, key)
-        count, err := db.New().Sql(updateSql).Params(key).Execute()
+        golog.Debugf("Try to request and update %s:(%s)", name, key)
+        count, err := db.NamedExecX(updateSql, map[string]interface{}{"CodeName": key})
         if nil == err && count > 0 {
-            tokenItem, err := requestUpdater(name, uncompleteSql, completeSql, lifeSpan,
-                builder, requestor, completeParamBuilder, key, args...)
+            token, err := requestUpdater(name, requestor, uncompleteSql,
+                completeSql, completeArg, requestTokenBuilder, lifeSpan, key, args...)
             if nil != err {
                 return nil, err
             }
-            gokits.LOG.Info("Request and Update %s:(%s) %s", name, key, gokits.Json(tokenItem))
-            return gokits.NewCacheItem(key, lifeSpan, tokenItem), nil
+            golog.Infof("Request and Update %s:(%s) %+v", name, key, token)
+            return gokits.NewCacheItem(key, lifeSpan, token), nil
         }
-        _ = gokits.LOG.Warn("Give up request and update %s:(%s), use Query result Temporarily", name, key)
+        golog.Warnf("Give up request and update %s:(%s), use Query result Temporarily", name, key)
     }
 
     // 未过期 || (已非最新记录 || 更新为旧记录失败)
@@ -91,39 +91,38 @@ func tokenLoader(
     // (已非最新记录 || 更新为旧记录失败) 表示已有其他集群节点开始了更新操作
     // 已过期(已开始更新) -> 临时缓存查询到的token
     ls := gokits.Condition(isExpired, lifeSpanTemp, lifeSpan).(time.Duration)
-    tokenItem := builder(resultItem)
-    gokits.LOG.Info("Load %s Cache:(%s) %s, cache %3.1f min", name, key, gokits.Json(tokenItem), ls.Minutes())
-    return gokits.NewCacheItem(key, ls, tokenItem), nil
+    token := queryTokenBuilder(query)
+    golog.Infof("Load %s Cache:(%s) %+v, cache %3.1f min", name, key, token, ls.Minutes())
+    return gokits.NewCacheItem(key, ls, token), nil
 }
 
 func requestUpdater(
     name string,
+    requestor func(key interface{}) (map[string]string, error),
     uncompleteSql string,
     completeSql string,
+    completeArg func(response map[string]string, lifeSpan time.Duration) map[string]interface{},
+    requestTokenBuilder func(response map[string]string) interface{},
     lifeSpan time.Duration,
-    builder func(resultItem map[string]string) interface{},
-    requestor func(key interface{}) (map[string]string, error),
-    completeParamBuilder func(resultItem map[string]string, lifeSpan time.Duration, key interface{}) []interface{},
     key interface{},
     args ...interface{}) (interface{}, error) {
 
-    resultItem, err := requestor(key)
+    response, err := requestor(key)
     if nil != err {
-        _, _ = db.New().Sql(uncompleteSql).Params(key).Execute()
+        _, _ = db.NamedExec(uncompleteSql, map[string]interface{}{"CodeName": key})
         return nil, err
     }
     // // 过期时间增量: token实际有效时长 - token缓存时长 * 缓存提前更新系数(1.1)
     // expireTimeInc := expiresIn - int(lifeSpan.Seconds()*1.1)
     // count, err := db.Sql(completeSql).Params(token, expireTimeInc, key).Execute()
-    count, err := db.New().Sql(completeSql).Params(completeParamBuilder(resultItem, lifeSpan, key)...).Execute()
+    arg := completeArg(response, lifeSpan)
+    arg["CodeName"] = key
+    _, err = db.NamedExec(completeSql, arg)
     if nil != err {
         return nil, err
     }
-    if count < 1 {
-        return nil, &UnexpectedError{Message: "Record new " + name + " Failed"}
-    }
 
-    return builder(resultItem), nil
+    return requestTokenBuilder(response), nil
 }
 
 // 针对没有刷新过渡期的token
@@ -135,33 +134,33 @@ func requestUpdater(
 func tokenLoaderStrict(
     name string,
     querySql string,
+    queryTokenBuilder func(query map[string]string) interface{},
+    requestor func(key interface{}) (map[string]string, error),
     createSql string,
     updateSql string,
-    maxLifeSpan time.Duration,
+    createUpdateArg func(response map[string]string) map[string]interface{},
     expireCriticalSpan time.Duration,
-    builder func(resultItem map[string]string) interface{},
-    requestor func(key interface{}) (map[string]string, error),
-    sqlParamBuilder func(resultItem map[string]string, key interface{}) []interface{},
+    requestTokenBuilder func(response map[string]string) interface{},
+    maxLifeSpan time.Duration,
     key interface{},
     args ...interface{}) (*gokits.CacheItem, error) {
 
-    resultMap, err := db.New().Sql(querySql).Params(key).Query()
-    if nil != err || 1 != len(resultMap) {
-        gokits.LOG.Info("Try to request %s:(%s)", name, key)
-
-        tokenItem, err := requestUpdaterStrict(name, querySql, createSql,
-            expireCriticalSpan, builder, requestor, sqlParamBuilder, key, args...)
+    query := make(map[string]string)
+    err := db.NamedGet(&query, querySql, map[string]interface{}{"CodeName": key})
+    if nil != err {
+        golog.Debugf("Try to request %s:(%s)", name, key)
+        token, err := requestUpdaterStrict(name, requestor, createSql, createUpdateArg,
+            querySql, queryTokenBuilder, expireCriticalSpan, requestTokenBuilder, key, args...)
         if nil != err {
             return nil, err
         }
         // 请求成功, 缓存最大缓存时长
-        gokits.LOG.Info("Request %s:(%s) %s", name, key, gokits.Json(tokenItem))
-        return gokits.NewCacheItem(key, maxLifeSpan, tokenItem), nil
+        golog.Infof("Request %s:(%s) %+v", name, key, token)
+        return gokits.NewCacheItem(key, maxLifeSpan, token), nil
     }
-    gokits.LOG.Trace("Query %s:(%s) %s", name, key, resultMap)
+    golog.Debugf("Query %s:(%s) %+v", name, key, query)
 
-    resultItem := resultMap[0]
-    expireTime, err := gokits.Int64FromStr(resultItem["EXPIRE_TIME"]) // in second
+    expireTime, err := gokits.Int64FromStr(query["ExpireTime"]) // in second
     if nil != err {
         return nil, err
     }
@@ -169,62 +168,60 @@ func tokenLoaderStrict(
     // 即将过期 -> 触发更新
     if effectiveSpan <= expireCriticalSpan {
         time.Sleep(expireCriticalSpan) // 休眠后再请求最新的access_token
-        gokits.LOG.Info("Try to request and update %s:(%s)", name, key)
-
-        tokenItem, err := requestUpdaterStrict(name, querySql, updateSql,
-            expireCriticalSpan, builder, requestor, sqlParamBuilder, key, args...)
+        golog.Debugf("Try to request and update %s:(%s)", name, key)
+        token, err := requestUpdaterStrict(name, requestor, updateSql, createUpdateArg,
+            querySql, queryTokenBuilder, expireCriticalSpan, requestTokenBuilder, key, args...)
         if nil != err {
             return nil, err
         }
         // 请求更新成功, 缓存最大缓存时长
-        gokits.LOG.Info("Request and Update %s:(%s) %s", name, key, gokits.Json(tokenItem))
-        return gokits.NewCacheItem(key, maxLifeSpan, tokenItem), nil
+        golog.Infof("Request and Update %s:(%s) %+v", name, key, token)
+        return gokits.NewCacheItem(key, maxLifeSpan, token), nil
     }
 
     // token有效期少于最大缓存时长, 则仅缓存剩余有效期时长
     ls := gokits.Condition(effectiveSpan > maxLifeSpan, maxLifeSpan, effectiveSpan).(time.Duration)
-    tokenItem := builder(resultItem)
-    gokits.LOG.Info("Load %s Cache:(%s) %s, cache %3.1f min", name, key, gokits.Json(tokenItem), ls.Minutes())
-    return gokits.NewCacheItem(key, ls, tokenItem), nil
+    token := queryTokenBuilder(query)
+    golog.Infof("Load %s Cache:(%s) %+v, cache %3.1f min", name, key, token, ls.Minutes())
+    return gokits.NewCacheItem(key, ls, token), nil
 }
 
 func requestUpdaterStrict(
     name string,
-    querySql string,
-    completeSql string,
-    expireCriticalSpan time.Duration,
-    builder func(resultItem map[string]string) interface{},
     requestor func(key interface{}) (map[string]string, error),
-    sqlParamBuilder func(resultItem map[string]string, key interface{}) []interface{},
+    writeSql string,
+    writeArg func(response map[string]string) map[string]interface{},
+    querySql string,
+    queryTokenBuilder func(query map[string]string) interface{},
+    expireCriticalSpan time.Duration,
+    requestTokenBuilder func(response map[string]string) interface{},
     key interface{},
     args ...interface{}) (interface{}, error) {
 
-    resultItem, err := requestor(key)
+    response, err := requestor(key)
     if nil != err {
-        _ = gokits.LOG.Warn("Request %s Failed:(%s) %s", name, key, err.Error())
+        golog.Warnf("Request %s Failed:(%s) %s", name, key, err.Error())
         return nil, err
     }
-
-    count, err := db.New().Sql(completeSql).Params(sqlParamBuilder(resultItem, key)...).Execute()
+    arg := writeArg(response)
+    arg["CodeName"] = key
+    count, err := db.NamedExecX(writeSql, arg)
     if nil != err || count < 1 { // 记录入库失败, 则查询记录并返回
-        resultMap, err := db.New().Sql(querySql).Params(key).Query()
-        if nil != err || 1 != len(resultMap) {
-            return nil, gokits.DefaultIfNil(err, &UnexpectedError{
-                Message: fmt.Sprintf("Query %s:(%s) Failed", name, key)}).(error)
+        query := make(map[string]string)
+        err := db.NamedGet(&query, querySql, map[string]interface{}{"CodeName": key})
+        if nil != err {
+            return nil, err
         }
 
-        resultItem := resultMap[0]
-        expireTime, err := gokits.Int64FromStr(resultItem["EXPIRE_TIME"]) // in second
+        expireTime, err := gokits.Int64FromStr(query["ExpireTime"]) // in second
         if nil != err {
             return nil, err
         }
         effectiveSpan := time.Duration(expireTime-time.Now().Unix()) * time.Second
         if effectiveSpan <= expireCriticalSpan {
-            return nil, &UnexpectedError{Message: fmt.Sprintf("Query %s:(%s) expireTime Failed", name, key)}
+            return nil, errors.New(fmt.Sprintf("Query %s:(%s) expireTime Failed", name, key))
         }
-
-        return builder(resultItem), nil
+        return queryTokenBuilder(query), nil
     }
-
-    return builder(resultItem), nil
+    return requestTokenBuilder(response), nil
 }

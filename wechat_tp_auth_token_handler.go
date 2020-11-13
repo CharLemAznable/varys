@@ -1,8 +1,10 @@
 package main
 
 import (
+    "errors"
     "fmt"
     "github.com/CharLemAznable/gokits"
+    "github.com/kataras/golog"
     "net/http"
     "strings"
 )
@@ -22,19 +24,19 @@ func wechatTpPreAuthCodeRequestor(codeName interface{}) (map[string]string, erro
     result, err := gokits.NewHttpReq(wechatTpPreAuthCodeURL + tokenItem.AccessToken).
         RequestBody(gokits.Json(map[string]string{"component_appid": tokenItem.AppId})).
         Prop("Content-Type", "application/json").Post()
-    gokits.LOG.Trace("Request WechatTpPreAuthCode Response:(%s) %s", codeName, result)
+    golog.Debugf("Request WechatTpPreAuthCode Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }
 
     response := gokits.UnJson(result, new(WechatTpPreAuthCodeResponse)).(*WechatTpPreAuthCodeResponse)
     if nil == response || 0 == len(response.PreAuthCode) {
-        return nil, &UnexpectedError{Message: "Request WechatTpPreAuthCode Failed: " + result}
+        return nil, errors.New("Request WechatTpPreAuthCode Failed: " + result)
     }
     return map[string]string{
-        "APP_ID":        tokenItem.AppId,
-        "PRE_AUTH_CODE": response.PreAuthCode,
-        "EXPIRES_IN":    gokits.StrFromInt(response.ExpiresIn)}, nil
+        "AppId":       tokenItem.AppId,
+        "PreAuthCode": response.PreAuthCode,
+        "ExpiresIn":   gokits.StrFromInt(response.ExpiresIn)}, nil
 }
 
 // /wechat-tp-authorize-scan/{codeName:string}
@@ -60,8 +62,8 @@ func wechatTpAuthorizeScan(writer http.ResponseWriter, request *http.Request) {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": err.Error()}))
         return
     }
-    appId := response["APP_ID"]
-    preAuthCode := response["PRE_AUTH_CODE"]
+    appId := response["AppId"]
+    preAuthCode := response["PreAuthCode"]
 
     redirectQuery := request.URL.RawQuery
     if 0 != len(redirectQuery) {
@@ -94,8 +96,8 @@ func wechatTpAuthorizeLink(writer http.ResponseWriter, request *http.Request) {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": err.Error()}))
         return
     }
-    appId := response["APP_ID"]
-    preAuthCode := response["PRE_AUTH_CODE"]
+    appId := response["AppId"]
+    preAuthCode := response["PreAuthCode"]
 
     redirectQuery := request.URL.RawQuery
     if 0 != len(redirectQuery) {
@@ -161,8 +163,5 @@ func queryWechatTpAuthToken(writer http.ResponseWriter, request *http.Request) {
         return
     }
     token := cache.Data().(*WechatTpAuthToken)
-    gokits.ResponseJson(writer, gokits.Json(map[string]string{
-        "appId":           token.AppId,
-        "authorizerAppId": token.AuthorizerAppId,
-        "token":           token.AuthorizerAccessToken}))
+    gokits.ResponseJson(writer, gokits.Json(token))
 }

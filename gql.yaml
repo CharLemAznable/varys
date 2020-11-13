@@ -1,6 +1,0 @@
-Default:
-  DriverName:       mysql
-  DataSourceName:   admin:test123@tcp(127.0.0.1:3306)/rock?charset=utf8
-  MaxOpenConns:     50
-  MaxIdleConns:     1
-  ConnMaxLifetime:  60

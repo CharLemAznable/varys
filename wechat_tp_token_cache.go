@@ -1,8 +1,10 @@
 package main
 
 import (
+    "errors"
     "github.com/CharLemAznable/gokits"
     "github.com/CharLemAznable/wechataes"
+    "github.com/kataras/golog"
     "time"
 )
 
@@ -30,50 +32,31 @@ type WechatTpConfig struct {
 func wechatTpConfigLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
     return configLoader(
         "WechatTpConfig",
+        &WechatTpConfig{},
         queryWechatTpConfigSQL,
         wechatTpConfigLifeSpan,
-        func(resultItem map[string]string) interface{} {
-            config := new(WechatTpConfig)
-            config.AppId = resultItem["APP_ID"]
-            config.AppSecret = resultItem["APP_SECRET"]
-            config.Token = resultItem["TOKEN"]
-            config.AesKey = resultItem["AES_KEY"]
-            config.RedirectURL = resultItem["REDIRECT_URL"]
-            if 0 == len(config.AppId) || 0 == len(config.AppSecret) ||
-                0 == len(config.Token) || 0 == len(config.AesKey) {
-                return nil
-            }
-            return config
-        },
         codeName, args...)
 }
 
 func wechatTpCryptorLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
     cache, err := wechatTpConfigCache.Value(codeName)
     if nil != err {
-        return nil, &UnexpectedError{Message: "Require WechatTpConfig with key: " + codeName.(string)} // require config
+        return nil, errors.New("Require WechatTpConfig with key: " + codeName.(string)) // require config
     }
     config := cache.Data().(*WechatTpConfig)
-    gokits.LOG.Trace("Query WechatTpConfig Cache:(%s) %s", codeName, gokits.Json(config))
+    golog.Debugf("Query WechatTpConfig Cache:(%s) %+v", codeName, config)
 
     cryptor, err := wechataes.NewWechatCryptor(config.AppId, config.Token, config.AesKey)
     if nil != err {
         return nil, err // require legal config
     }
-    gokits.LOG.Info("Load WechatTpCryptor Cache:(%s) %s", codeName, cryptor)
+    golog.Infof("Load WechatTpCryptor Cache:(%s) %+v", codeName, cryptor)
     return gokits.NewCacheItem(codeName, wechatTpCryptorLifeSpan, cryptor), nil
 }
 
 type WechatTpToken struct {
-    AppId       string
-    AccessToken string
-}
-
-func wechatTpTokenBuilder(resultItem map[string]string) interface{} {
-    tokenItem := new(WechatTpToken)
-    tokenItem.AppId = resultItem["APP_ID"]
-    tokenItem.AccessToken = resultItem["ACCESS_TOKEN"]
-    return tokenItem
+    AppId       string `json:"appId"`
+    AccessToken string `json:"token"`
 }
 
 type WechatTpTokenResponse struct {
@@ -88,10 +71,13 @@ func wechatTpTokenRequestor(codeName interface{}) (map[string]string, error) {
     }
     config := cache.Data().(*WechatTpConfig)
 
-    ticket, err := queryWechatTpTicket(codeName.(string))
+    query := map[string]string{}
+    err = db.NamedGet(&query, queryWechatTpTicketSQL,
+        map[string]interface{}{"CodeName": codeName})
     if nil != err {
         return nil, err
     }
+    ticket := query["Ticket"]
 
     result, err := gokits.NewHttpReq(wechatTpTokenURL).
         RequestBody(gokits.Json(map[string]string{
@@ -106,19 +92,12 @@ func wechatTpTokenRequestor(codeName interface{}) (map[string]string, error) {
 
     response := gokits.UnJson(result, new(WechatTpTokenResponse)).(*WechatTpTokenResponse)
     if nil == response || 0 == len(response.ComponentAccessToken) {
-        return nil, &UnexpectedError{Message: "Request WechatTpToken Failed: " + result}
+        return nil, errors.New("Request WechatTpToken Failed: " + result)
     }
     return map[string]string{
-        "APP_ID":       config.AppId,
-        "ACCESS_TOKEN": response.ComponentAccessToken,
-        "EXPIRES_IN":   gokits.StrFromInt(response.ExpiresIn)}, nil
-}
-
-func wechatTpTokenCompleteParamBuilder(resultItem map[string]string, lifeSpan time.Duration, key interface{}) []interface{} {
-    expiresIn, _ := gokits.IntFromStr(resultItem["EXPIRES_IN"])
-    return []interface{}{resultItem["ACCESS_TOKEN"],
-        // 过期时间增量: token实际有效时长 - token缓存时长 * 缓存提前更新系数(1.1)
-        expiresIn - int(lifeSpan.Seconds()*1.1), key}
+        "AppId":       config.AppId,
+        "AccessToken": response.ComponentAccessToken,
+        "ExpiresIn":   gokits.StrFromInt(response.ExpiresIn)}, nil
 }
 
 // 获取第三方平台component_access_token
@@ -126,14 +105,32 @@ func wechatTpTokenLoader(codeName interface{}, args ...interface{}) (*gokits.Cac
     return tokenLoader(
         "WechatTpToken",
         queryWechatTpTokenSQL,
+        func(query map[string]string) interface{} {
+            return &WechatTpToken{
+                AppId:       query["AppId"],
+                AccessToken: query["AccessToken"],
+            }
+        },
         createWechatTpTokenSQL,
         updateWechatTpTokenSQL,
+        wechatTpTokenRequestor,
         uncompleteWechatTpTokenSQL,
         completeWechatTpTokenSQL,
+        func(response map[string]string, lifeSpan time.Duration) map[string]interface{} {
+            expiresIn, _ := gokits.IntFromStr(response["ExpiresIn"])
+            return map[string]interface{}{
+                "AccessToken": response["AccessToken"],
+                // 过期时间增量: token实际有效时长 - token缓存时长 * 缓存提前更新系数(1.1)
+                "ExpiresIn": expiresIn - int(lifeSpan.Seconds()*1.1),
+            }
+        },
+        func(response map[string]string) interface{} {
+            return &WechatTpToken{
+                AppId:       response["AppId"],
+                AccessToken: response["AccessToken"],
+            }
+        },
         wechatTpTokenLifeSpan,
         wechatTpTokenTempLifeSpan,
-        wechatTpTokenBuilder,
-        wechatTpTokenRequestor,
-        wechatTpTokenCompleteParamBuilder,
         codeName, args...)
 }

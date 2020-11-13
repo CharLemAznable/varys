@@ -4,6 +4,7 @@ import (
     "encoding/xml"
     "github.com/CharLemAznable/gokits"
     "github.com/CharLemAznable/wechataes"
+    "github.com/kataras/golog"
     "net/http"
     "strings"
 )
@@ -14,7 +15,7 @@ type WechatTpInfoData struct {
     CreateTime                   string   `xml:"CreateTime"`
     InfoType                     string   `xml:"InfoType"`
     ComponentVerifyTicket        string   `xml:"ComponentVerifyTicket"`
-    AuthorizerAppid              string   `xml:"AuthorizerAppid"`
+    AuthorizerAppId              string   `xml:"AuthorizerAppid"`
     AuthorizationCode            string   `xml:"AuthorizationCode"`
     AuthorizationCodeExpiredTime string   `xml:"AuthorizationCodeExpiredTime"`
     PreAuthCode                  string   `xml:"PreAuthCode"`
@@ -23,20 +24,20 @@ type WechatTpInfoData struct {
 func parseWechatTpInfoData(codeName string, request *http.Request) (*WechatTpInfoData, error) {
     cache, err := wechatTpCryptorCache.Value(codeName)
     if nil != err {
-        _ = gokits.LOG.Warn("Load WechatTpCryptor Cache error:(%s) %s", codeName, err.Error())
+        golog.Warnf("Load WechatTpCryptor Cache error:(%s) %s", codeName, err.Error())
         return nil, err
     }
     cryptor := cache.Data().(*wechataes.WechatCryptor)
 
     body, err := gokits.RequestBody(request)
     if nil != err {
-        _ = gokits.LOG.Warn("Request read Body error:(%s) %s", codeName, err.Error())
+        golog.Warnf("Request read Body error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
     err = request.ParseForm()
     if nil != err {
-        _ = gokits.LOG.Warn("Request ParseForm error:(%s) %s", codeName, err.Error())
+        golog.Warnf("Request ParseForm error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
@@ -46,15 +47,15 @@ func parseWechatTpInfoData(codeName string, request *http.Request) (*WechatTpInf
     nonce := params.Get("nonce")
     decryptMsg, err := cryptor.DecryptMsg(msgSign, timeStamp, nonce, body)
     if nil != err {
-        _ = gokits.LOG.Warn("WechatCryptor DecryptMsg error:(%s) %s", codeName, err.Error())
+        golog.Warnf("WechatCryptor DecryptMsg error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
-    gokits.LOG.Info("WechatTpInfoData:(%s) %s", codeName, decryptMsg)
+    golog.Debugf("WechatTpInfoData:(%s) %s", codeName, decryptMsg)
     infoData := new(WechatTpInfoData)
     err = xml.Unmarshal([]byte(decryptMsg), infoData)
     if nil != err {
-        _ = gokits.LOG.Warn("Unmarshal DecryptMsg error:(%s) %s", codeName, err.Error())
+        golog.Warnf("Unmarshal DecryptMsg error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
@@ -72,7 +73,9 @@ func acceptWechatTpInfo(writer http.ResponseWriter, request *http.Request) {
             switch infoData.InfoType {
 
             case "component_verify_ticket":
-                _, _ = updateWechatTpTicket(codeName, infoData.ComponentVerifyTicket)
+                _, _ = db.NamedExec(updateWechatTpTicketSQL,
+                    map[string]interface{}{"CodeName": codeName,
+                        "Ticket": infoData.ComponentVerifyTicket})
 
             case "authorized":
                 wechatTpAuthorized(codeName, infoData)
@@ -106,7 +109,7 @@ func queryWechatTpToken(writer http.ResponseWriter, request *http.Request) {
         return
     }
     token := cache.Data().(*WechatTpToken)
-    gokits.ResponseJson(writer, gokits.Json(map[string]string{"appId": token.AppId, "token": token.AccessToken}))
+    gokits.ResponseJson(writer, gokits.Json(token))
 }
 
 // /proxy-wechat-tp/{codeName:string}/...

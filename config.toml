@@ -1,0 +1,51 @@
+Port = 4236
+ContextPath = ""
+LogLevel = "info"
+
+DriverName = "mysql"
+DataSourceName = "casterly:Lannisters@tcp(127.0.0.1:3306)/rock?charset=utf8"
+
+WechatAppTokenURL = "https://api.weixin.qq.com/cgi-bin/token"
+WechatAppConfigLifeSpan = "60m"
+WechatAppTokenLifeSpan = "5m"
+WechatAppTokenTempLifeSpan = "1m"
+WechatAppProxyURL = "https://api.weixin.qq.com/cgi-bin/"
+WechatMpProxyURL = "https://api.weixin.qq.com/wxa/"
+WechatMpLoginProxyURL = "https://api.weixin.qq.com/sns/"
+
+WechatTpTokenURL = "https://api.weixin.qq.com/cgi-bin/component/api_component_token"
+WechatTpConfigLifeSpan = "60m"
+WechatTpCryptorLifeSpan = "60m"
+WechatTpTokenLifeSpan = "5m"
+WechatTpTokenTempLifeSpan = "1m"
+WechatTpProxyURL = "https://api.weixin.qq.com/cgi-bin/"
+
+WechatTpPreAuthCodeURL = "https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token="
+WechatTpQueryAuthURL = "https://api.weixin.qq.com/cgi-bin/component/api_query_auth?component_access_token="
+WechatTpRefreshAuthURL = "https://api.weixin.qq.com/cgi-bin/component/api_authorizer_token?component_access_token="
+WechatTpAuthTokenLifeSpan = "5m"
+WechatTpAuthTokenTempLifeSpan = "1m"
+
+WechatCorpTokenURL = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
+WechatCorpConfigLifeSpan = "60m"
+WechatCorpTokenMaxLifeSpan = "5m"
+WechatCorpTokenExpireCriticalSpan = "1s"
+WechatCorpProxyURL = "https://qyapi.weixin.qq.com/cgi-bin/"
+
+WechatCorpTpTokenURL = "https://qyapi.weixin.qq.com/cgi-bin/service/get_suite_token"
+WechatCorpTpConfigLifeSpan = "60m"
+WechatCorpTpCryptorLifeSpan = "60m"
+WechatCorpTpTokenMaxLifeSpan = "5m"
+WechatCorpTpTokenExpireCriticalSpan = "1s"
+
+WechatCorpTpPreAuthCodeURL = "https://qyapi.weixin.qq.com/cgi-bin/service/get_pre_auth_code?suite_access_token="
+WechatCorpTpPermanentCodeURL = "https://qyapi.weixin.qq.com/cgi-bin/service/get_permanent_code?suite_access_token="
+WechatCorpTpAuthTokenURL = "https://qyapi.weixin.qq.com/cgi-bin/service/get_corp_token?suite_access_token="
+WechatCorpTpPermanentCodeLifeSpan = "60m"
+WechatCorpTpAuthTokenMaxLifeSpan = "5m"
+WechatCorpTpAuthTokenExpireCriticalSpan = "1s"
+
+ToutiaoAppTokenURL = "https://developer.toutiao.com/api/apps/token"
+ToutiaoAppConfigLifeSpan = "60m"
+ToutiaoAppTokenLifeSpan = "5m"
+ToutiaoAppTokenTempLifeSpan = "1m"

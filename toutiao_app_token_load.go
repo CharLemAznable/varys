@@ -1,6 +1,7 @@
 package main
 
 import (
+    "github.com/CharLemAznable/gokits"
     "time"
 )
 
@@ -10,27 +11,20 @@ var toutiaoAppConfigLifeSpan = time.Minute * 60   // config cache 60 min default
 var toutiaoAppTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
 var toutiaoAppTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
 
-func toutiaoAppTokenLoad(configMap map[string]string) {
-    urlConfigLoader(configMap["toutiaoAppTokenURL"],
-        func(configURL string) {
-            toutiaoAppTokenURL = configURL
-        })
+func toutiaoAppTokenLoad(config *Config) {
+    gokits.If(0 != len(config.ToutiaoAppTokenURL), func() {
+        toutiaoAppTokenURL = config.ToutiaoAppTokenURL
+    })
 
-    lifeSpanConfigLoader(
-        configMap["toutiaoAppConfigLifeSpan"],
-        func(configVal time.Duration) {
-            toutiaoAppConfigLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["toutiaoAppTokenLifeSpan"],
-        func(configVal time.Duration) {
-            toutiaoAppTokenLifeSpan = configVal * time.Minute
-        })
-    lifeSpanConfigLoader(
-        configMap["toutiaoAppTokenTempLifeSpan"],
-        func(configVal time.Duration) {
-            toutiaoAppTokenTempLifeSpan = configVal * time.Minute
-        })
+    gokits.If(0 != config.ToutiaoAppConfigLifeSpan.Duration, func() {
+        toutiaoAppConfigLifeSpan = config.ToutiaoAppConfigLifeSpan.Duration
+    })
+    gokits.If(0 != config.ToutiaoAppTokenLifeSpan.Duration, func() {
+        toutiaoAppTokenLifeSpan = config.ToutiaoAppTokenLifeSpan.Duration
+    })
+    gokits.If(0 != config.ToutiaoAppTokenTempLifeSpan.Duration, func() {
+        toutiaoAppTokenTempLifeSpan = config.ToutiaoAppTokenTempLifeSpan.Duration
+    })
 
     toutiaoAppTokenInitialize()
 }

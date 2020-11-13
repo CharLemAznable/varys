@@ -21,5 +21,5 @@ func queryToutiaoAppToken(writer http.ResponseWriter, request *http.Request) {
         return
     }
     token := cache.Data().(*ToutiaoAppToken)
-    gokits.ResponseJson(writer, gokits.Json(map[string]string{"appId": token.AppId, "token": token.AccessToken}))
+    gokits.ResponseJson(writer, gokits.Json(token))
 }

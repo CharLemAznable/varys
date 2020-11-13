@@ -28,14 +28,15 @@ func main() {
     HandleFunc(mux, queryWechatCorpTokenPath, queryWechatCorpToken)
     HandleFunc(mux, proxyWechatCorpPath, proxyWechatCorp, GzipResponseDisabled)
 
-    HandleFunc(mux, acceptCorpAuthorizationPath, acceptCorpAuthorization)
-    HandleFunc(mux, corpAuthorizeComponentPath, corpAuthorizeComponent)
-    HandleFunc(mux, corpAuthorizeRedirectPath, corpAuthorizeRedirect)
-    HandleFunc(mux, queryWechatCorpAuthorizerTokenPath, queryWechatCorpAuthorizerToken)
+    HandleFunc(mux, acceptWechatCorpTpInfoPath, acceptWechatCorpTpInfo)
+
+    HandleFunc(mux, wechatCorpTpAuthComponentPath, wechatCorpTpAuthComponent)
+    HandleFunc(mux, wechatCorpTpAuthRedirectPath, wechatCorpTpAuthRedirect)
+    HandleFunc(mux, queryWechatCorpTpAuthTokenPath, queryWechatCorpTpAuthToken)
 
     HandleFunc(mux, queryToutiaoAppTokenPath, queryToutiaoAppToken)
 
-    server := http.Server{Addr: ":" + StrFromInt(appConfig.Port), Handler: mux}
+    server := http.Server{Addr: ":" + StrFromInt(globalConfig.Port), Handler: mux}
     if err := server.ListenAndServe(); err != nil {
         LOG.Crashf("Start server Error: %s", err.Error())
     }

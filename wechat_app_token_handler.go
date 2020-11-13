@@ -23,7 +23,7 @@ func queryWechatAppToken(writer http.ResponseWriter, request *http.Request) {
         return
     }
     token := cache.Data().(*WechatAppToken)
-    gokits.ResponseJson(writer, gokits.Json(map[string]string{"appId": token.AppId, "token": token.AccessToken}))
+    gokits.ResponseJson(writer, gokits.Json(token))
 }
 
 // /proxy-wechat-app/{codeName:string}/...
