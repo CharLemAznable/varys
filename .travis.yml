@@ -16,7 +16,6 @@ script:
   - echo "building "$TARGET_NAME" ..."
   - env GOOS=linux GOARCH=386 go build -ldflags="-s -w" -o $TARGET_NAME.linux.386.bin
   - env GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o $TARGET_NAME.linux.amd64.bin
-  - env GOOS=darwin GOARCH=386 go build -ldflags="-s -w" -o $TARGET_NAME.darwin.386.bin
   - env GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o $TARGET_NAME.darwin.amd64.bin
   - env GOOS=windows GOARCH=386 go build -ldflags="-s -w" -o $TARGET_NAME.windows.386.exe
   - env GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o $TARGET_NAME.windows.amd64.exe
@@ -27,8 +26,6 @@ before_deploy:
   - tar -cvJf $TARGET_NAME.linux.386.tar.xz $TARGET_NAME.linux.386.bin
   - ./upx-3.95-amd64_linux/upx --brute $TARGET_NAME.linux.amd64.bin
   - tar -cvJf $TARGET_NAME.linux.amd64.tar.xz $TARGET_NAME.linux.amd64.bin
-  - ./upx-3.95-amd64_linux/upx --brute $TARGET_NAME.darwin.386.bin
-  - tar -cvJf $TARGET_NAME.darwin.386.tar.xz $TARGET_NAME.darwin.386.bin
   - ./upx-3.95-amd64_linux/upx --brute $TARGET_NAME.darwin.amd64.bin
   - tar -cvJf $TARGET_NAME.darwin.amd64.tar.xz $TARGET_NAME.darwin.amd64.bin
   - travis_wait ./upx-3.95-amd64_linux/upx --brute $TARGET_NAME.windows.386.exe
