@@ -62,8 +62,8 @@ func parseWechatTpInfoData(codeName string, request *http.Request) (*WechatTpInf
     return infoData, nil
 }
 
-// /accept-wechant-tp-info/{codeName:string}
-const acceptWechatTpInfoPath = "/accept-wechant-tp-info/"
+// /accept-wechat-tp-info/{codeName:string}
+const acceptWechatTpInfoPath = "/accept-wechat-tp-info/"
 
 func acceptWechatTpInfo(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, acceptWechatTpInfoPath)

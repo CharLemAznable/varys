@@ -11,41 +11,15 @@ AccessToken 中控服务器
 
 #### 配置文件
 
-1. ```appConfig.toml```
+```config.toml``` [示例](https://github.com/CharLemAznable/varys/blob/master/config.toml)
 
 ```toml
 Port = 4236
 ContextPath = ""
-ConnectName = "Default"
-```
+LogLevel = "info"
 
-2. ```logback.xml```
-
-```xml
-<logging>
-    <filter enabled="true">
-        <tag>file</tag>
-        <type>file</type>
-        <level>INFO</level>
-        <property name="filename">varys.log</property>
-        <property name="format">[%D %T] [%L] (%S) %M</property>
-        <property name="rotate">false</property>
-        <property name="maxsize">0M</property>
-        <property name="maxlines">0K</property>
-        <property name="daily">false</property>
-    </filter>
-</logging>
-```
-
-3. ```gql.yaml```
-
-```yaml
-Default:
-  DriverName:       mysql
-  DataSourceName:   admin:test123@tcp(127.0.0.1:3306)/rock?charset=utf8
-  MaxOpenConns:     50
-  MaxIdleConns:     1
-  ConnMaxLifetime:  60
+DriverName = "mysql"
+DataSourceName = "admin:test123@tcp(127.0.0.1:3306)/rock?charset=utf8"
 ```
 
 #### 部署执行
@@ -77,7 +51,7 @@ $ nohup ./varys-[version].[arch].[os].bin &
 1) 公众号/小程序配置缓存默认1小时
 2) access_token缓存默认5分钟, 当access_token即将过期并被其他分布式节点更新时缓存1分钟
 
-  [app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/app_token_cache.go)
+  [wechat_app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat_app_token_cache.go)
 
 包含微信第三方平台配置缓存和报文解密器缓存, 其中
 
@@ -89,14 +63,15 @@ $ nohup ./varys-[version].[arch].[os].bin &
 1) component_access_token缓存默认5分钟, 当component_access_token即将过期并被其他分布式节点更新时缓存1分钟
 2) authorizer_access_token缓存默认5分钟, 当authorizer_access_token即将过期并被其他分布式节点更新时缓存1分钟
 
-  [app_third_platform_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/app_third_platform_token_cache.go)
+  [wechat_tp_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat_tp_token_cache.go)
+  [wechat_tp_auth_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat_tp_auth_token_cache.go)
 
 包含企业微信配置缓存和```access_token```缓存, 其中:
 
 1) 企业微信配置缓存默认1小时
 2) access_token缓存最大5分钟, 当access_token即将过期时, 缓存时间最大至其有效期结束
 
-  [corp_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/corp_token_cache.go)
+  [wechat_corp_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat_corp_token_cache.go)
 
 包含企业微信第三方应用配置缓存和报文解密器缓存, 其中
 
@@ -108,7 +83,8 @@ $ nohup ./varys-[version].[arch].[os].bin &
 1) suite_access_token缓存最大5分钟, 当suite_access_token即将过期时, 缓存时间最大至其有效期结束
 2) access_token缓存最大5分钟, 当access_token即将过期时, 缓存时间最大至其有效期结束
 
-  [corp_third_platform_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/corp_third_platform_token_cache.go)
+  [wechat_corp_tp_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat_corp_tp_token_cache.go)
+  [wechat_corp_tp_auth_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat_corp_tp_auth_token_cache.go)
 
 包含字节小程序配置缓存和```access_token```缓存, 其中:
 
@@ -152,7 +128,7 @@ http://localhost:4236
 ```
 详见: [微信开放文档 auth.code2Session](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/login/auth.code2Session.html)
 ```http
-/accept-wechant-tp-info/{codeName:string}
+/accept-wechat-tp-info/{codeName:string}
 
 第三方平台在微信配置的授权事件接收URL
 用于接收component_verify_ticket以及公众号对第三方平台进行授权、取消授权、更新授权的推送通知
@@ -216,14 +192,14 @@ https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&compo
 代理指定codeName对应的企业微信接口, 自动添加access_token参数
 ```
 ```http
-/accept-corp-authorization/{codeName:string}
+/accept-wechat-corp-tp-info/{codeName:string}
 
 企业第三方应用在微信配置的授权事件接收URL
 用于接收suite_ticket以及企业微信对第三方应用进行授权、取消授权、更新授权的推送通知
 返回数据: "success"
 ```
 ```http
-/corp-authorize-component/{codeName:string}?state={state:string}
+/wechat-corp-tp-authorize-component/{codeName:string}?state={state:string}
 
 企业第三方应用授权入口页面, 跳转到微信的授权页面
 用于引导企业微信管理员向第三方应用授权
@@ -231,14 +207,14 @@ https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&compo
 https://open.work.weixin.qq.com/3rdapp/install?suite_id=#suiteId#&pre_auth_code=#pre_auth_code#&redirect_uri=#url_to_/corp-authorize-redirect/{codeName:string}#&state=#state#
 ```
 ```http
-/corp-authorize-redirect/{codeName:string}
+/wechat-corp-tp-authorize-redirect/{codeName:string}
 
 企业第三方应用授权回调地址
 跳转页面地址:
 如果第三方平台配置了WECHAT_CORP_THIRD_PLATFORM_CONFIG.REDIRECT_URL, 则跳转到此地址
 ```
 ```http
-/query-wechat-corp-authorizer-token/{codeName:string}/{corpId:string}
+/query-wechat-corp-tp-auth-token/{codeName:string}/{corpId:string}
 
 获取指定codeName对应的企业第三方应用所代理的corpId对应的企业微信当前的access_token
 返回数据:

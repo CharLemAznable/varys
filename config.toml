@@ -3,7 +3,7 @@ ContextPath = ""
 LogLevel = "info"
 
 DriverName = "mysql"
-DataSourceName = "casterly:Lannisters@tcp(127.0.0.1:3306)/rock?charset=utf8"
+DataSourceName = "admin:test123@tcp(127.0.0.1:3306)/rock?charset=utf8"
 
 WechatAppTokenURL = "https://api.weixin.qq.com/cgi-bin/token"
 WechatAppConfigLifeSpan = "60m"

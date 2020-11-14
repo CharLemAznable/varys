@@ -39,11 +39,11 @@ func wechatCorpTpPreAuthCodeRequestor(codeName interface{}) (map[string]string, 
         "ExpiresIn":   gokits.StrFromInt(response.ExpiresIn)}, nil
 }
 
-// /corp-authorize-component/{codeName:string}
-const wechatCorpTpAuthComponentPath = "/wechat-corp-tp-auth-component/"
+// /wechat-corp-tp-authorize-component/{codeName:string}
+const wechatCorpTpAuthComponentPath = "/wechat-corp-tp-authorize-component/"
 const wechatCorpTpAuthComponentPageHtmlFormat = `
 <html><head><script>
-    redirect_uri = location.href.substring(0, location.href.indexOf("/wechat-corp-tp-auth-component/")) + "/wechat-corp-tp-auth-redirect/%s";
+    redirect_uri = location.href.substring(0, location.href.indexOf("/wechat-corp-tp-authorize-component/")) + "/wechat-corp-tp-authorize-redirect/%s";
     location.replace(
         "https://open.work.weixin.qq.com/3rdapp/install?suite_id=%s&pre_auth_code=%s&redirect_uri=" + encodeURIComponent(redirect_uri) + "&state=%s"
     );
@@ -70,8 +70,8 @@ func wechatCorpTpAuthComponent(writer http.ResponseWriter, request *http.Request
         wechatCorpTpAuthComponentPageHtmlFormat, codeName, suiteId, preAuthCode, state))
 }
 
-// /corp-authorize-redirect/{codeName:string}
-const wechatCorpTpAuthRedirectPath = "/wechat-corp-tp-auth-redirect/"
+// /wechat-corp-tp-authorize-redirect/{codeName:string}
+const wechatCorpTpAuthRedirectPath = "/wechat-corp-tp-authorize-redirect/"
 const wechatCorpTpAuthRedirectPageHtmlFormat = `
 <html><head><title>index</title><style type="text/css">
     body{max-width:640px;margin:0 auto;font-size:14px;-webkit-text-size-adjust:none;-moz-text-size-adjust:none;-ms-text-size-adjust:none;text-size-adjust:none}
