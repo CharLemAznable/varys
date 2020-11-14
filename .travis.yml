@@ -2,7 +2,7 @@ arch: amd64
 dist: trusty
 language: go
 go:
-  - 1.12.x
+  - 1.15.x
 before_install:
   - export GO111MODULE=on
 before_script:
