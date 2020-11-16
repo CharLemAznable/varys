@@ -71,14 +71,25 @@ func wechatCorpTokenRequestor(codeName interface{}) (map[string]string, error) {
         "ExpireTime":  gokits.StrFromInt64(expireTime)}, nil
 }
 
+type QueryWechatCorpToken struct {
+    WechatCorpToken
+    ExpireTime int64
+}
+
+func (q *QueryWechatCorpToken) GetExpireTime() int64 {
+    return q.ExpireTime
+}
+
 func wechatCorpTokenLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
     return tokenLoaderStrict(
         "WechatCorpToken",
+        &QueryWechatCorpToken{},
         queryWechatCorpTokenSQL,
-        func(query map[string]string) interface{} {
+        func(queryDest ExpireTimeRecord) interface{} {
+            query := queryDest.(*QueryWechatCorpToken)
             return &WechatCorpToken{
-                CorpId:      query["CorpId"],
-                AccessToken: query["AccessToken"],
+                CorpId:      query.CorpId,
+                AccessToken: query.AccessToken,
             }
         },
         wechatCorpTokenRequestor,

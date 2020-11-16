@@ -73,13 +73,12 @@ func wechatCorpTpTokenRequestor(codeName interface{}) (map[string]string, error)
     }
     config := cache.Data().(*WechatCorpTpConfig)
 
-    query := map[string]string{}
-    err = db.NamedGet(&query, queryWechatCorpTpTicketSQL,
+    var ticket string
+    err = db.NamedGet(&ticket, queryWechatCorpTpTicketSQL,
         map[string]interface{}{"CodeName": codeName})
     if nil != err {
         return nil, err
     }
-    ticket := query["Ticket"]
 
     result, err := gokits.NewHttpReq(wechatCorpTpTokenURL).
         RequestBody(gokits.Json(map[string]string{
@@ -105,14 +104,25 @@ func wechatCorpTpTokenRequestor(codeName interface{}) (map[string]string, error)
         "ExpireTime":  gokits.StrFromInt64(expireTime)}, nil
 }
 
+type QueryWechatCorpTpToken struct {
+    WechatCorpTpToken
+    ExpireTime int64
+}
+
+func (q *QueryWechatCorpTpToken) GetExpireTime() int64 {
+    return q.ExpireTime
+}
+
 func wechatCorpTpTokenLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
     return tokenLoaderStrict(
         "WechatCorpTpToken",
+        &QueryWechatCorpTpToken{},
         queryWechatCorpTpTokenSQL,
-        func(query map[string]string) interface{} {
+        func(queryDest ExpireTimeRecord) interface{} {
+            query := queryDest.(*QueryWechatCorpTpToken)
             return &WechatCorpTpToken{
-                SuiteId:     query["SuiteId"],
-                AccessToken: query["AccessToken"],
+                SuiteId:     query.SuiteId,
+                AccessToken: query.AccessToken,
             }
         },
         wechatCorpTpTokenRequestor,

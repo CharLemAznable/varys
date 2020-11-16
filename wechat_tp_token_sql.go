@@ -14,7 +14,7 @@ select c.code_name
 `
 
 const queryWechatTpTicketSQL = `
-select t.ticket as "Ticket"
+select t.ticket
   from wechat_app_third_platform_ticket t
  where t.code_name  = :CodeName
 `

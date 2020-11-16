@@ -61,14 +61,21 @@ func wechatTpRefreshAuthRequestor(codeName, authorizerAppId, authorizerRefreshTo
         "ExpiresIn":              gokits.StrFromInt(response.ExpiresIn)}, nil
 }
 
+type QueryWechatTpAuthToken struct {
+    WechatTpAuthToken
+    AuthorizerRefreshToken string
+    Updated                string
+    ExpireTime             int64
+}
+
 func wechatTpAuthTokenLoader(key interface{}, args ...interface{}) (*gokits.CacheItem, error) {
     tokenKey, ok := key.(WechatTpAuthKey)
     if !ok {
         return nil, errors.New("WechatTpAuthKey type error") // key type error
     }
 
-    query := map[string]string{}
-    err := db.NamedGet(&query, queryWechatTpAuthTokenSQL,
+    query := &QueryWechatTpAuthToken{}
+    err := db.NamedGet(query, queryWechatTpAuthTokenSQL,
         map[string]interface{}{"CodeName": tokenKey.CodeName,
             "AuthorizerAppId": tokenKey.AuthorizerAppId})
     if nil != err {
@@ -76,17 +83,12 @@ func wechatTpAuthTokenLoader(key interface{}, args ...interface{}) (*gokits.Cach
     }
     golog.Debugf("Query WechatTpAuthToken:(%+v) %+v", key, query)
 
-    authorizerRefreshToken := query["AUTHORIZER_REFRESH_TOKEN"] // requires that the refresh token exists
+    authorizerRefreshToken := query.AuthorizerRefreshToken // requires that the refresh token exists
     if 0 == len(authorizerRefreshToken) {
         return nil, errors.New("AuthorizerRefreshToken is Empty")
     }
-    updated := query["UPDATED"]
-    expireTime, err := gokits.Int64FromStr(query["EXPIRE_TIME"])
-    if nil != err {
-        return nil, err
-    }
-    isExpired := time.Now().Unix() > expireTime
-    isUpdated := "1" == updated
+    isExpired := time.Now().Unix() > query.ExpireTime
+    isUpdated := "1" == query.Updated
     if isExpired && isUpdated { // 已过期 && 是最新记录 -> 触发更新
         golog.Debugf("Try to request and update WechatTpAuthToken:(%+v)", key)
         count, err := db.NamedExecX(updateWechatTpAuthTokenSQL,
@@ -122,7 +124,9 @@ func wechatTpAuthTokenLoader(key interface{}, args ...interface{}) (*gokits.Cach
     ls := gokits.Condition(isExpired,
         wechatTpAuthTokenTempLifeSpan,
         wechatTpAuthTokenLifeSpan).(time.Duration)
-    token := wechatTpAuthTokenBuilder(query)
+    token := &WechatTpAuthToken{AppId: query.AppId,
+        AuthorizerAppId:       query.AuthorizerAppId,
+        AuthorizerAccessToken: query.AuthorizerAccessToken}
     golog.Infof("Load WechatTpAuthToken Cache:(%+v) %+v, cache %3.1f min", key, token, ls.Minutes())
     return gokits.NewCacheItem(key, ls, token), nil
 }

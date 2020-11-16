@@ -71,13 +71,12 @@ func wechatTpTokenRequestor(codeName interface{}) (map[string]string, error) {
     }
     config := cache.Data().(*WechatTpConfig)
 
-    query := map[string]string{}
-    err = db.NamedGet(&query, queryWechatTpTicketSQL,
+    var ticket string
+    err = db.NamedGet(&ticket, queryWechatTpTicketSQL,
         map[string]interface{}{"CodeName": codeName})
     if nil != err {
         return nil, err
     }
-    ticket := query["Ticket"]
 
     result, err := gokits.NewHttpReq(wechatTpTokenURL).
         RequestBody(gokits.Json(map[string]string{
@@ -100,15 +99,31 @@ func wechatTpTokenRequestor(codeName interface{}) (map[string]string, error) {
         "ExpiresIn":   gokits.StrFromInt(response.ExpiresIn)}, nil
 }
 
+type QueryWechatTpToken struct {
+    WechatTpToken
+    Updated    string
+    ExpireTime int64
+}
+
+func (q *QueryWechatTpToken) GetUpdated() string {
+    return q.Updated
+}
+
+func (q *QueryWechatTpToken) GetExpireTime() int64 {
+    return q.ExpireTime
+}
+
 // 获取第三方平台component_access_token
 func wechatTpTokenLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
     return tokenLoader(
         "WechatTpToken",
+        &QueryWechatTpToken{},
         queryWechatTpTokenSQL,
-        func(query map[string]string) interface{} {
+        func(queryDest UpdatedRecord) interface{} {
+            query := queryDest.(*QueryWechatTpToken)
             return &WechatTpToken{
-                AppId:       query["AppId"],
-                AccessToken: query["AccessToken"],
+                AppId:       query.AppId,
+                AccessToken: query.AccessToken,
             }
         },
         createWechatTpTokenSQL,

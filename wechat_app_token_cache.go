@@ -67,14 +67,30 @@ func wechatAppTokenRequestor(codeName interface{}) (map[string]string, error) {
         "ExpiresIn":   gokits.StrFromInt(response.ExpiresIn)}, nil
 }
 
+type QueryWechatAppToken struct {
+    WechatAppToken
+    Updated    string
+    ExpireTime int64
+}
+
+func (q *QueryWechatAppToken) GetUpdated() string {
+    return q.Updated
+}
+
+func (q *QueryWechatAppToken) GetExpireTime() int64 {
+    return q.ExpireTime
+}
+
 func wechatAppTokenLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
     return tokenLoader(
         "WechatAppToken",
+        &QueryWechatAppToken{},
         queryWechatAppTokenSQL,
-        func(query map[string]string) interface{} {
+        func(queryDest UpdatedRecord) interface{} {
+            query := queryDest.(*QueryWechatAppToken)
             return &WechatAppToken{
-                AppId:       query["AppId"],
-                AccessToken: query["AccessToken"],
+                AppId:       query.AppId,
+                AccessToken: query.AccessToken,
             }
         },
         createWechatAppTokenSQL,

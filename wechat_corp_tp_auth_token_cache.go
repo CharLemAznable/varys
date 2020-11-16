@@ -52,14 +52,6 @@ type WechatCorpTpAuthTokenResponse struct {
     ExpiresIn   int    `json:"expires_in"`
 }
 
-func wechatCorpTpAuthQueryTokenBuilder(query map[string]string) interface{} {
-    return &WechatCorpTpAuthToken{
-        SuiteId:         query["SuiteId"],
-        CorpId:          query["CorpId"],
-        CorpAccessToken: query["CorpAccessToken"],
-    }
-}
-
 func wechatCorpTpAuthTokenRequestor(codeName, corpId interface{}) (map[string]string, error) {
     tokenCache, err := wechatCorpTpTokenCache.Value(codeName)
     if nil != err {
@@ -106,24 +98,33 @@ func wechatCorpTpAuthResponseTokenBuilder(response map[string]string) interface{
     }
 }
 
+type QueryWechatCorpTpAuthToken struct {
+    WechatCorpTpAuthToken
+    ExpireTime int64
+}
+
+func wechatCorpTpAuthQueryTokenBuilder(query *QueryWechatCorpTpAuthToken) interface{} {
+    return &WechatCorpTpAuthToken{
+        SuiteId:         query.SuiteId,
+        CorpId:          query.CorpId,
+        CorpAccessToken: query.CorpAccessToken,
+    }
+}
+
 func wechatCorpTpAuthTokenLoader(key interface{}, args ...interface{}) (*gokits.CacheItem, error) {
     tpAuthKey, ok := key.(WechatCorpTpAuthKey)
     if !ok {
         return nil, errors.New("WechatCorpTpAuthKey type error") // key type error
     }
 
-    query := map[string]string{}
-    err := db.NamedGet(&query, queryWechatCorpTpAuthTokenSQL, tpAuthKey)
+    query := &QueryWechatCorpTpAuthToken{}
+    err := db.NamedGet(query, queryWechatCorpTpAuthTokenSQL, tpAuthKey)
     if nil != err {
         return nil, errors.New(fmt.Sprintf("Unauthorized corp: %+v", tpAuthKey)) // requires that the token already exists
     }
     golog.Debugf("Query WechatCorpTpAuthToken:(%+v) %+v", tpAuthKey, query)
 
-    expireTime, err := gokits.Int64FromStr(query["ExpireTime"]) // in second
-    if nil != err {
-        return nil, err
-    }
-    effectiveSpan := time.Duration(expireTime-time.Now().Unix()) * time.Second
+    effectiveSpan := time.Duration(query.ExpireTime-time.Now().Unix()) * time.Second // in second
     // 即将过期 -> 触发更新
     if effectiveSpan <= wechatCorpTpAuthTokenExpireCriticalSpan {
         time.Sleep(wechatCorpTpAuthTokenExpireCriticalSpan) // 休眠后再请求最新的access_token
@@ -140,17 +141,12 @@ func wechatCorpTpAuthTokenLoader(key interface{}, args ...interface{}) (*gokits.
             "CodeName": tpAuthKey.CodeName, "CorpId": tpAuthKey.CorpId,
             "AccessToken": response["CorpAccessToken"], "ExpireTime": expireTime})
         if nil != err || count < 1 { // 记录入库失败, 则查询记录并返回
-            query := map[string]string{}
-            err := db.NamedGet(&query, queryWechatCorpTpAuthTokenSQL, tpAuthKey)
+            err := db.NamedGet(query, queryWechatCorpTpAuthTokenSQL, tpAuthKey)
             if nil != err {
                 return nil, errors.New(fmt.Sprintf("Query WechatCorpTpAuthToken:(%+v) Failed", tpAuthKey))
             }
 
-            expireTime, err := gokits.Int64FromStr(query["ExpireTime"]) // in second
-            if nil != err {
-                return nil, err
-            }
-            effectiveSpan := time.Duration(expireTime-time.Now().Unix()) * time.Second
+            effectiveSpan := time.Duration(query.ExpireTime-time.Now().Unix()) * time.Second // in second
             if effectiveSpan <= wechatCorpTpAuthTokenExpireCriticalSpan {
                 return nil, errors.New(fmt.Sprintf("Query WechatCorpTpAuthToken:(%+v) expireTime Failed", tpAuthKey))
             }

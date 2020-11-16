@@ -8,6 +8,15 @@ import (
     "time"
 )
 
+type ExpireTimeRecord interface {
+    GetExpireTime() int64
+}
+
+type UpdatedRecord interface {
+    ExpireTimeRecord
+    GetUpdated() string
+}
+
 func configLoader(
     name string,
     config interface{},
@@ -31,8 +40,9 @@ func configLoader(
 // 其他节点可临时缓存旧的token保证平滑过渡
 func tokenLoader(
     name string,
+    queryDest UpdatedRecord,
     querySql string,
-    queryTokenBuilder func(query map[string]string) interface{},
+    queryTokenBuilder func(queryDest UpdatedRecord) interface{},
     createSql string,
     updateSql string,
     requestor func(key interface{}) (map[string]string, error),
@@ -45,8 +55,7 @@ func tokenLoader(
     key interface{},
     args ...interface{}) (*gokits.CacheItem, error) {
 
-    query := make(map[string]string)
-    err := db.NamedGet(&query, querySql, map[string]interface{}{"CodeName": key})
+    err := db.NamedGet(queryDest, querySql, map[string]interface{}{"CodeName": key})
     if nil != err {
         golog.Debugf("Try to request %s:(%s)", name, key)
         count, err := db.NamedExecX(createSql, map[string]interface{}{"CodeName": key})
@@ -62,15 +71,10 @@ func tokenLoader(
         golog.Warnf("Give up request %s:(%s), wait for next cache Query", name, key)
         return nil, errors.New("Query " + name + " Later")
     }
-    golog.Debugf("Query %s:(%s) %+v", name, key, query)
+    golog.Debugf("Query %s:(%s) %+v", name, key, queryDest)
 
-    updated := query["Updated"]
-    expireTime, err := gokits.Int64FromStr(query["ExpireTime"])
-    if nil != err {
-        return nil, err
-    }
-    isExpired := time.Now().Unix() > expireTime
-    isUpdated := "1" == updated
+    isExpired := time.Now().Unix() > queryDest.GetExpireTime()
+    isUpdated := "1" == queryDest.GetUpdated()
     if isExpired && isUpdated { // 已过期 && 是最新记录 -> 触发更新
         golog.Debugf("Try to request and update %s:(%s)", name, key)
         count, err := db.NamedExecX(updateSql, map[string]interface{}{"CodeName": key})
@@ -91,7 +95,7 @@ func tokenLoader(
     // (已非最新记录 || 更新为旧记录失败) 表示已有其他集群节点开始了更新操作
     // 已过期(已开始更新) -> 临时缓存查询到的token
     ls := gokits.Condition(isExpired, lifeSpanTemp, lifeSpan).(time.Duration)
-    token := queryTokenBuilder(query)
+    token := queryTokenBuilder(queryDest)
     golog.Infof("Load %s Cache:(%s) %+v, cache %3.1f min", name, key, token, ls.Minutes())
     return gokits.NewCacheItem(key, ls, token), nil
 }
@@ -133,8 +137,9 @@ func requestUpdater(
 // 由于有效期内token不会更新, 所以重复请求不会覆盖token
 func tokenLoaderStrict(
     name string,
+    queryDest ExpireTimeRecord,
     querySql string,
-    queryTokenBuilder func(query map[string]string) interface{},
+    queryTokenBuilder func(queryDest ExpireTimeRecord) interface{},
     requestor func(key interface{}) (map[string]string, error),
     createSql string,
     updateSql string,
@@ -145,12 +150,11 @@ func tokenLoaderStrict(
     key interface{},
     args ...interface{}) (*gokits.CacheItem, error) {
 
-    query := make(map[string]string)
-    err := db.NamedGet(&query, querySql, map[string]interface{}{"CodeName": key})
+    err := db.NamedGet(queryDest, querySql, map[string]interface{}{"CodeName": key})
     if nil != err {
         golog.Debugf("Try to request %s:(%s)", name, key)
         token, err := requestUpdaterStrict(name, requestor, createSql, createUpdateArg,
-            querySql, queryTokenBuilder, expireCriticalSpan, requestTokenBuilder, key, args...)
+            queryDest, querySql, queryTokenBuilder, expireCriticalSpan, requestTokenBuilder, key, args...)
         if nil != err {
             return nil, err
         }
@@ -158,19 +162,15 @@ func tokenLoaderStrict(
         golog.Infof("Request %s:(%s) %+v", name, key, token)
         return gokits.NewCacheItem(key, maxLifeSpan, token), nil
     }
-    golog.Debugf("Query %s:(%s) %+v", name, key, query)
+    golog.Debugf("Query %s:(%s) %+v", name, key, queryDest)
 
-    expireTime, err := gokits.Int64FromStr(query["ExpireTime"]) // in second
-    if nil != err {
-        return nil, err
-    }
-    effectiveSpan := time.Duration(expireTime-time.Now().Unix()) * time.Second
+    effectiveSpan := time.Duration(queryDest.GetExpireTime()-time.Now().Unix()) * time.Second // in second
     // 即将过期 -> 触发更新
     if effectiveSpan <= expireCriticalSpan {
         time.Sleep(expireCriticalSpan) // 休眠后再请求最新的access_token
         golog.Debugf("Try to request and update %s:(%s)", name, key)
         token, err := requestUpdaterStrict(name, requestor, updateSql, createUpdateArg,
-            querySql, queryTokenBuilder, expireCriticalSpan, requestTokenBuilder, key, args...)
+            queryDest, querySql, queryTokenBuilder, expireCriticalSpan, requestTokenBuilder, key, args...)
         if nil != err {
             return nil, err
         }
@@ -181,7 +181,7 @@ func tokenLoaderStrict(
 
     // token有效期少于最大缓存时长, 则仅缓存剩余有效期时长
     ls := gokits.Condition(effectiveSpan > maxLifeSpan, maxLifeSpan, effectiveSpan).(time.Duration)
-    token := queryTokenBuilder(query)
+    token := queryTokenBuilder(queryDest)
     golog.Infof("Load %s Cache:(%s) %+v, cache %3.1f min", name, key, token, ls.Minutes())
     return gokits.NewCacheItem(key, ls, token), nil
 }
@@ -191,8 +191,9 @@ func requestUpdaterStrict(
     requestor func(key interface{}) (map[string]string, error),
     writeSql string,
     writeArg func(response map[string]string) map[string]interface{},
+    queryDest ExpireTimeRecord,
     querySql string,
-    queryTokenBuilder func(query map[string]string) interface{},
+    queryTokenBuilder func(queryDest ExpireTimeRecord) interface{},
     expireCriticalSpan time.Duration,
     requestTokenBuilder func(response map[string]string) interface{},
     key interface{},
@@ -207,21 +208,16 @@ func requestUpdaterStrict(
     arg["CodeName"] = key
     count, err := db.NamedExecX(writeSql, arg)
     if nil != err || count < 1 { // 记录入库失败, 则查询记录并返回
-        query := make(map[string]string)
-        err := db.NamedGet(&query, querySql, map[string]interface{}{"CodeName": key})
+        err := db.NamedGet(queryDest, querySql, map[string]interface{}{"CodeName": key})
         if nil != err {
             return nil, err
         }
 
-        expireTime, err := gokits.Int64FromStr(query["ExpireTime"]) // in second
-        if nil != err {
-            return nil, err
-        }
-        effectiveSpan := time.Duration(expireTime-time.Now().Unix()) * time.Second
+        effectiveSpan := time.Duration(queryDest.GetExpireTime()-time.Now().Unix()) * time.Second // in second
         if effectiveSpan <= expireCriticalSpan {
             return nil, errors.New(fmt.Sprintf("Query %s:(%s) expireTime Failed", name, key))
         }
-        return queryTokenBuilder(query), nil
+        return queryTokenBuilder(queryDest), nil
     }
     return requestTokenBuilder(response), nil
 }

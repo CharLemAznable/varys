@@ -67,14 +67,30 @@ func toutiaoAppTokenRequestor(codeName interface{}) (map[string]string, error) {
         "ExpiresIn":   gokits.StrFromInt(response.ExpiresIn)}, nil
 }
 
+type QueryToutiaoAppToken struct {
+    ToutiaoAppToken
+    Updated    string
+    ExpireTime int64
+}
+
+func (q *QueryToutiaoAppToken) GetUpdated() string {
+    return q.Updated
+}
+
+func (q *QueryToutiaoAppToken) GetExpireTime() int64 {
+    return q.ExpireTime
+}
+
 func toutiaoAppTokenLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
     return tokenLoader(
         "ToutiaoAppToken",
+        &QueryToutiaoAppToken{},
         queryToutiaoAppTokenSQL,
-        func(query map[string]string) interface{} {
+        func(queryDest UpdatedRecord) interface{} {
+            query := queryDest.(*QueryToutiaoAppToken)
             return &ToutiaoAppToken{
-                AppId:       query["AppId"],
-                AccessToken: query["AccessToken"],
+                AppId:       query.AppId,
+                AccessToken: query.AccessToken,
             }
         },
         createToutiaoAppTokenSQL,
