@@ -3,6 +3,7 @@ package main
 import (
     . "github.com/CharLemAznable/gokits"
     _ "github.com/go-sql-driver/mysql"
+    "github.com/kataras/golog"
     "net/http"
 )
 
@@ -38,6 +39,6 @@ func main() {
 
     server := http.Server{Addr: ":" + StrFromInt(globalConfig.Port), Handler: mux}
     if err := server.ListenAndServe(); err != nil {
-        LOG.Crashf("Start server Error: %s", err.Error())
+        golog.Errorf("Start server Error: %s", err.Error())
     }
 }

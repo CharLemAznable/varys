@@ -50,7 +50,7 @@ func parseWechatCorpTpInfoData(codeName string, request *http.Request) (*WechatC
             golog.Warnf("WechatCryptor DecryptMsg EchoStr error:(%s) %s", codeName, err.Error())
             return nil, err
         }
-        golog.Infof("WechatCorpTpVerifyEchoStrMsg:(%s) %s", codeName, msg)
+        golog.Debugf("WechatCorpTpVerifyEchoStrMsg:(%s) %s", codeName, msg)
         echoData := new(WechatCorpTpInfoData)
         echoData.InfoType = "echostr"
         echoData.EchoStr = msg
@@ -63,7 +63,7 @@ func parseWechatCorpTpInfoData(codeName string, request *http.Request) (*WechatC
         return nil, err
     }
 
-    gokits.LOG.Info("WechatCorpTpInfoData:(%s) %s", codeName, decryptMsg)
+    golog.Debugf("WechatCorpTpInfoData:(%s) %s", codeName, decryptMsg)
     infoData := new(WechatCorpTpInfoData)
     err = xml.Unmarshal([]byte(decryptMsg), infoData)
     if nil != err {

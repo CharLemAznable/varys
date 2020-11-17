@@ -153,13 +153,13 @@ func wechatCorpTpAuthTokenLoader(key interface{}, args ...interface{}) (*gokits.
 
             // 查询记录成功, 缓存最大缓存时长
             token := wechatCorpTpAuthQueryTokenBuilder(query)
-            gokits.LOG.Info("Request and ReQuery WechatCorpTpAuthToken:(%+v) %+v", tpAuthKey, token)
+            golog.Infof("Request and ReQuery WechatCorpTpAuthToken:(%+v) %+v", tpAuthKey, token)
             return gokits.NewCacheItem(key, wechatCorpTpAuthTokenMaxLifeSpan, token), nil
         }
 
         // 记录入库成功, 缓存最大缓存时长
         token := wechatCorpTpAuthResponseTokenBuilder(response)
-        gokits.LOG.Info("Request and Update WechatCorpTpAuthToken:(%+v) %+v", tpAuthKey, token)
+        golog.Infof("Request and Update WechatCorpTpAuthToken:(%+v) %+v", tpAuthKey, token)
         return gokits.NewCacheItem(key, wechatCorpTpAuthTokenMaxLifeSpan, token), nil
     }
 
@@ -167,6 +167,6 @@ func wechatCorpTpAuthTokenLoader(key interface{}, args ...interface{}) (*gokits.
     ls := gokits.Condition(effectiveSpan > wechatCorpTpAuthTokenMaxLifeSpan,
         wechatCorpTpAuthTokenMaxLifeSpan, effectiveSpan).(time.Duration)
     token := wechatCorpTpAuthQueryTokenBuilder(query)
-    gokits.LOG.Info("Load WechatCorpTpAuthToken Cache:(%+v) %+v, cache %3.1f min", tpAuthKey, token, ls.Minutes())
+    golog.Infof("Load WechatCorpTpAuthToken Cache:(%+v) %+v, cache %3.1f min", tpAuthKey, token, ls.Minutes())
     return gokits.NewCacheItem(key, ls, token), nil
 }

@@ -50,7 +50,7 @@ func wechatCorpTpCryptorLoader(codeName interface{}, args ...interface{}) (*goki
     if nil != err {
         return nil, err // require legal config
     }
-    golog.Infof("Load WechatCorpTpConfig Cache:(%s) %+v", codeName, cryptor)
+    golog.Infof("Load WechatCorpTpCryptor Cache:(%s) %+v", codeName, cryptor)
     return gokits.NewCacheItem(codeName, wechatCorpTpCryptorLifeSpan, cryptor), nil
 }
 

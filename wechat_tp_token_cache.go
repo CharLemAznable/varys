@@ -84,7 +84,7 @@ func wechatTpTokenRequestor(codeName interface{}) (map[string]string, error) {
             "component_appsecret":     config.AppSecret,
             "component_verify_ticket": ticket})).
         Prop("Content-Type", "application/json").Post()
-    gokits.LOG.Trace("Request WechatTpToken Response:(%s) %s", codeName, result)
+    golog.Debugf("Request WechatTpToken Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }

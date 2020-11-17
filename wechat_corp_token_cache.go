@@ -12,7 +12,7 @@ var wechatCorpTokenCache *gokits.CacheTable
 
 func wechatCorpTokenInitialize() {
     wechatCorpConfigCache = gokits.CacheExpireAfterWrite("WechatCorpConfig")
-    wechatCorpConfigCache.SetDataLoader(wechatCorpTokenConfigLoader)
+    wechatCorpConfigCache.SetDataLoader(wechatCorpConfigLoader)
     wechatCorpTokenCache = gokits.CacheExpireAfterWrite("WechatCorpToken")
     wechatCorpTokenCache.SetDataLoader(wechatCorpTokenLoader)
 }
@@ -22,7 +22,7 @@ type WechatCorpConfig struct {
     CorpSecret string
 }
 
-func wechatCorpTokenConfigLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
+func wechatCorpConfigLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
     return configLoader(
         "WechatCorpConfig",
         &WechatCorpConfig{},
