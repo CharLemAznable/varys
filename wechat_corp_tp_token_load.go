@@ -13,7 +13,7 @@ var wechatCorpTpTokenMaxLifeSpan = time.Minute * 5        // stable token cache 
 var wechatCorpTpTokenExpireCriticalSpan = time.Second * 1 // token about to expire critical time span
 
 func wechatCorpTpTokenLoad(config *Config) {
-    gokits.If(0 != len(config.WechatCorpTpTokenURL), func() {
+    gokits.If("" != config.WechatCorpTpTokenURL, func() {
         wechatCorpTpTokenURL = config.WechatCorpTpTokenURL
     })
 

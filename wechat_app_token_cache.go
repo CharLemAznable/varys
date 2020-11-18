@@ -58,7 +58,7 @@ func wechatAppTokenRequestor(codeName interface{}) (map[string]string, error) {
     }
 
     response := gokits.UnJson(result, new(WechatAppTokenResponse)).(*WechatAppTokenResponse)
-    if nil == response || 0 == len(response.AccessToken) {
+    if nil == response || "" == response.AccessToken {
         return nil, errors.New("Request WechatAppToken Failed: " + result)
     }
     return map[string]string{

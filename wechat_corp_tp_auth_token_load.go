@@ -14,13 +14,13 @@ var wechatCorpTpAuthTokenMaxLifeSpan = time.Minute * 5        // stable token ca
 var wechatCorpTpAuthTokenExpireCriticalSpan = time.Second * 1 // token about to expire critical time span
 
 func wechatCorpTpAuthTokenLoad(config *Config) {
-    gokits.If(0 != len(config.WechatCorpTpPreAuthCodeURL), func() {
+    gokits.If("" != config.WechatCorpTpPreAuthCodeURL, func() {
         wechatCorpTpPreAuthCodeURL = config.WechatCorpTpPreAuthCodeURL
     })
-    gokits.If(0 != len(config.WechatCorpTpPermanentCodeURL), func() {
+    gokits.If("" != config.WechatCorpTpPermanentCodeURL, func() {
         wechatCorpTpPermanentCodeURL = config.WechatCorpTpPermanentCodeURL
     })
-    gokits.If(0 != len(config.WechatCorpTpAuthTokenURL), func() {
+    gokits.If("" != config.WechatCorpTpAuthTokenURL, func() {
         wechatCorpTpAuthTokenURL = config.WechatCorpTpAuthTokenURL
     })
 

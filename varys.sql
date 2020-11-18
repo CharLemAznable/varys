@@ -37,6 +37,7 @@ create table `wechat_app_third_platform_config` (
   `app_secret` varchar(100) not null comment '第三方平台APP_SECRET',
   `token` varchar(100) not null comment '第三方平台接收消息的校验TOKEN',
   `aes_key` varchar(43) not null comment '第三方平台接收消息的AES加密Key',
+  `auth_forward_url` text comment '第三方平台授权事件消息转发URL, varys将授权事件消息转发给业务服务做其他处理',
   `redirect_url` text comment '第三方平台授权回调URL',
   `enabled` tinyint not null default '1' comment '有效状态 0-无效 1-有效',
   primary key (`code_name`)

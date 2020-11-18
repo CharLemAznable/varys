@@ -59,7 +59,7 @@ func wechatCorpTokenRequestor(codeName interface{}) (map[string]string, error) {
     }
 
     response := gokits.UnJson(result, new(WechatCorpTokenResponse)).(*WechatCorpTokenResponse)
-    if nil == response || 0 != response.Errcode || 0 == len(response.AccessToken) {
+    if nil == response || 0 != response.Errcode || "" == response.AccessToken {
         return nil, errors.New("Request Corp access_token Failed: " + result)
     }
 

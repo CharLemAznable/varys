@@ -45,7 +45,7 @@ func wechatTpQueryAuthRequestor(codeName, authorizationCode interface{}) (map[st
     }
 
     response := gokits.UnJson(result, new(WechatTpQueryAuthResponse)).(*WechatTpQueryAuthResponse)
-    if nil == response || 0 == len(response.AuthorizationInfo.AuthorizerAccessToken) {
+    if nil == response || "" == response.AuthorizationInfo.AuthorizerAccessToken {
         return nil, errors.New("Request WechatTpAuthToken Failed: " + result)
     }
     return map[string]string{
@@ -116,7 +116,7 @@ func wechatTpAuthorized(codeName string, infoData *WechatTpInfoData) {
             "AuthorizerAppId":   authorizerAppId,
             "AuthorizationCode": authorizationCode,
             "PreAuthCode":       infoData.PreAuthCode})
-    go wechatTpAuthTokenCreator(codeName, authorizerAppId, authorizationCode)
+    wechatTpAuthTokenCreator(codeName, authorizerAppId, authorizationCode)
 }
 
 func wechatTpUnauthorized(codeName string, infoData *WechatTpInfoData) {
@@ -127,4 +127,15 @@ func wechatTpUnauthorized(codeName string, infoData *WechatTpInfoData) {
     // delete cache
     _, _ = wechatTpAuthTokenCache.Delete(
         WechatTpAuthKey{CodeName: codeName, AuthorizerAppId: authorizerAppId})
+}
+
+func wechatTpAuthorizedMp(codeName string, infoData *WechatTpInfoData) {
+    mpAppId := infoData.MpAppId
+    mpAuthCode := infoData.MpAuthCode
+    _, _ = db.NamedExec(enableWechatTpAuthSQL,
+        map[string]interface{}{"CodeName": codeName,
+            "AuthorizerAppId":   mpAppId,
+            "AuthorizationCode": mpAuthCode,
+            "PreAuthCode":       ""})
+    wechatTpAuthTokenCreator(codeName, mpAppId, mpAuthCode)
 }

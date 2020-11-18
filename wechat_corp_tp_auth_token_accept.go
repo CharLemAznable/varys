@@ -80,7 +80,7 @@ func wechatCorpTpPermanentCodeRequestor(codeName, authCode interface{}) (map[str
     }
 
     response := gokits.UnJson(result, new(WechatCorpTpPermanentCodeResponse)).(*WechatCorpTpPermanentCodeResponse)
-    if nil == response || 0 == len(response.PermanentCode) {
+    if nil == response || "" == response.PermanentCode {
         return nil, errors.New("Request WechatCorpTpPermanentCode Failed: " + result)
     }
 

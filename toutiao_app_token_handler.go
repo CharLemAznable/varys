@@ -10,7 +10,7 @@ const queryToutiaoAppTokenPath = "/query-toutiao-app-token/"
 
 func queryToutiaoAppToken(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, queryToutiaoAppTokenPath)
-    if 0 == len(codeName) {
+    if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
         return
     }

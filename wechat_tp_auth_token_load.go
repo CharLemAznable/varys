@@ -13,13 +13,13 @@ var wechatTpAuthTokenLifeSpan = time.Minute * 5     // stable token cache 5 min 
 var wechatTpAuthTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
 
 func wechatTpAuthTokenLoad(config *Config) {
-    gokits.If(0 != len(config.WechatTpPreAuthCodeURL), func() {
+    gokits.If("" != config.WechatTpPreAuthCodeURL, func() {
         wechatTpPreAuthCodeURL = config.WechatTpPreAuthCodeURL
     })
-    gokits.If(0 != len(config.WechatTpQueryAuthURL), func() {
+    gokits.If("" != config.WechatTpQueryAuthURL, func() {
         wechatTpQueryAuthURL = config.WechatTpQueryAuthURL
     })
-    gokits.If(0 != len(config.WechatTpRefreshAuthURL), func() {
+    gokits.If("" != config.WechatTpRefreshAuthURL, func() {
         wechatTpRefreshAuthURL = config.WechatTpRefreshAuthURL
     })
 

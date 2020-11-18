@@ -44,7 +44,7 @@ func parseWechatCorpTpInfoData(codeName string, request *http.Request) (*WechatC
     timeStamp := params.Get("timestamp")
     nonce := params.Get("nonce")
     echostr := params.Get("echostr")
-    if 0 != len(echostr) { // 验证推送URL
+    if "" != echostr { // 验证推送URL
         msg, err := cryptor.DecryptMsgContent(msgSign, timeStamp, nonce, echostr)
         if nil != err {
             golog.Warnf("WechatCryptor DecryptMsg EchoStr error:(%s) %s", codeName, err.Error())
@@ -79,7 +79,7 @@ const acceptWechatCorpTpInfoPath = "/accept-wechat-corp-tp-info/"
 
 func acceptWechatCorpTpInfo(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, acceptWechatCorpTpInfoPath)
-    if 0 != len(codeName) {
+    if "" != codeName {
         infoData, err := parseWechatCorpTpInfoData(codeName, request)
         if nil == err {
             switch infoData.InfoType {

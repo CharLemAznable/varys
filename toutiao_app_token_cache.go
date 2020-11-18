@@ -58,7 +58,7 @@ func toutiaoAppTokenRequestor(codeName interface{}) (map[string]string, error) {
     }
 
     response := gokits.UnJson(result, new(ToutiaoAppTokenResponse)).(*ToutiaoAppTokenResponse)
-    if nil == response || 0 == len(response.AccessToken) {
+    if nil == response || "" == response.AccessToken {
         return nil, errors.New("Request ToutiaoAppToken Failed: " + result)
     }
     return map[string]string{

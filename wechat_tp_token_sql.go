@@ -20,14 +20,15 @@ select t.ticket
 `
 
 const queryWechatTpConfigSQL = `
-select c.app_id         as "AppId"
-      ,c.app_secret     as "AppSecret"
-      ,c.token          as "Token"
-      ,c.aes_key        as "AesKey"
-      ,c.redirect_url   as "RedirectURL"
+select c.app_id             as "AppId"
+      ,c.app_secret         as "AppSecret"
+      ,c.token              as "Token"
+      ,c.aes_key            as "AesKey"
+      ,c.auth_forward_url   as "AuthForwardUrl"
+      ,c.redirect_url       as "RedirectURL"
   from wechat_app_third_platform_config c
- where c.enabled        = 1
-   and c.code_name      = :CodeName
+ where c.enabled            = 1
+   and c.code_name          = :CodeName
 `
 
 const queryWechatTpTokenSQL = `

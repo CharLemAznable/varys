@@ -12,7 +12,7 @@ var toutiaoAppTokenLifeSpan = time.Minute * 5     // stable token cache 5 min de
 var toutiaoAppTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
 
 func toutiaoAppTokenLoad(config *Config) {
-    gokits.If(0 != len(config.ToutiaoAppTokenURL), func() {
+    gokits.If("" != config.ToutiaoAppTokenURL, func() {
         toutiaoAppTokenURL = config.ToutiaoAppTokenURL
     })
 

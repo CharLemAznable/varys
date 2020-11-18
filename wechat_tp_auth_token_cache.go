@@ -50,7 +50,7 @@ func wechatTpRefreshAuthRequestor(codeName, authorizerAppId, authorizerRefreshTo
     }
 
     response := gokits.UnJson(result, new(WechatTpRefreshAuthResponse)).(*WechatTpRefreshAuthResponse)
-    if nil == response || 0 == len(response.AuthorizerAccessToken) {
+    if nil == response || "" == response.AuthorizerAccessToken {
         return nil, errors.New("Refresh WechatTpAuthToken Failed: " + result)
     }
     return map[string]string{
@@ -84,7 +84,7 @@ func wechatTpAuthTokenLoader(key interface{}, args ...interface{}) (*gokits.Cach
     golog.Debugf("Query WechatTpAuthToken:(%+v) %+v", key, query)
 
     authorizerRefreshToken := query.AuthorizerRefreshToken // requires that the refresh token exists
-    if 0 == len(authorizerRefreshToken) {
+    if "" == authorizerRefreshToken {
         return nil, errors.New("AuthorizerRefreshToken is Empty")
     }
     isExpired := time.Now().Unix() > query.ExpireTime

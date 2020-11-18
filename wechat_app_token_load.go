@@ -20,7 +20,7 @@ var wechatMpProxyURL = DefaultWechatMpProxyURL
 var wechatMpLoginProxyURL = DefaultWechatMpLoginProxyURL
 
 func wechatAppTokenLoad(config *Config) {
-    gokits.If(0 != len(config.WechatAppTokenURL), func() {
+    gokits.If("" != config.WechatAppTokenURL, func() {
         wechatAppTokenURL = config.WechatAppTokenURL
     })
 
@@ -34,13 +34,13 @@ func wechatAppTokenLoad(config *Config) {
         wechatAppTokenTempLifeSpan = config.WechatAppTokenTempLifeSpan.Duration
     })
 
-    gokits.If(0 != len(config.WechatAppProxyURL), func() {
+    gokits.If("" != config.WechatAppProxyURL, func() {
         wechatAppProxyURL = config.WechatAppProxyURL
     })
-    gokits.If(0 != len(config.WechatMpProxyURL), func() {
+    gokits.If("" != config.WechatMpProxyURL, func() {
         wechatMpProxyURL = config.WechatMpProxyURL
     })
-    gokits.If(0 != len(config.WechatMpLoginProxyURL), func() {
+    gokits.If("" != config.WechatMpLoginProxyURL, func() {
         wechatMpLoginProxyURL = config.WechatMpLoginProxyURL
     })
 

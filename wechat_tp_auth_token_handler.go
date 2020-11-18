@@ -30,7 +30,7 @@ func wechatTpPreAuthCodeRequestor(codeName interface{}) (map[string]string, erro
     }
 
     response := gokits.UnJson(result, new(WechatTpPreAuthCodeResponse)).(*WechatTpPreAuthCodeResponse)
-    if nil == response || 0 == len(response.PreAuthCode) {
+    if nil == response || "" == response.PreAuthCode {
         return nil, errors.New("Request WechatTpPreAuthCode Failed: " + result)
     }
     return map[string]string{
@@ -52,7 +52,7 @@ const scanRedirectPageHtmlFormat = `
 
 func wechatTpAuthorizeScan(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, wechatTpAuthorizeScanPath)
-    if 0 == len(codeName) {
+    if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "CodeName is Empty"}))
         return
     }
@@ -66,7 +66,7 @@ func wechatTpAuthorizeScan(writer http.ResponseWriter, request *http.Request) {
     preAuthCode := response["PreAuthCode"]
 
     redirectQuery := request.URL.RawQuery
-    if 0 != len(redirectQuery) {
+    if "" != redirectQuery {
         redirectQuery = "?" + redirectQuery
     }
 
@@ -86,7 +86,7 @@ const linkRedirectPageHtmlFormat = `
 
 func wechatTpAuthorizeLink(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, wechatTpAuthorizeLinkPath)
-    if 0 == len(codeName) {
+    if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "CodeName is Empty"}))
         return
     }
@@ -100,7 +100,7 @@ func wechatTpAuthorizeLink(writer http.ResponseWriter, request *http.Request) {
     preAuthCode := response["PreAuthCode"]
 
     redirectQuery := request.URL.RawQuery
-    if 0 != len(redirectQuery) {
+    if "" != redirectQuery {
         redirectQuery = "?" + redirectQuery
     }
 
@@ -118,7 +118,7 @@ const redirectPageHtmlFormat = `
 
 func wechatTpAuthorizeRedirect(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, wechatTpAuthorizeRedirectPath)
-    if 0 == len(codeName) {
+    if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "CodeName is Empty"}))
         return
     }
@@ -132,7 +132,7 @@ func wechatTpAuthorizeRedirect(writer http.ResponseWriter, request *http.Request
     redirectUrl := config.RedirectURL
     redirectQuery := request.URL.RawQuery
 
-    if 0 != len(redirectUrl) && 0 != len(redirectQuery) {
+    if "" != redirectUrl && "" != redirectQuery {
         redirectUrl = redirectUrl + "?" + redirectQuery
     }
 
@@ -144,7 +144,7 @@ const queryWechatTpAuthTokenPath = "/query-wechat-tp-auth-token/"
 
 func queryWechatTpAuthToken(writer http.ResponseWriter, request *http.Request) {
     pathParams := trimPrefixPath(request, queryWechatTpAuthTokenPath)
-    if 0 == len(pathParams) {
+    if "" == pathParams {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Path Params is Empty"}))
         return
     }

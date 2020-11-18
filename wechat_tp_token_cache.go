@@ -22,11 +22,12 @@ func wechatTpTokenInitialize() {
 }
 
 type WechatTpConfig struct {
-    AppId       string
-    AppSecret   string
-    Token       string
-    AesKey      string
-    RedirectURL string
+    AppId          string
+    AppSecret      string
+    Token          string
+    AesKey         string
+    AuthForwardUrl string
+    RedirectURL    string
 }
 
 func wechatTpConfigLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
@@ -90,7 +91,7 @@ func wechatTpTokenRequestor(codeName interface{}) (map[string]string, error) {
     }
 
     response := gokits.UnJson(result, new(WechatTpTokenResponse)).(*WechatTpTokenResponse)
-    if nil == response || 0 == len(response.ComponentAccessToken) {
+    if nil == response || "" == response.ComponentAccessToken {
         return nil, errors.New("Request WechatTpToken Failed: " + result)
     }
     return map[string]string{

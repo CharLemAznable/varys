@@ -16,7 +16,7 @@ const DefaultWechatCorpProxyURL = "https://qyapi.weixin.qq.com/cgi-bin/"
 var wechatCorpProxyURL = DefaultWechatCorpProxyURL
 
 func wechatCorpTokenLoad(config *Config) {
-    gokits.If(0 != len(config.WechatCorpTokenURL), func() {
+    gokits.If("" != config.WechatCorpTokenURL, func() {
         wechatCorpTokenURL = config.WechatCorpTokenURL
     })
 
@@ -30,7 +30,7 @@ func wechatCorpTokenLoad(config *Config) {
         wechatCorpTokenExpireCriticalSpan = config.WechatCorpTokenExpireCriticalSpan.Duration
     })
 
-    gokits.If(0 != len(config.WechatCorpProxyURL), func() {
+    gokits.If("" != config.WechatCorpProxyURL, func() {
         wechatCorpProxyURL = config.WechatCorpProxyURL
     })
 

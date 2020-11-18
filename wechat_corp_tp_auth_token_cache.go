@@ -77,7 +77,7 @@ func wechatCorpTpAuthTokenRequestor(codeName, corpId interface{}) (map[string]st
     }
 
     response := gokits.UnJson(result, new(WechatCorpTpAuthTokenResponse)).(*WechatCorpTpAuthTokenResponse)
-    if nil == response || 0 == len(response.AccessToken) {
+    if nil == response || "" == response.AccessToken {
         return nil, errors.New("Request WechatCorpTpAuthToken Failed: " + result)
     }
 
