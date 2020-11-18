@@ -93,6 +93,13 @@ $ nohup ./varys-[version].[arch].[os].bin &
 
   [toutiao_app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/toutiao_app_token_cache.go)
 
+包含蜂鸟商户配置缓存和```access_token```缓存，其中:
+
+1) 商户配置缓存默认1小时
+2) access_token缓存默认5分钟, 当access_token即将过期并被其他分布式节点更新时缓存1分钟
+
+  [fengniao_app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/fengniao_app_token_cache.go)
+
 #### 访问路径
 
 默认服务地址:
@@ -131,7 +138,7 @@ http://localhost:4236
 /accept-wechat-tp-info/{codeName:string}
 
 第三方平台在微信配置的授权事件接收URL
-用于接收component_verify_ticket以及公众号对第三方平台进行授权、取消授权、更新授权的推送通知
+用于接收component_verify_ticket以及公众号对第三方平台进行授权、取消授权、更新授权的推送通知，以及快速创建小程序的审核结果通知
 返回数据: "success"
 ```
 ```http
@@ -228,6 +235,19 @@ https://open.work.weixin.qq.com/3rdapp/install?suite_id=#suiteId#&pre_auth_code=
 返回数据:
 成功: {"appId": #appId#, "token": #access_token#}
 错误: {"error": #ErrorMessage#}
+```
+```http
+/query-fengniao-app-token/{codeName:string}
+
+获取指定codeName对应的蜂鸟商户当前的access_token
+返回数据:
+成功: {"appId": #appId#, "token": #access_token#}
+错误: {"error": #ErrorMessage#}
+```
+```http
+/proxy-fengniao-app/{codeName:string}/...
+
+代理指定codeName对应的蜂鸟商户接口, 改写请求体为{"app_id":#appId#, "data":#原请求体#, "salt":#随机数#, "signature":#自动生成的签名#}
 ```
 
 #### Golang Kits

@@ -37,6 +37,9 @@ func main() {
 
     HandleFunc(mux, queryToutiaoAppTokenPath, queryToutiaoAppToken)
 
+    HandleFunc(mux, queryFengniaoAppTokenPath, queryFengniaoAppToken)
+    HandleFunc(mux, proxyFengniaoAppPath, proxyFengniaoApp, GzipResponseDisabled)
+
     server := http.Server{Addr: ":" + StrFromInt(globalConfig.Port), Handler: mux}
     if err := server.ListenAndServe(); err != nil {
         golog.Errorf("Start server Error: %s", err.Error())

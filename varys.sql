@@ -219,3 +219,31 @@ create table `toutiao_app_token` (
 ) comment='字节小程序access_token记录表';
 
 -- TOUTIAO_APP_TOKEN end --
+
+
+-- FENGNIAO_APP_TOKEN begin --
+
+drop table if exists `fengniao_app_config` ;
+
+create table `fengniao_app_config` (
+  `code_name` varchar(42) not null comment '代号',
+  `app_id` varchar(100) not null comment '蜂鸟商户APP_ID',
+  `secret_key` varchar(100) not null comment '蜂鸟商户SECRET_KEY',
+  `enabled` tinyint not null default '1' comment '有效状态 0-无效 1-有效',
+  primary key (`code_name`)
+) comment='蜂鸟商户access_token获取参数配置表';
+
+
+drop table if exists `fengniao_app_token` ;
+
+create table `toutiao_app_token` (
+  `code_name` varchar(42) not null comment '代号',
+  `app_id` varchar(100) not null comment '蜂鸟商户APP_ID',
+  `access_token` text comment '蜂鸟商户ACCESS_TOKEN',
+  `updated` tinyint not null default '1' comment '是否最新记录 0-否 1-是',
+  `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
+  `expire_time` timestamp comment '过期时间',
+  primary key (`code_name`)
+) comment='蜂鸟商户access_token记录表';
+
+-- FENGNIAO_APP_TOKEN end --

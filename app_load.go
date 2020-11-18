@@ -67,6 +67,12 @@ type Config struct {
     ToutiaoAppConfigLifeSpan    gokits.Duration
     ToutiaoAppTokenLifeSpan     gokits.Duration
     ToutiaoAppTokenTempLifeSpan gokits.Duration
+
+    FengniaoAppTokenURL          string
+    FengniaoAppConfigLifeSpan    gokits.Duration
+    FengniaoAppTokenLifeSpan     gokits.Duration
+    FengniaoAppTokenTempLifeSpan gokits.Duration
+    FengniaoAppProxyURL          string
 }
 
 var globalConfig = &Config{}
@@ -92,6 +98,7 @@ func init() {
     wechatCorpTpTokenLoad(globalConfig)
     wechatCorpTpAuthTokenLoad(globalConfig)
     toutiaoAppTokenLoad(globalConfig)
+    fengniaoAppTokenLoad(globalConfig)
 }
 
 func fixedConfig(config *Config) {
