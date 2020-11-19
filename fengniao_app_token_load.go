@@ -2,6 +2,7 @@ package main
 
 import (
     "github.com/CharLemAznable/gokits"
+    "strings"
     "time"
 )
 
@@ -10,7 +11,7 @@ var fengniaoAppTokenURL = "https://open-anubis.ele.me/anubis-webapi/get_access_t
 
 var fengniaoAppConfigLifeSpan = time.Minute * 60   // config cache 60 min default
 var fengniaoAppTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
-var fengniaoAppTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
+var fengniaoAppTokenTempLifeSpan = time.Second * 1 // temporary token cache 1 min default
 
 // 可配置联调地址: https://exam-anubis.ele.me/anubis-webapi/v2/
 const DefaultFengniaoAppProxyURL = "https://exam-anubis.ele.me/anubis-webapi/v2/"
@@ -38,4 +39,11 @@ func fengniaoAppTokenLoad(config *Config) {
 
     fengniaoAppTokenInitialize()
     fengniaoAppProxyInitialize()
+
+    gokits.If("" != config.FengniaoCallbackAddress, func() {
+        gokits.If(strings.HasSuffix(config.FengniaoCallbackAddress, "/"), func() {
+            config.FengniaoCallbackAddress =
+                config.FengniaoCallbackAddress[:len(config.FengniaoCallbackAddress)-1]
+        })
+    })
 }

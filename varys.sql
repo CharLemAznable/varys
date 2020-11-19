@@ -229,6 +229,7 @@ create table `fengniao_app_config` (
   `code_name` varchar(42) not null comment '代号',
   `app_id` varchar(100) not null comment '蜂鸟商户APP_ID',
   `secret_key` varchar(100) not null comment '蜂鸟商户SECRET_KEY',
+  `callback_order_url` text comment '订单状态变更回调URL',
   `enabled` tinyint not null default '1' comment '有效状态 0-无效 1-有效',
   primary key (`code_name`)
 ) comment='蜂鸟商户access_token获取参数配置表';

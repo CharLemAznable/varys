@@ -39,6 +39,7 @@ func main() {
 
     HandleFunc(mux, queryFengniaoAppTokenPath, queryFengniaoAppToken)
     HandleFunc(mux, proxyFengniaoAppPath, proxyFengniaoApp, GzipResponseDisabled)
+    HandleFunc(mux, callbackFengniaoOrderPath, callbackFengniaoOrder)
 
     server := http.Server{Addr: ":" + StrFromInt(globalConfig.Port), Handler: mux}
     if err := server.ListenAndServe(); err != nil {

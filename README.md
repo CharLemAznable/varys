@@ -249,6 +249,13 @@ https://open.work.weixin.qq.com/3rdapp/install?suite_id=#suiteId#&pre_auth_code=
 
 代理指定codeName对应的蜂鸟商户接口, 改写请求体为{"app_id":#appId#, "data":#原请求体#, "salt":#随机数#, "signature":#自动生成的签名#}
 ```
+```http
+/callback-fengniao-order/{codeName:string}
+
+蜂鸟订单状态变更回调地址
+配置回调根地址FengniaoCallbackAddress后, 代理调用创建蜂鸟订单接口时, 将自动改写notify_url参数为此地址
+接收到蜂鸟订单状态变更回调消息后, 将自动验签并转发消息体中的data字段到fengniao_app_config.callback_order_url地址(POST)
+```
 
 #### Golang Kits
 

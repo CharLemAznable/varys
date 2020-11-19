@@ -28,8 +28,9 @@ func newSalt() int {
 }
 
 type FengniaoAppConfig struct {
-    AppId     string
-    SecretKey string
+    AppId            string
+    SecretKey        string
+    CallbackOrderUrl string
 }
 
 func fengniaoAppConfigLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {

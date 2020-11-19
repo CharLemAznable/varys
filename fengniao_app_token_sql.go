@@ -1,8 +1,9 @@
 package main
 
 const queryFengniaoAppConfigSQL = `
-select c.app_id     as "AppId"
-      ,c.secret_key as "SecretKey"
+select c.app_id             as "AppId"
+      ,c.secret_key         as "SecretKey"
+      ,c.callback_order_url as "CallbackOrderUrl"
   from fengniao_app_config c
  where c.enabled    = 1
    and c.code_name  = :CodeName

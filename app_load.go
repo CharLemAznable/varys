@@ -73,6 +73,7 @@ type Config struct {
     FengniaoAppTokenLifeSpan     gokits.Duration
     FengniaoAppTokenTempLifeSpan gokits.Duration
     FengniaoAppProxyURL          string
+    FengniaoCallbackAddress      string
 }
 
 var globalConfig = &Config{}
@@ -105,7 +106,7 @@ func fixedConfig(config *Config) {
     gokits.If(0 == config.Port, func() {
         config.Port = 4236
     })
-    gokits.If("" == config.ContextPath, func() {
+    gokits.If("" != config.ContextPath, func() {
         gokits.Unless(strings.HasPrefix(config.ContextPath, "/"),
             func() { config.ContextPath = "/" + config.ContextPath })
         gokits.If(strings.HasSuffix(config.ContextPath, "/"),
