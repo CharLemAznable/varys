@@ -11,9 +11,9 @@ var wechatAppConfigLifeSpan = time.Minute * 60   // config cache 60 min default
 var wechatAppTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
 var wechatAppTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
 
-const DefaultWechatAppProxyURL = "https://api.weixin.qq.com/cgi-bin/"
-const DefaultWechatMpProxyURL = "https://api.weixin.qq.com/wxa/"
-const DefaultWechatMpLoginProxyURL = "https://api.weixin.qq.com/sns/"
+const DefaultWechatAppProxyURL = "https://api.weixin.qq.com/"
+const DefaultWechatMpProxyURL = "https://api.weixin.qq.com/"
+const DefaultWechatMpLoginProxyURL = "https://api.weixin.qq.com/"
 
 var wechatAppProxyURL = DefaultWechatAppProxyURL
 var wechatMpProxyURL = DefaultWechatMpProxyURL

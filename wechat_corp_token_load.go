@@ -11,7 +11,7 @@ var wechatCorpConfigLifeSpan = time.Minute * 60         // config cache 60 min d
 var wechatCorpTokenMaxLifeSpan = time.Minute * 5        // stable token cache 5 min max
 var wechatCorpTokenExpireCriticalSpan = time.Second * 1 // token about to expire critical time span
 
-const DefaultWechatCorpProxyURL = "https://qyapi.weixin.qq.com/cgi-bin/"
+const DefaultWechatCorpProxyURL = "https://qyapi.weixin.qq.com/"
 
 var wechatCorpProxyURL = DefaultWechatCorpProxyURL
 

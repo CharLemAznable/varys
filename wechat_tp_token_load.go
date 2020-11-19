@@ -12,7 +12,7 @@ var wechatTpCryptorLifeSpan = time.Minute * 60  // cryptor cache 60 min default
 var wechatTpTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
 var wechatTpTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
 
-const DefaultWechatTpProxyURL = "https://api.weixin.qq.com/cgi-bin/"
+const DefaultWechatTpProxyURL = "https://api.weixin.qq.com/"
 
 var wechatTpProxyURL = DefaultWechatTpProxyURL
 

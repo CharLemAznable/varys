@@ -102,6 +102,6 @@ func proxyWechatMpLogin(writer http.ResponseWriter, request *http.Request) {
         "&appid=" + config.AppId +
         "&secret=" + config.AppSecret +
         "&grant_type=authorization_code"
-    req.URL.Path = "jscode2session"
+    req.URL.Path = "sns/jscode2session"
     wechatMpLoginProxy.ServeHTTP(writer, req)
 }
