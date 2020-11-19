@@ -124,9 +124,15 @@ func wechatTpUnauthorized(codeName string, infoData *WechatTpInfoData) {
     _, _ = db.NamedExec(disableWechatTpAuthSQL,
         map[string]interface{}{"CodeName": codeName,
             "AuthorizerAppId": authorizerAppId})
-    // delete cache
-    _, _ = wechatTpAuthTokenCache.Delete(
-        WechatTpAuthKey{CodeName: codeName, AuthorizerAppId: authorizerAppId})
+    // delete cache, publish to cluster nodes
+    publishToClusterNodes(func(address string) {
+        rsp, err := gokits.NewHttpReq(address + gokits.PathJoin(
+            cleanWechatTpAuthTokenPath, codeName, authorizerAppId)).Get()
+        if nil != err {
+            golog.Errorf("Publish to %s Error: %s", address, err.Error())
+        }
+        golog.Debugf("Publish to %s Response: %s", address, rsp)
+    })
 }
 
 func wechatTpAuthorizedMp(codeName string, infoData *WechatTpInfoData) {

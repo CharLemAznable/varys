@@ -139,6 +139,28 @@ func wechatTpAuthorizeRedirect(writer http.ResponseWriter, request *http.Request
     gokits.ResponseHtml(writer, fmt.Sprintf(redirectPageHtmlFormat, redirectUrl))
 }
 
+// /clean-wechat-tp-auth-token/{codeName:string}/{authorizerAppId:string}
+const cleanWechatTpAuthTokenPath = "/clean-wechat-tp-auth-token/"
+
+func cleanWechatTpAuthToken(writer http.ResponseWriter, request *http.Request) {
+    pathParams := trimPrefixPath(request, cleanWechatTpAuthTokenPath)
+    if "" == pathParams {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Path Params is Empty"}))
+        return
+    }
+    ids := strings.Split(pathParams, "/")
+    if 2 != len(ids) {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Missing param codeName/authorizerAppId"}))
+        return
+    }
+
+    codeName := ids[0]
+    authorizerAppId := ids[1]
+    key := WechatTpAuthKey{CodeName: codeName, AuthorizerAppId: authorizerAppId}
+    _, _ = wechatTpAuthTokenCache.Delete(key)
+    gokits.ResponseJson(writer, gokits.Json(map[string]string{"result": "OK"}))
+}
+
 // /query-wechat-tp-auth-token/{codeName:string}/{authorizerAppId:string}
 const queryWechatTpAuthTokenPath = "/query-wechat-tp-auth-token/"
 

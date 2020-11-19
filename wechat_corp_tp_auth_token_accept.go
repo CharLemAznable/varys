@@ -128,8 +128,13 @@ func wechatCorpTpCancelAuth(codeName string, infoData *WechatCorpTpInfoData) {
     _, _ = db.NamedExec(disableWechatCorpTpAuthSQL,
         map[string]interface{}{"CodeName": codeName, "CorpId": authCorpId})
 
-    // delete cache
-    key := WechatCorpTpAuthKey{CodeName: codeName, CorpId: authCorpId}
-    _, _ = wechatCorpTpPermanentCodeCache.Delete(key)
-    _, _ = wechatCorpTpAuthTokenCache.Delete(key)
+    // delete cache, publish to cluster nodes
+    publishToClusterNodes(func(address string) {
+        rsp, err := gokits.NewHttpReq(address + gokits.PathJoin(
+            cleanWechatCorpTpAuthTokenPath, codeName, authCorpId)).Get()
+        if nil != err {
+            golog.Errorf("Publish to %s Error: %s", address, err.Error())
+        }
+        golog.Debugf("Publish to %s Response: %s", address, rsp)
+    })
 }

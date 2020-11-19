@@ -24,6 +24,7 @@ func main() {
     HandleFunc(mux, wechatTpAuthorizeScanPath, wechatTpAuthorizeScan)
     HandleFunc(mux, wechatTpAuthorizeLinkPath, wechatTpAuthorizeLink)
     HandleFunc(mux, wechatTpAuthorizeRedirectPath, wechatTpAuthorizeRedirect)
+    HandleFunc(mux, cleanWechatTpAuthTokenPath, cleanWechatTpAuthToken)
     HandleFunc(mux, queryWechatTpAuthTokenPath, queryWechatTpAuthToken)
 
     HandleFunc(mux, queryWechatCorpTokenPath, queryWechatCorpToken)
@@ -33,6 +34,7 @@ func main() {
 
     HandleFunc(mux, wechatCorpTpAuthComponentPath, wechatCorpTpAuthComponent)
     HandleFunc(mux, wechatCorpTpAuthRedirectPath, wechatCorpTpAuthRedirect)
+    HandleFunc(mux, cleanWechatCorpTpAuthTokenPath, cleanWechatCorpTpAuthToken)
     HandleFunc(mux, queryWechatCorpTpAuthTokenPath, queryWechatCorpTpAuthToken)
 
     HandleFunc(mux, queryToutiaoAppTokenPath, queryToutiaoAppToken)

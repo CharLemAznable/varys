@@ -110,6 +110,29 @@ func wechatCorpTpAuthRedirect(writer http.ResponseWriter, request *http.Request)
     gokits.ResponseHtml(writer, fmt.Sprintf(wechatCorpTpAuthRedirectPageHtmlFormat, redirectUrl))
 }
 
+// /clean-wechat-corp-tp-auth-token/{codeName:string}/{corpId:string}
+const cleanWechatCorpTpAuthTokenPath = "/clean-wechat-corp-tp-auth-token/"
+
+func cleanWechatCorpTpAuthToken(writer http.ResponseWriter, request *http.Request) {
+    pathParams := trimPrefixPath(request, cleanWechatCorpTpAuthTokenPath)
+    if "" == pathParams {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Path Params is Empty"}))
+        return
+    }
+    ids := strings.Split(pathParams, "/")
+    if 2 != len(ids) {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Missing param codeName/corpId"}))
+        return
+    }
+
+    codeName := ids[0]
+    corpId := ids[1]
+    key := WechatCorpTpAuthKey{CodeName: codeName, CorpId: corpId}
+    _, _ = wechatCorpTpPermanentCodeCache.Delete(key)
+    _, _ = wechatCorpTpAuthTokenCache.Delete(key)
+    gokits.ResponseJson(writer, gokits.Json(map[string]string{"result": "OK"}))
+}
+
 // /query-wechat-corp-tp-auth-token/{codeName:string}/{corpId:string}
 const queryWechatCorpTpAuthTokenPath = "/query-wechat-corp-tp-auth-token/"
 

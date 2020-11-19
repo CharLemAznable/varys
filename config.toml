@@ -5,6 +5,8 @@ LogLevel = "info"
 DriverName = "mysql"
 DataSourceName = "admin:test123@tcp(127.0.0.1:3306)/rock?charset=utf8"
 
+ClusterNodeAddresses = "http://localhost:4236"
+
 WechatAppTokenURL = "https://api.weixin.qq.com/cgi-bin/token"
 WechatAppConfigLifeSpan = "60m"
 WechatAppTokenLifeSpan = "5m"

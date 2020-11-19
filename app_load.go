@@ -23,6 +23,8 @@ type Config struct {
     ConnMaxIdleTime gokits.Duration
     ConnMaxLifetime gokits.Duration
 
+    ClusterNodeAddresses string // notify all cluster node for cache delete event
+
     WechatAppTokenURL          string
     WechatAppConfigLifeSpan    gokits.Duration
     WechatAppTokenLifeSpan     gokits.Duration
@@ -78,6 +80,7 @@ type Config struct {
 
 var globalConfig = &Config{}
 var db *sqlx.DB
+var clusterNodeAddresses = make([]string, 0)
 
 func init() {
     testing.Init()
@@ -91,6 +94,7 @@ func init() {
 
     fixedConfig(globalConfig)
     db = loadSqlxDB(globalConfig)
+    fetchClusterNodes(globalConfig)
 
     wechatAppTokenLoad(globalConfig)
     wechatTpTokenLoad(globalConfig)
@@ -142,4 +146,26 @@ func loadSqlxDB(config *Config) *sqlx.DB {
     db.MapperFunc(func(s string) string { return s })
     golog.Infof("DB: %+v", db)
     return db
+}
+
+func fetchClusterNodes(config *Config) {
+    gokits.If("" != config.ClusterNodeAddresses, func() {
+        addrSlice := strings.Split(config.ClusterNodeAddresses, ",")
+        for _, addr := range addrSlice {
+            address := strings.TrimSpace(addr)
+            if strings.HasSuffix(address, "/") {
+                address = address[:len(address)-1]
+            }
+            clusterNodeAddresses = append(clusterNodeAddresses, address)
+        }
+    })
+}
+
+func publishToClusterNodes(consumer func(address string)) {
+    if nil == consumer {
+        return
+    }
+    for _, address := range clusterNodeAddresses {
+        go consumer(address)
+    }
 }
