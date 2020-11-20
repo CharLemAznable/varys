@@ -224,3 +224,44 @@ func proxyWechatTpAuth(writer http.ResponseWriter, request *http.Request) {
     req.URL.Path = actualPath
     wechatTpAuthProxy.ServeHTTP(writer, req)
 }
+
+// /query-wechat-tp-auth-js-config/{codeName:string}/{authorizerAppId:string}?url=URL
+const queryWechatTpAuthJsConfigPath = "/query-wechat-tp-auth-js-config/"
+
+func queryWechatTpAuthJsConfig(writer http.ResponseWriter, request *http.Request) {
+    pathParams := trimPrefixPath(request, queryWechatTpAuthJsConfigPath)
+    if "" == pathParams {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Path Params is Empty"}))
+        return
+    }
+    ids := strings.Split(pathParams, "/")
+    if 2 != len(ids) {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Missing param codeName/authorizerAppId"}))
+        return
+    }
+
+    codeName := ids[0]
+    authorizerAppId := ids[1]
+    key := WechatTpAuthKey{CodeName: codeName, AuthorizerAppId: authorizerAppId}
+    cache, err := wechatTpAuthTokenCache.Value(key)
+    if nil != err {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": err.Error()}))
+        return
+    }
+    token := cache.Data().(*WechatTpAuthToken)
+    appId := token.AuthorizerAppId
+    jsapiTicket := token.AuthorizerJsapiTicket
+    if "" == jsapiTicket {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "jsapi_ticket is Empty"}))
+        return
+    }
+
+    url := request.URL.Query().Get("url")
+    if "" == url {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "url is Empty"}))
+        return
+    }
+
+    gokits.ResponseJson(writer, gokits.Json(
+        wechatJsConfigBuilder(appId, jsapiTicket, url)))
+}

@@ -195,9 +195,9 @@ https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&compo
 ```http
 /query-wechat-tp-auth-token/{codeName:string}/{authorizerAppId:string}
 
-获取指定codeName对应的第三方平台所代理的authorizerAppId对应的公众号当前的authorizer_access_token
+获取指定codeName对应的第三方平台所代理的authorizerAppId对应的公众号当前的authorizer_access_token和jsapi_ticket
 返回数据:
-成功: {"appId": #appId#, "authorizerAppId": #authorizerAppId#, "token": #authorizer_access_token#}
+成功: {"appId": #appId#, "authorizerAppId": #authorizerAppId#, "token": #authorizer_access_token#, "ticket": #jsapi_ticket#}
 错误: {"error": #ErrorMessage#}
 ```
 ```http
@@ -205,6 +205,16 @@ https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&compo
 
 代理指定codeName对应的第三方平台所代理的authorizerAppId对应的公众号微信接口, 自动添加access_token参数
 ```
+```http
+/query-wechat-tp-auth-js-config/{codeName:string}/{authorizerAppId:string}?url=URL
+
+获取指定codeName对应的第三方平台所代理的authorizerAppId对应的公众号使用JS-SDK的注入配置信息
+返回数据:
+成功: {"appId": #appId#, "timestamp": #timestamp#, "nonceStr": #nonceStr#, "signature": #signature#}
+错误: {"error": #ErrorMessage#}
+```
+详见: [微信开放文档 JS-SDK说明文档 通过config接口注入权限验证配置](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html#4)
+详见: [微信开放文档 第三方平台代公众号实现业务 代公众号使用JS-SDK说明](https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/Official_Accounts/js_sdk_instructions.html)
 
 企业微信:
 ```http

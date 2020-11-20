@@ -23,6 +23,7 @@ type WechatTpAuthToken struct {
     AppId                 string `json:"appId"`
     AuthorizerAppId       string `json:"authorizerAppId"`
     AuthorizerAccessToken string `json:"token"`
+    AuthorizerJsapiTicket string `json:"ticket"`
 }
 
 type WechatTpRefreshAuthResponse struct {
@@ -53,11 +54,15 @@ func wechatTpRefreshAuthRequestor(codeName, authorizerAppId, authorizerRefreshTo
     if nil == response || "" == response.AuthorizerAccessToken {
         return nil, errors.New("Refresh WechatTpAuthToken Failed: " + result)
     }
+
+    jsapiTicket := wechatJsapiTicketRequestor(codeName, response.AuthorizerAccessToken)
+
     return map[string]string{
         "AppId":                  tokenItem.AppId,
         "AuthorizerAppId":        authorizerAppId,
         "AuthorizerAccessToken":  response.AuthorizerAccessToken,
         "AuthorizerRefreshToken": response.AuthorizerRefreshToken,
+        "AuthorizerJsapiTicket":  jsapiTicket,
         "ExpiresIn":              gokits.StrFromInt(response.ExpiresIn)}, nil
 }
 
@@ -126,7 +131,8 @@ func wechatTpAuthTokenLoader(key interface{}, args ...interface{}) (*gokits.Cach
         wechatTpAuthTokenLifeSpan).(time.Duration)
     token := &WechatTpAuthToken{AppId: query.AppId,
         AuthorizerAppId:       query.AuthorizerAppId,
-        AuthorizerAccessToken: query.AuthorizerAccessToken}
+        AuthorizerAccessToken: query.AuthorizerAccessToken,
+        AuthorizerJsapiTicket: query.AuthorizerJsapiTicket}
     golog.Infof("Load WechatTpAuthToken Cache:(%+v) %+v, cache %3.1f min", key, token, ls.Minutes())
     return gokits.NewCacheItem(key, ls, token), nil
 }

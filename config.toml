@@ -8,7 +8,6 @@ DataSourceName = "admin:test123@tcp(127.0.0.1:3306)/rock?charset=utf8"
 ClusterNodeAddresses = "http://localhost:4236"
 
 WechatAppTokenURL = "https://api.weixin.qq.com/cgi-bin/token"
-WechatAppTicketURL = "https://api.weixin.qq.com/cgi-bin/ticket/getticket"
 WechatAppConfigLifeSpan = "60m"
 WechatAppTokenLifeSpan = "5m"
 WechatAppTokenTempLifeSpan = "1m"
@@ -48,6 +47,8 @@ WechatCorpTpAuthTokenURL = "https://qyapi.weixin.qq.com/cgi-bin/service/get_corp
 WechatCorpTpPermanentCodeLifeSpan = "60m"
 WechatCorpTpAuthTokenMaxLifeSpan = "5m"
 WechatCorpTpAuthTokenExpireCriticalSpan = "1s"
+
+WechatJsapiTicketURL = "https://api.weixin.qq.com/cgi-bin/ticket/getticket"
 
 ToutiaoAppTokenURL = "https://developer.toutiao.com/api/apps/token"
 ToutiaoAppConfigLifeSpan = "60m"

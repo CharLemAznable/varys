@@ -48,11 +48,16 @@ func wechatTpQueryAuthRequestor(codeName, authorizationCode interface{}) (map[st
     if nil == response || "" == response.AuthorizationInfo.AuthorizerAccessToken {
         return nil, errors.New("Request WechatTpAuthToken Failed: " + result)
     }
+
+    jsapiTicket := wechatJsapiTicketRequestor(codeName.(string),
+        response.AuthorizationInfo.AuthorizerAccessToken)
+
     return map[string]string{
         "AppId":                  tokenItem.AppId,
         "AuthorizerAppId":        response.AuthorizationInfo.AuthorizerAppId,
         "AuthorizerAccessToken":  response.AuthorizationInfo.AuthorizerAccessToken,
         "AuthorizerRefreshToken": response.AuthorizationInfo.AuthorizerRefreshToken,
+        "AuthorizerJsapiTicket":  jsapiTicket,
         "ExpiresIn":              gokits.StrFromInt(response.AuthorizationInfo.ExpiresIn)}, nil
 }
 
@@ -61,6 +66,7 @@ func wechatTpAuthCompleteArg(response map[string]string, lifeSpan time.Duration)
     return map[string]interface{}{"AuthorizerAppId": response["AuthorizerAppId"],
         "AuthorizerAccessToken":  response["AuthorizerAccessToken"],
         "AuthorizerRefreshToken": response["AuthorizerRefreshToken"],
+        "AuthorizerJsapiTicket":  response["AuthorizerJsapiTicket"],
         // 过期时间增量: token实际有效时长 - token缓存时长 * 缓存提前更新系数(1.1)
         "ExpiresIn": expiresIn - int(wechatTpAuthTokenLifeSpan.Seconds()*1.1)}
 }
@@ -68,7 +74,8 @@ func wechatTpAuthCompleteArg(response map[string]string, lifeSpan time.Duration)
 func wechatTpAuthTokenBuilder(response map[string]string) interface{} {
     return &WechatTpAuthToken{AppId: response["AppId"],
         AuthorizerAppId:       response["AuthorizerAppId"],
-        AuthorizerAccessToken: response["AuthorizerAccessToken"]}
+        AuthorizerAccessToken: response["AuthorizerAccessToken"],
+        AuthorizerJsapiTicket: response["AuthorizerJsapiTicket"]}
 }
 
 func wechatTpAuthTokenCreator(codeName, authorizerAppId, authorizationCode interface{}) {

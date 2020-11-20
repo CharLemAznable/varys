@@ -42,13 +42,6 @@ type WechatAppTokenResponse struct {
     ExpiresIn   int    `json:"expires_in"`
 }
 
-type WechatAppTicketResponse struct {
-    Errcode   int    `json:"errcode"`
-    Errmsg    string `json:"errmsg"`
-    Ticket    string `json:"ticket"`
-    ExpiresIn int    `json:"expires_in"`
-}
-
 func wechatAppTokenRequestor(codeName interface{}) (map[string]string, error) {
     cache, err := wechatAppConfigCache.Value(codeName)
     if nil != err {
@@ -56,43 +49,27 @@ func wechatAppTokenRequestor(codeName interface{}) (map[string]string, error) {
     }
     config := cache.Data().(*WechatAppConfig)
 
-    tokenResult, err := gokits.NewHttpReq(wechatAppTokenURL).Params(
+    result, err := gokits.NewHttpReq(wechatAppTokenURL).Params(
         "grant_type", "client_credential",
         "appid", config.AppId, "secret", config.AppSecret).
         Prop("Content-Type", "application/x-www-form-urlencoded").Get()
-    golog.Debugf("Request WechatAppToken Response:(%s) %s", codeName, tokenResult)
+    golog.Debugf("Request WechatAppToken Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }
 
-    tokenResponse := gokits.UnJson(tokenResult, new(WechatAppTokenResponse)).(*WechatAppTokenResponse)
-    if nil == tokenResponse || "" == tokenResponse.AccessToken {
-        return nil, errors.New("Request WechatAppToken Failed: " + tokenResult)
+    response := gokits.UnJson(result, new(WechatAppTokenResponse)).(*WechatAppTokenResponse)
+    if nil == response || "" == response.AccessToken {
+        return nil, errors.New("Request WechatAppToken Failed: " + result)
     }
 
-    // request ticket maybe failed, maybe wechat mini app
-    ticketResult, err := gokits.NewHttpReq(wechatAppTicketURL).Params(
-        "type", "jsapi", "access_token", tokenResponse.AccessToken).
-        Prop("Content-Type", "application/x-www-form-urlencoded").Get()
-    golog.Debugf("Request WechatAppTicket Response:(%s) %s", codeName, ticketResult)
-    if nil != err {
-        golog.Warnf("Request WechatAppTicket Error: %s", err.Error())
-    }
+    jsapiTicket := wechatJsapiTicketRequestor(codeName.(string), response.AccessToken)
 
-    ticketResponse := new(WechatAppTicketResponse)
-    gokits.UnJson(ticketResult, ticketResponse)
-    if "" == ticketResponse.Ticket {
-        golog.Warnf("Request WechatAppTicket Error: %d - %s", ticketResponse.Errcode, ticketResponse.Errmsg)
-        ticketResponse.ExpiresIn = tokenResponse.ExpiresIn
-    }
-
-    expiresIn := gokits.Condition(tokenResponse.ExpiresIn < ticketResponse.ExpiresIn,
-        tokenResponse.ExpiresIn, ticketResponse.ExpiresIn).(int)
     return map[string]string{
         "AppId":       config.AppId,
-        "AccessToken": tokenResponse.AccessToken,
-        "JsapiTicket": ticketResponse.Ticket,
-        "ExpiresIn":   gokits.StrFromInt(expiresIn)}, nil
+        "AccessToken": response.AccessToken,
+        "JsapiTicket": jsapiTicket,
+        "ExpiresIn":   gokits.StrFromInt(response.ExpiresIn)}, nil
 }
 
 type QueryWechatAppToken struct {

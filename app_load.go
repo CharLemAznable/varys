@@ -26,7 +26,6 @@ type Config struct {
     ClusterNodeAddresses string // notify all cluster node for cache delete event
 
     WechatAppTokenURL          string
-    WechatAppTicketURL         string
     WechatAppConfigLifeSpan    gokits.Duration
     WechatAppTokenLifeSpan     gokits.Duration
     WechatAppTokenTempLifeSpan gokits.Duration
@@ -67,6 +66,8 @@ type Config struct {
     WechatCorpTpAuthTokenMaxLifeSpan        gokits.Duration
     WechatCorpTpAuthTokenExpireCriticalSpan gokits.Duration
 
+    WechatJsapiTicketURL string
+
     ToutiaoAppTokenURL          string
     ToutiaoAppConfigLifeSpan    gokits.Duration
     ToutiaoAppTokenLifeSpan     gokits.Duration
@@ -104,6 +105,7 @@ func init() {
     wechatCorpTokenLoad(globalConfig)
     wechatCorpTpTokenLoad(globalConfig)
     wechatCorpTpAuthTokenLoad(globalConfig)
+    wechatJsapiTokenLoad(globalConfig)
     toutiaoAppTokenLoad(globalConfig)
     fengniaoAppTokenLoad(globalConfig)
 }

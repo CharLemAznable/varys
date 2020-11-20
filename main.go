@@ -28,6 +28,7 @@ func main() {
     HandleFunc(mux, cleanWechatTpAuthTokenPath, cleanWechatTpAuthToken)
     HandleFunc(mux, queryWechatTpAuthTokenPath, queryWechatTpAuthToken)
     HandleFunc(mux, proxyWechatTpAuthPath, proxyWechatTpAuth, GzipResponseDisabled)
+    HandleFunc(mux, queryWechatTpAuthJsConfigPath, queryWechatTpAuthJsConfig)
 
     HandleFunc(mux, queryWechatCorpTokenPath, queryWechatCorpToken)
     HandleFunc(mux, proxyWechatCorpPath, proxyWechatCorp, GzipResponseDisabled)

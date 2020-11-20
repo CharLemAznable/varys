@@ -91,6 +91,7 @@ create table `wechat_app_third_platform_authorizer_token` (
   `authorizer_app_id` varchar(100) not null comment '授权方APP_ID',
   `authorizer_access_token` text comment '授权方接口调用凭据',
   `authorizer_refresh_token` text comment '接口调用凭据刷新令牌',
+  `authorizer_jsapi_ticket` text comment '授权方用于调用微信JS接口的JSAPI_TICKET',
   `updated` tinyint not null default '1' comment '是否最新记录 0-否 1-是',
   `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
   `expire_time` timestamp comment '过期时间',

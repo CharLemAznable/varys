@@ -1,13 +1,10 @@
 package main
 
 import (
-    "crypto/sha1"
-    "fmt"
     "github.com/CharLemAznable/gokits"
     "net/http"
     "net/http/httputil"
     "strings"
-    "time"
 )
 
 // /query-wechat-app-token/{codeName:string}
@@ -126,8 +123,8 @@ func queryWechatAppJsConfig(writer http.ResponseWriter, request *http.Request) {
     }
     token := cache.Data().(*WechatAppToken)
     appId := token.AppId
-    ticket := token.JsapiTicket
-    if "" == ticket {
+    jsapiTicket := token.JsapiTicket
+    if "" == jsapiTicket {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "jsapi_ticket is Empty"}))
         return
     }
@@ -138,13 +135,6 @@ func queryWechatAppJsConfig(writer http.ResponseWriter, request *http.Request) {
         return
     }
 
-    noncestr := gokits.RandomString(32)
-    timestamp := time.Now().Unix()
-    plainText := "jsapi_ticket=" + ticket + "&noncestr=" + noncestr +
-        "&timestamp=" + gokits.StrFromInt64(timestamp) + "&url=" + url
-    signature := fmt.Sprintf("%x", sha1.Sum([]byte(plainText)))
-
-    gokits.ResponseJson(writer, gokits.Json(map[string]interface{}{
-        "appId": appId, "timestamp": timestamp,
-        "nonceStr": noncestr, "signature": signature}))
+    gokits.ResponseJson(writer, gokits.Json(
+        wechatJsConfigBuilder(appId, jsapiTicket, url)))
 }

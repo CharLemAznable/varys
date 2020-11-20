@@ -71,6 +71,7 @@ update wechat_app_third_platform_authorizer_token
    set updated                  = 1
       ,authorizer_access_token  = :AuthorizerAccessToken
       ,authorizer_refresh_token = :AuthorizerRefreshToken
+      ,authorizer_jsapi_ticket  = :AuthorizerJsapiTicket
       ,expire_time              = date_add(now(), interval :ExpiresIn second)
  where code_name                = :CodeName
    and authorizer_app_id        = :AuthorizerAppId
@@ -82,6 +83,7 @@ select t.app_id                         as "AppId"
       ,t.authorizer_app_id              as "AuthorizerAppId"
       ,t.authorizer_access_token        as "AuthorizerAccessToken"
       ,t.authorizer_refresh_token       as "AuthorizerRefreshToken"
+      ,t.authorizer_jsapi_ticket        as "AuthorizerJsapiTicket"
       ,t.updated                        as "Updated"
       ,unix_timestamp(t.expire_time)    as "ExpireTime"
   from wechat_app_third_platform_authorizer_token t

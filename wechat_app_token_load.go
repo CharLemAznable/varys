@@ -6,7 +6,6 @@ import (
 )
 
 var wechatAppTokenURL = "https://api.weixin.qq.com/cgi-bin/token"
-var wechatAppTicketURL = "https://api.weixin.qq.com/cgi-bin/ticket/getticket"
 
 var wechatAppConfigLifeSpan = time.Minute * 60   // config cache 60 min default
 var wechatAppTokenLifeSpan = time.Minute * 5     // stable token cache 5 min default
@@ -23,9 +22,6 @@ var wechatMpLoginProxyURL = DefaultWechatMpLoginProxyURL
 func wechatAppTokenLoad(config *Config) {
     gokits.If("" != config.WechatAppTokenURL, func() {
         wechatAppTokenURL = config.WechatAppTokenURL
-    })
-    gokits.If("" != config.WechatAppTicketURL, func() {
-        wechatAppTicketURL = config.WechatAppTicketURL
     })
 
     gokits.If(0 != config.WechatAppConfigLifeSpan.Duration, func() {
