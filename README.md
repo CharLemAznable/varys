@@ -106,6 +106,8 @@ $ nohup ./varys-[version].[arch].[os].bin &
 ```http
 http://localhost:4236
 ```
+
+微信公众号/小程序:
 ```http
 /query-wechat-app-token/{codeName:string}
 
@@ -134,6 +136,8 @@ http://localhost:4236
 通过 wx.login 接口获得临时登录凭证 code 后调用此接口，获取微信提供的用户身份标识
 ```
 详见: [微信开放文档 auth.code2Session](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/login/auth.code2Session.html)
+
+微信第三方平台:
 ```http
 /accept-wechat-tp-info/{codeName:string}
 
@@ -154,6 +158,8 @@ http://localhost:4236
 
 代理指定codeName对应的第三方平台微信接口, 自动添加component_access_token参数
 ```
+
+微信第三方平台授权方:
 ```http
 /wechat-tp-authorize-scan/{codeName:string}
 
@@ -186,6 +192,13 @@ https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&compo
 错误: {"error": #ErrorMessage#}
 ```
 ```http
+/proxy-wechat-tp-auth/{codeName:string}/{authorizerAppId:string}/...
+
+代理指定codeName对应的第三方平台所代理的authorizerAppId对应的公众号微信接口, 自动添加access_token参数
+```
+
+企业微信:
+```http
 /query-wechat-corp-token/{codeName:string}
 
 获取指定codeName对应的企业微信当前的access_token
@@ -198,6 +211,8 @@ https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&compo
 
 代理指定codeName对应的企业微信接口, 自动添加access_token参数
 ```
+
+企业微信第三方平台:
 ```http
 /accept-wechat-corp-tp-info/{codeName:string}
 
@@ -205,6 +220,8 @@ https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&compo
 用于接收suite_ticket以及企业微信对第三方应用进行授权、取消授权、更新授权的推送通知
 返回数据: "success"
 ```
+
+企业微信第三方平台授权方:
 ```http
 /wechat-corp-tp-authorize-component/{codeName:string}?state={state:string}
 
@@ -228,6 +245,8 @@ https://open.work.weixin.qq.com/3rdapp/install?suite_id=#suiteId#&pre_auth_code=
 成功: {"suiteId": #suiteId#, "corpId": #corpId#, "token": #access_token#}
 错误: {"error": #ErrorMessage#}
 ```
+
+头条APP:
 ```http
 /query-toutiao-app-token/{codeName:string}
 
@@ -236,6 +255,8 @@ https://open.work.weixin.qq.com/3rdapp/install?suite_id=#suiteId#&pre_auth_code=
 成功: {"appId": #appId#, "token": #access_token#}
 错误: {"error": #ErrorMessage#}
 ```
+
+蜂鸟商户:
 ```http
 /query-fengniao-app-token/{codeName:string}
 

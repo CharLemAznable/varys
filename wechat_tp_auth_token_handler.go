@@ -178,12 +178,49 @@ func queryWechatTpAuthToken(writer http.ResponseWriter, request *http.Request) {
 
     codeName := ids[0]
     authorizerAppId := ids[1]
-    cache, err := wechatTpAuthTokenCache.Value(
-        WechatTpAuthKey{CodeName: codeName, AuthorizerAppId: authorizerAppId})
+    key := WechatTpAuthKey{CodeName: codeName, AuthorizerAppId: authorizerAppId}
+    cache, err := wechatTpAuthTokenCache.Value(key)
     if nil != err {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": err.Error()}))
         return
     }
     token := cache.Data().(*WechatTpAuthToken)
     gokits.ResponseJson(writer, gokits.Json(token))
+}
+
+// /proxy-wechat-tp-auth/{codeName:string}/{authorizerAppId:string}/...
+const proxyWechatTpAuthPath = "/proxy-wechat-tp-auth/"
+
+func proxyWechatTpAuth(writer http.ResponseWriter, request *http.Request) {
+    codePath := trimPrefixPath(request, proxyWechatTpAuthPath)
+    splits := strings.SplitN(codePath, "/", 3)
+    if 3 != len(splits) {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Missing param codeName/authorizerAppId/proxy-path"}))
+        return
+    }
+
+    codeName := splits[0]
+    authorizerAppId := splits[1]
+    key := WechatTpAuthKey{CodeName: codeName, AuthorizerAppId: authorizerAppId}
+    cache, err := wechatTpAuthTokenCache.Value(key)
+    if nil != err {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": err.Error()}))
+        return
+    }
+    token := cache.Data().(*WechatTpAuthToken).AuthorizerAccessToken
+
+    actualPath := splits[2]
+    if "" == actualPath {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "proxy PATH is Empty"}))
+        return
+    }
+
+    req := request
+    if req.URL.RawQuery == "" {
+        req.URL.RawQuery = req.URL.RawQuery + "access_token=" + token
+    } else {
+        req.URL.RawQuery = req.URL.RawQuery + "&" + "access_token=" + token
+    }
+    req.URL.Path = actualPath
+    wechatTpAuthProxy.ServeHTTP(writer, req)
 }

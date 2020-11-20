@@ -45,6 +45,7 @@ type Config struct {
     WechatTpRefreshAuthURL        string
     WechatTpAuthTokenLifeSpan     gokits.Duration
     WechatTpAuthTokenTempLifeSpan gokits.Duration
+    WechatTpAuthProxyURL          string
 
     WechatCorpTokenURL                string
     WechatCorpConfigLifeSpan          gokits.Duration

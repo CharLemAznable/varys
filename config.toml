@@ -27,6 +27,7 @@ WechatTpQueryAuthURL = "https://api.weixin.qq.com/cgi-bin/component/api_query_au
 WechatTpRefreshAuthURL = "https://api.weixin.qq.com/cgi-bin/component/api_authorizer_token?component_access_token="
 WechatTpAuthTokenLifeSpan = "5m"
 WechatTpAuthTokenTempLifeSpan = "1m"
+WechatTpAuthProxyURL = "https://api.weixin.qq.com/"
 
 WechatCorpTokenURL = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
 WechatCorpConfigLifeSpan = "60m"
