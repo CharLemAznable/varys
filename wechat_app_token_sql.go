@@ -11,6 +11,7 @@ select c.app_id     as "AppId"
 const queryWechatAppTokenSQL = `
 select t.app_id                         as "AppId"
       ,t.access_token                   as "AccessToken"
+      ,t.jsapi_ticket                   as "JsapiTicket"
       ,t.updated                        as "Updated"
       ,unix_timestamp(t.expire_time)    as "ExpireTime"
   from wechat_app_token t
@@ -49,6 +50,7 @@ const completeWechatAppTokenSQL = `
 update wechat_app_token
    set updated      = 1
       ,access_token = :AccessToken
+      ,jsapi_ticket = :JsapiTicket
       ,expire_time  = date_add(now(), interval :ExpiresIn second)
  where code_name    = :CodeName
    and updated      = 0

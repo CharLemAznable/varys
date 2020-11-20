@@ -1,10 +1,13 @@
 package main
 
 import (
+    "crypto/sha1"
+    "fmt"
     "github.com/CharLemAznable/gokits"
     "net/http"
     "net/http/httputil"
     "strings"
+    "time"
 )
 
 // /query-wechat-app-token/{codeName:string}
@@ -92,7 +95,7 @@ func proxyWechatMpLogin(writer http.ResponseWriter, request *http.Request) {
     }
     config := cache.Data().(*WechatAppConfig)
 
-    if request.URL.Query().Get("js_code") == "" {
+    if "" == request.URL.Query().Get("js_code") {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "js_code is Empty"}))
         return
     }
@@ -104,4 +107,44 @@ func proxyWechatMpLogin(writer http.ResponseWriter, request *http.Request) {
         "&grant_type=authorization_code"
     req.URL.Path = "sns/jscode2session"
     wechatMpLoginProxy.ServeHTTP(writer, req)
+}
+
+// /query-wechat-app-js-config/{codeName:string}?url=URL
+const queryWechatAppJsConfigPath = "/query-wechat-app-js-config/"
+
+func queryWechatAppJsConfig(writer http.ResponseWriter, request *http.Request) {
+    codeName := trimPrefixPath(request, queryWechatAppJsConfigPath)
+    if "" == codeName {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
+        return
+    }
+
+    cache, err := wechatAppTokenCache.Value(codeName)
+    if nil != err {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": err.Error()}))
+        return
+    }
+    token := cache.Data().(*WechatAppToken)
+    appId := token.AppId
+    ticket := token.JsapiTicket
+    if "" == ticket {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "jsapi_ticket is Empty"}))
+        return
+    }
+
+    url := request.URL.Query().Get("url")
+    if "" == url {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "url is Empty"}))
+        return
+    }
+
+    noncestr := gokits.RandomString(32)
+    timestamp := time.Now().Unix()
+    plainText := "jsapi_ticket=" + ticket + "&noncestr=" + noncestr +
+        "&timestamp=" + gokits.StrFromInt64(timestamp) + "&url=" + url
+    signature := fmt.Sprintf("%x", sha1.Sum([]byte(plainText)))
+
+    gokits.ResponseJson(writer, gokits.Json(map[string]interface{}{
+        "appId": appId, "timestamp": timestamp,
+        "nonceStr": noncestr, "signature": signature}))
 }

@@ -26,6 +26,7 @@ type Config struct {
     ClusterNodeAddresses string // notify all cluster node for cache delete event
 
     WechatAppTokenURL          string
+    WechatAppTicketURL         string
     WechatAppConfigLifeSpan    gokits.Duration
     WechatAppTokenLifeSpan     gokits.Duration
     WechatAppTokenTempLifeSpan gokits.Duration

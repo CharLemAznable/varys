@@ -111,9 +111,9 @@ http://localhost:4236
 ```http
 /query-wechat-app-token/{codeName:string}
 
-获取指定codeName对应的公众号/小程序当前的access_token
+获取指定codeName对应的公众号/小程序当前的access_token和jsapi_ticket
 返回数据:
-成功: {"appId": #appId#, "token": #access_token#}
+成功: {"appId": #appId#, "token": #access_token#, "ticket": #jsapi_ticket#}
 错误: {"error": #ErrorMessage#}
 ```
 ```http
@@ -136,6 +136,15 @@ http://localhost:4236
 通过 wx.login 接口获得临时登录凭证 code 后调用此接口，获取微信提供的用户身份标识
 ```
 详见: [微信开放文档 auth.code2Session](https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/login/auth.code2Session.html)
+```http
+/query-wechat-app-js-config/{codeName:string}?url=URL
+
+获取指定codeName对应的公众号使用JS-SDK的注入配置信息
+返回数据:
+成功: {"appId": #appId#, "timestamp": #timestamp#, "nonceStr": #nonceStr#, "signature": #signature#}
+错误: {"error": #ErrorMessage#}
+```
+详见: [微信开放文档 JS-SDK说明文档 通过config接口注入权限验证配置](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html#4)
 
 微信第三方平台:
 ```http
