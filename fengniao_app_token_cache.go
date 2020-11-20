@@ -73,7 +73,7 @@ func fengniaoAppTokenRequestor(codeName interface{}) (map[string]string, error) 
     result, err := gokits.NewHttpReq(fengniaoAppTokenURL).Params(
         "app_id", appId, "salt", salt, "signature", signature).
         Prop("Content-Type", "application/json").Get()
-    golog.Debugf("Request FengniaoAppToken Response:(%s) %+v", codeName, result)
+    golog.Debugf("Request FengniaoAppToken Response:(%s) %s", codeName, result)
     if nil != err {
         return nil, err
     }

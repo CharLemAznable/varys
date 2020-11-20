@@ -60,7 +60,7 @@ func wechatAppTokenRequestor(codeName interface{}) (map[string]string, error) {
         "grant_type", "client_credential",
         "appid", config.AppId, "secret", config.AppSecret).
         Prop("Content-Type", "application/x-www-form-urlencoded").Get()
-    golog.Debugf("Request WechatAppToken Response:(%s) %+v", codeName, tokenResult)
+    golog.Debugf("Request WechatAppToken Response:(%s) %s", codeName, tokenResult)
     if nil != err {
         return nil, err
     }
@@ -74,7 +74,7 @@ func wechatAppTokenRequestor(codeName interface{}) (map[string]string, error) {
     ticketResult, err := gokits.NewHttpReq(wechatAppTicketURL).Params(
         "type", "jsapi", "access_token", tokenResponse.AccessToken).
         Prop("Content-Type", "application/x-www-form-urlencoded").Get()
-    golog.Debugf("Request WechatAppTicket Response:(%s) %+v", codeName, ticketResult)
+    golog.Debugf("Request WechatAppTicket Response:(%s) %s", codeName, ticketResult)
     if nil != err {
         golog.Warnf("Request WechatAppTicket Error: %s", err.Error())
     }
