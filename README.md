@@ -119,17 +119,10 @@ http://localhost:4236
 ```http
 /proxy-wechat-app/{codeName:string}/...
 
-代理指定codeName对应的公众号微信接口, 自动添加access_token参数
+代理指定codeName对应的公众号/小程序微信接口, 自动添加access_token参数
 ```
 ```http
-/proxy-wechat-mp/{codeName:string}/...
-
-代理指定codeName对应的小程序微信接口, 自动添加access_token参数
-
-小程序的access_token可使用公众号access_token接口获取
-```
-```http
-/proxy-wechat-mp-login/{codeName:string}?js_code=JSCODE
+/proxy-wechat-app-mp-login/{codeName:string}?js_code=JSCODE
 
 代理指定codeName对应的小程序登录凭证校验
 
@@ -203,8 +196,16 @@ https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&compo
 ```http
 /proxy-wechat-tp-auth/{codeName:string}/{authorizerAppId:string}/...
 
-代理指定codeName对应的第三方平台所代理的authorizerAppId对应的公众号微信接口, 自动添加access_token参数
+代理指定codeName对应的第三方平台所代理的authorizerAppId对应的公众号/小程序微信接口, 自动添加access_token参数
 ```
+```http
+/proxy-wechat-tp-auth-mp-login/{codeName:string}/{authorizerAppId:string}?js_code=JSCODE
+
+代理指定codeName对应的第三方平台所代理的authorizerAppId对应的小程序登录凭证校验
+
+通过 wx.login 接口获得临时登录凭证 code 后调用此接口，获取微信提供的用户身份标识
+```
+详见: [微信开放文档 第三方平台代小程序实现业务 微信登录](https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/Mini_Programs/WeChat_login.html)
 ```http
 /query-wechat-tp-auth-js-config/{codeName:string}/{authorizerAppId:string}?url=URL
 

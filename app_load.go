@@ -30,8 +30,7 @@ type Config struct {
     WechatAppTokenLifeSpan     gokits.Duration
     WechatAppTokenTempLifeSpan gokits.Duration
     WechatAppProxyURL          string
-    WechatMpProxyURL           string
-    WechatMpLoginProxyURL      string
+    WechatAppMpLoginProxyURL   string
 
     WechatTpTokenURL          string
     WechatTpConfigLifeSpan    gokits.Duration
@@ -46,6 +45,7 @@ type Config struct {
     WechatTpAuthTokenLifeSpan     gokits.Duration
     WechatTpAuthTokenTempLifeSpan gokits.Duration
     WechatTpAuthProxyURL          string
+    WechatTpAuthMpLoginProxyURL   string
 
     WechatCorpTokenURL                string
     WechatCorpConfigLifeSpan          gokits.Duration

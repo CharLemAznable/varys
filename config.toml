@@ -12,8 +12,7 @@ WechatAppConfigLifeSpan = "60m"
 WechatAppTokenLifeSpan = "5m"
 WechatAppTokenTempLifeSpan = "1m"
 WechatAppProxyURL = "https://api.weixin.qq.com/"
-WechatMpProxyURL = "https://api.weixin.qq.com/"
-WechatMpLoginProxyURL = "https://api.weixin.qq.com/"
+WechatAppMpLoginProxyURL = "https://api.weixin.qq.com/sns/"
 
 WechatTpTokenURL = "https://api.weixin.qq.com/cgi-bin/component/api_component_token"
 WechatTpConfigLifeSpan = "60m"
@@ -28,6 +27,7 @@ WechatTpRefreshAuthURL = "https://api.weixin.qq.com/cgi-bin/component/api_author
 WechatTpAuthTokenLifeSpan = "5m"
 WechatTpAuthTokenTempLifeSpan = "1m"
 WechatTpAuthProxyURL = "https://api.weixin.qq.com/"
+WechatTpAuthMpLoginProxyURL = "https://api.weixin.qq.com/sns/component/"
 
 WechatCorpTokenURL = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
 WechatCorpConfigLifeSpan = "60m"

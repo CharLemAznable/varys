@@ -225,6 +225,45 @@ func proxyWechatTpAuth(writer http.ResponseWriter, request *http.Request) {
     wechatTpAuthProxy.ServeHTTP(writer, req)
 }
 
+// /proxy-wechat-tp-auth-mp-login/{codeName:string}/{authorizerAppId:string}?js_code=JSCODE
+const proxyWechatTpAuthMpLoginPath = "/proxy-wechat-tp-auth-mp-login/"
+
+func proxyWechatTpAuthMpLogin(writer http.ResponseWriter, request *http.Request) {
+    codePath := trimPrefixPath(request, proxyWechatTpAuthMpLoginPath)
+    splits := strings.SplitN(codePath, "/", 3)
+    if 3 != len(splits) {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Missing param codeName/authorizerAppId/proxy-path"}))
+        return
+    }
+
+    codeName := splits[0]
+    authorizerAppId := splits[1]
+    key := WechatTpAuthKey{CodeName: codeName, AuthorizerAppId: authorizerAppId}
+    cache, err := wechatTpAuthTokenCache.Value(key)
+    if nil != err {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": err.Error()}))
+        return
+    }
+    token := cache.Data().(*WechatTpAuthToken)
+    appId := token.AuthorizerAppId // 小程序的AppID
+    componentAppId := token.AppId
+    componentAccessToken := token.AuthorizerAccessToken
+
+    if "" == request.URL.Query().Get("js_code") {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "js_code is Empty"}))
+        return
+    }
+
+    req := request
+    req.URL.RawQuery = req.URL.RawQuery +
+        "&appid=" + appId +
+        "&component_appid=" + componentAppId +
+        "&component_access_token=" + componentAccessToken +
+        "&grant_type=authorization_code"
+    req.URL.Path = "jscode2session"
+    wechatTpAuthMpLoginProxy.ServeHTTP(writer, req)
+}
+
 // /query-wechat-tp-auth-js-config/{codeName:string}/{authorizerAppId:string}?url=URL
 const queryWechatTpAuthJsConfigPath = "/query-wechat-tp-auth-js-config/"
 

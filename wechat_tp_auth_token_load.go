@@ -13,8 +13,10 @@ var wechatTpAuthTokenLifeSpan = time.Minute * 5     // stable token cache 5 min 
 var wechatTpAuthTokenTempLifeSpan = time.Minute * 1 // temporary token cache 1 min default
 
 const DefaultWechatTpAuthProxyURL = "https://api.weixin.qq.com/"
+const DefaultWechatTpAuthMpLoginProxyURL = "https://api.weixin.qq.com/sns/component/"
 
 var wechatTpAuthProxyURL = DefaultWechatTpAuthProxyURL
+var wechatTpAuthMpLoginProxyURL = DefaultWechatTpAuthMpLoginProxyURL
 
 func wechatTpAuthTokenLoad(config *Config) {
     gokits.If("" != config.WechatTpPreAuthCodeURL, func() {
@@ -37,7 +39,11 @@ func wechatTpAuthTokenLoad(config *Config) {
     gokits.If("" != config.WechatTpAuthProxyURL, func() {
         wechatTpAuthProxyURL = config.WechatTpAuthProxyURL
     })
+    gokits.If("" != config.WechatTpAuthMpLoginProxyURL, func() {
+        wechatTpAuthMpLoginProxyURL = config.WechatTpAuthMpLoginProxyURL
+    })
 
     wechatTpAuthTokenInitialize()
     wechatTpAuthProxyInitialize()
+    wechatTpAuthMpLoginProxyInitialize()
 }

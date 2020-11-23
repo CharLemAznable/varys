@@ -3,7 +3,6 @@ package main
 import (
     "github.com/CharLemAznable/gokits"
     "net/http"
-    "net/http/httputil"
     "strings"
 )
 
@@ -30,20 +29,7 @@ func queryWechatAppToken(writer http.ResponseWriter, request *http.Request) {
 const proxyWechatAppPath = "/proxy-wechat-app/"
 
 func proxyWechatApp(writer http.ResponseWriter, request *http.Request) {
-    proxyWechatAppToken(proxyWechatAppPath, wechatAppProxy, writer, request)
-}
-
-// /proxy-wechat-mp/{codeName:string}/...
-const proxyWechatMpPath = "/proxy-wechat-mp/"
-
-func proxyWechatMp(writer http.ResponseWriter, request *http.Request) {
-    proxyWechatAppToken(proxyWechatMpPath, wechatMpProxy, writer, request)
-}
-
-func proxyWechatAppToken(prefix string, proxy *httputil.ReverseProxy,
-    writer http.ResponseWriter, request *http.Request) {
-
-    codePath := trimPrefixPath(request, prefix)
+    codePath := trimPrefixPath(request, proxyWechatAppPath)
     splits := strings.SplitN(codePath, "/", 2)
 
     codeName := splits[0]
@@ -72,14 +58,14 @@ func proxyWechatAppToken(prefix string, proxy *httputil.ReverseProxy,
         req.URL.RawQuery = req.URL.RawQuery + "&" + "access_token=" + token
     }
     req.URL.Path = actualPath
-    proxy.ServeHTTP(writer, req)
+    wechatAppProxy.ServeHTTP(writer, req)
 }
 
-// /proxy-wechat-mp-login/{codeName:string}?js_code=JSCODE
-const proxyWechatMpLoginPath = "/proxy-wechat-mp-login/"
+// /proxy-wechat-app-mp-login/{codeName:string}?js_code=JSCODE
+const proxyWechatAppMpLoginPath = "/proxy-wechat-app-mp-login/"
 
-func proxyWechatMpLogin(writer http.ResponseWriter, request *http.Request) {
-    codeName := trimPrefixPath(request, proxyWechatMpLoginPath)
+func proxyWechatAppMpLogin(writer http.ResponseWriter, request *http.Request) {
+    codeName := trimPrefixPath(request, proxyWechatAppMpLoginPath)
     if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
         return
@@ -102,8 +88,8 @@ func proxyWechatMpLogin(writer http.ResponseWriter, request *http.Request) {
         "&appid=" + config.AppId +
         "&secret=" + config.AppSecret +
         "&grant_type=authorization_code"
-    req.URL.Path = "sns/jscode2session"
-    wechatMpLoginProxy.ServeHTTP(writer, req)
+    req.URL.Path = "jscode2session"
+    wechatAppMpLoginProxy.ServeHTTP(writer, req)
 }
 
 // /query-wechat-app-js-config/{codeName:string}?url=URL
