@@ -148,6 +148,13 @@ http://localhost:4236
 返回数据: "success"
 ```
 ```http
+/accept-wechat-tp-msg/{codeName:string}
+
+第三方平台在微信配置的消息与事件接收URL
+用于代收用户发送给公众号/小程序的消息，以及小程序改名的审核结果通知
+返回数据: "success"
+```
+```http
 /query-wechat-tp-token/{codeName:string}
 
 获取指定codeName对应的第三方平台当前的component_access_token

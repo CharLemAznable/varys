@@ -5,9 +5,43 @@ import (
     "github.com/CharLemAznable/gokits"
     "github.com/CharLemAznable/wechataes"
     "github.com/kataras/golog"
+    "io"
     "net/http"
     "strings"
 )
+
+func decryptWechatRequest(codeName string, request *http.Request) (string, error) {
+    cache, err := wechatTpCryptorCache.Value(codeName)
+    if nil != err {
+        golog.Warnf("Load WechatTpCryptor Cache error:(%s) %s", codeName, err.Error())
+        return "", err
+    }
+    cryptor := cache.Data().(*wechataes.WechatCryptor)
+
+    body, err := gokits.RequestBody(request)
+    if nil != err {
+        golog.Warnf("Request read Body error:(%s) %s", codeName, err.Error())
+        return "", err
+    }
+
+    err = request.ParseForm()
+    if nil != err {
+        golog.Warnf("Request ParseForm error:(%s) %s", codeName, err.Error())
+        return "", err
+    }
+
+    params := request.Form
+    msgSign := params.Get("msg_signature")
+    timeStamp := params.Get("timestamp")
+    nonce := params.Get("nonce")
+    decryptMsg, err := cryptor.DecryptMsg(msgSign, timeStamp, nonce, body)
+    if nil != err {
+        golog.Warnf("WechatCryptor DecryptMsg error:(%s) %s", codeName, err.Error())
+        return "", err
+    }
+    golog.Debugf("WechatTpInfoData:(%s) %s", codeName, decryptMsg)
+    return decryptMsg, nil
+}
 
 type WechatTpInfoData struct {
     XMLName                      xml.Name `xml:"xml" json:"-"`
@@ -38,43 +72,17 @@ type WechatTpMpInfo struct {
 }
 
 func parseWechatTpInfoData(codeName string, request *http.Request) (*WechatTpInfoData, error) {
-    cache, err := wechatTpCryptorCache.Value(codeName)
+    decryptMsg, err := decryptWechatRequest(codeName, request)
     if nil != err {
-        golog.Warnf("Load WechatTpCryptor Cache error:(%s) %s", codeName, err.Error())
-        return nil, err
-    }
-    cryptor := cache.Data().(*wechataes.WechatCryptor)
-
-    body, err := gokits.RequestBody(request)
-    if nil != err {
-        golog.Warnf("Request read Body error:(%s) %s", codeName, err.Error())
         return nil, err
     }
 
-    err = request.ParseForm()
-    if nil != err {
-        golog.Warnf("Request ParseForm error:(%s) %s", codeName, err.Error())
-        return nil, err
-    }
-
-    params := request.Form
-    msgSign := params.Get("msg_signature")
-    timeStamp := params.Get("timestamp")
-    nonce := params.Get("nonce")
-    decryptMsg, err := cryptor.DecryptMsg(msgSign, timeStamp, nonce, body)
-    if nil != err {
-        golog.Warnf("WechatCryptor DecryptMsg error:(%s) %s", codeName, err.Error())
-        return nil, err
-    }
-
-    golog.Debugf("WechatTpInfoData:(%s) %s", codeName, decryptMsg)
     infoData := new(WechatTpInfoData)
     err = xml.Unmarshal([]byte(decryptMsg), infoData)
     if nil != err {
-        golog.Warnf("Unmarshal DecryptMsg error:(%s) %s", codeName, err.Error())
+        golog.Warnf("Unmarshal WechatTpInfoData error:(%s) %s", codeName, err.Error())
         return nil, err
     }
-
     return infoData, nil
 }
 
@@ -85,8 +93,8 @@ func acceptWechatTpInfo(writer http.ResponseWriter, request *http.Request) {
     codeName := trimPrefixPath(request, acceptWechatTpInfoPath)
     if "" != codeName {
         infoData, err := parseWechatTpInfoData(codeName, request)
-        go func() {
-            if nil == err {
+        if nil == err {
+            go func() {
                 switch infoData.InfoType {
 
                 case "component_verify_ticket":
@@ -108,14 +116,14 @@ func acceptWechatTpInfo(writer http.ResponseWriter, request *http.Request) {
                 }
 
                 forwardWechatTpInfo(codeName, infoData)
-            }
-        }()
+            }()
+        }
     }
     // 直接返回字符串success
     gokits.ResponseText(writer, "success")
 }
 
-// 将第三方平台授权事件推送转发到业务服务
+// 将第三方平台授权事件转发到业务服务
 func forwardWechatTpInfo(codeName string, infoData *WechatTpInfoData) {
     cache, err := wechatTpConfigCache.Value(codeName)
     if nil != err {
@@ -130,9 +138,98 @@ func forwardWechatTpInfo(codeName string, infoData *WechatTpInfoData) {
             RequestBody(gokits.Json(infoData)).
             Prop("Content-Type", "application/json").Post()
         if nil != err {
-            golog.Errorf("Forward Error: %s", err.Error())
+            golog.Errorf("Forward WechatTp Info Error: %s", err.Error())
         }
-        golog.Debugf("Forward Response: %s", rsp)
+        golog.Debugf("Forward WechatTp Info Response: %s", rsp)
+    }
+}
+
+type msgMapEntry struct {
+    XMLName xml.Name
+    Value   string `xml:",chardata"`
+}
+
+type WechatTpMsgMap map[string]string
+
+func (m WechatTpMsgMap) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+    if len(m) == 0 {
+        return nil
+    }
+
+    err := e.EncodeToken(start)
+    if err != nil {
+        return err
+    }
+
+    for k, v := range m {
+        _ = e.Encode(msgMapEntry{XMLName: xml.Name{Local: k}, Value: v})
+    }
+    return e.EncodeToken(start.End())
+}
+
+func (m *WechatTpMsgMap) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+    *m = WechatTpMsgMap{}
+    for {
+        var e msgMapEntry
+        err := d.Decode(&e)
+        if err == io.EOF {
+            break
+        } else if err != nil {
+            return err
+        }
+        (*m)[e.XMLName.Local] = e.Value
+    }
+    return nil
+}
+
+func parseWechatTpMsgMap(codeName string, request *http.Request) (*WechatTpMsgMap, error) {
+    decryptMsg, err := decryptWechatRequest(codeName, request)
+    if nil != err {
+        return nil, err
+    }
+
+    msgMap := new(WechatTpMsgMap)
+    err = xml.Unmarshal([]byte(decryptMsg), msgMap)
+    if nil != err {
+        golog.Warnf("Unmarshal WechatTpMsgMap error:(%s) %s", codeName, err.Error())
+        return nil, err
+    }
+    return msgMap, nil
+}
+
+// /accept-wechat-tp-msg/{codeName:string}
+const acceptWechatTpMsgPath = "/accept-wechat-tp-msg/"
+
+func acceptWechatTpMsg(writer http.ResponseWriter, request *http.Request) {
+    codeName := trimPrefixPath(request, acceptWechatTpMsgPath)
+    if "" != codeName {
+        msgMap, err := parseWechatTpMsgMap(codeName, request)
+        if nil == err {
+            go forwardWechatTpMsg(codeName, msgMap)
+        }
+    }
+    // 直接返回字符串success
+    gokits.ResponseText(writer, "success")
+}
+
+// 将第三方平台授权事件转发到业务服务
+func forwardWechatTpMsg(codeName string, msgMap *WechatTpMsgMap) {
+    cache, err := wechatTpConfigCache.Value(codeName)
+    if nil != err {
+        golog.Errorf("Accept WechatTp Msg: CodeName %s is Illegal", codeName)
+        return
+    }
+    config := cache.Data().(*WechatTpConfig)
+    forwardUrl := config.MsgForwardUrl
+
+    if "" != forwardUrl {
+        rsp, err := gokits.NewHttpReq(forwardUrl).
+            RequestBody(gokits.Json(msgMap)).
+            Prop("Content-Type", "application/json").Post()
+        if nil != err {
+            golog.Errorf("Forward WechatTp Msg Error: %s", err.Error())
+        }
+        golog.Debugf("Forward WechatTp Msg Response: %s", rsp)
     }
 }
 
