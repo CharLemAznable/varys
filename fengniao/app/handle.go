@@ -46,6 +46,7 @@ func fengniaoAppAuthCallback(writer http.ResponseWriter, request *http.Request) 
         return
     }
     config := configCacheData.Data().(*FengniaoAppConfig)
+    callbackUrl := config.CallbackUrl
 
     body, err := gokits.RequestBody(request)
     if nil != err {
@@ -54,7 +55,23 @@ func fengniaoAppAuthCallback(writer http.ResponseWriter, request *http.Request) 
     }
     callback := gokits.UnJson(body, new(AuthCallbackRequest)).(*AuthCallbackRequest)
 
-    go tokenCreator(codeName, config, callback)
+    go func() {
+        tokenCreator(codeName, config, callback)
+
+        if "" != callbackUrl {
+            callbackData := map[string]interface{}{
+                "callback_business_type": "authNotify",
+                "param": map[string]string{
+                    "merchant_id": callback.MerchantId}}
+            rsp, err := gokits.NewHttpReq(callbackUrl).
+                RequestBody(gokits.Json(callbackData)).
+                Prop("Content-Type", "application/json").Post()
+            if nil != err {
+                golog.Errorf("Callback Error: %s", err.Error())
+            }
+            golog.Debugf("Callback Response: %s", rsp)
+        }
+    }()
     gokits.ResponseText(writer, "Success")
 }
 
