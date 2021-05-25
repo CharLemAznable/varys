@@ -1,11 +1,10 @@
 Port = 4236
 ContextPath = ""
 LogLevel = "info"
+ClusterNodeAddresses = [ "http://localhost:4236" ]
 
 DriverName = "mysql"
-DataSourceName = "admin:test123@tcp(127.0.0.1:3306)/rock?charset=utf8"
-
-ClusterNodeAddresses = "http://localhost:4236"
+DataSourceName = "admin:test123@tcp(127.0.0.1:3306)/varys?charset=utf8"
 
 WechatAppTokenURL = "https://api.weixin.qq.com/cgi-bin/token"
 WechatAppConfigLifeSpan = "60m"
@@ -55,9 +54,8 @@ ToutiaoAppConfigLifeSpan = "60m"
 ToutiaoAppTokenLifeSpan = "5m"
 ToutiaoAppTokenTempLifeSpan = "1m"
 
-FengniaoAppTokenURL = "https://open-anubis.ele.me/anubis-webapi/get_access_token"
+FengniaoAppTokenURL = "https://open-anubis.ele.me/anubis-webapi/openapi/token"
+FengniaoAppRefreshURL = "https://open-anubis.ele.me/anubis-webapi/openapi/refreshToken"
 FengniaoAppConfigLifeSpan = "60m"
-FengniaoAppTokenLifeSpan = "5m"
-FengniaoAppTokenTempLifeSpan = "1s"
-FengniaoAppProxyURL = "https://exam-anubis.ele.me/anubis-webapi/v2/"
-FengniaoCallbackAddress = ""
+FengniaoAppTokenLifeSpan = "8m"
+FengniaoAppProxyURL = "https://open-anubis.ele.me/anubis-webapi/v3/invoke/"

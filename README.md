@@ -17,6 +17,7 @@ AccessToken 中控服务器
 Port = 4236
 ContextPath = ""
 LogLevel = "info"
+ClusterNodeAddresses = [ "http://localhost:4236" ]
 
 DriverName = "mysql"
 DataSourceName = "admin:test123@tcp(127.0.0.1:3306)/rock?charset=utf8"
@@ -51,7 +52,7 @@ $ nohup ./varys-[version].[arch].[os].bin &
 1) 公众号/小程序配置缓存默认1小时
 2) access_token缓存默认5分钟, 当access_token即将过期并被其他分布式节点更新时缓存1分钟
 
-  [wechat_app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat_app_token_cache.go)
+  [wechat_app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat/app/cache.go)
 
 包含微信第三方平台配置缓存和报文解密器缓存, 其中
 
@@ -63,15 +64,15 @@ $ nohup ./varys-[version].[arch].[os].bin &
 1) component_access_token缓存默认5分钟, 当component_access_token即将过期并被其他分布式节点更新时缓存1分钟
 2) authorizer_access_token缓存默认5分钟, 当authorizer_access_token即将过期并被其他分布式节点更新时缓存1分钟
 
-  [wechat_tp_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat_tp_token_cache.go)
-  [wechat_tp_auth_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat_tp_auth_token_cache.go)
+  [wechat_tp_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat/apptp/cache.go)
+  [wechat_tp_auth_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat/apptp/auth_cache.go)
 
 包含企业微信配置缓存和```access_token```缓存, 其中:
 
 1) 企业微信配置缓存默认1小时
 2) access_token缓存最大5分钟, 当access_token即将过期时, 缓存时间最大至其有效期结束
 
-  [wechat_corp_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat_corp_token_cache.go)
+  [wechat_corp_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat/corp/cache.go)
 
 包含企业微信第三方应用配置缓存和报文解密器缓存, 其中
 
@@ -83,22 +84,22 @@ $ nohup ./varys-[version].[arch].[os].bin &
 1) suite_access_token缓存最大5分钟, 当suite_access_token即将过期时, 缓存时间最大至其有效期结束
 2) access_token缓存最大5分钟, 当access_token即将过期时, 缓存时间最大至其有效期结束
 
-  [wechat_corp_tp_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat_corp_tp_token_cache.go)
-  [wechat_corp_tp_auth_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat_corp_tp_auth_token_cache.go)
+  [wechat_corp_tp_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat/corptp/cache.go)
+  [wechat_corp_tp_auth_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/wechat/corptp/auth_cache.go)
 
 包含字节小程序配置缓存和```access_token```缓存, 其中:
 
 1) 小程序配置缓存默认1小时
 2) access_token缓存默认5分钟, 当access_token即将过期并被其他分布式节点更新时缓存1分钟
 
-  [toutiao_app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/toutiao_app_token_cache.go)
+  [toutiao_app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/toutiao/app/cache.go)
 
-包含蜂鸟商户配置缓存和```access_token```缓存，其中:
+包含蜂鸟应用配置缓存和授权商户```access_token```缓存，其中:
 
-1) 商户配置缓存默认1小时
-2) access_token缓存默认5分钟, 当access_token即将过期并被其他分布式节点更新时缓存1分钟
+1) 应用配置缓存默认1小时
+2) 商户access_token缓存默认8分钟
 
-  [fengniao_app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/fengniao_app_token_cache.go)
+  [fengniao_app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/fengniao/app/cache.go)
 
 #### 访问路径
 
@@ -283,26 +284,30 @@ https://open.work.weixin.qq.com/3rdapp/install?suite_id=#suiteId#&pre_auth_code=
 错误: {"error": #ErrorMessage#}
 ```
 
-蜂鸟商户:
+蜂鸟:
 ```http
-/query-fengniao-app-token/{codeName:string}
+//fengniao-app-auth-callback/{codeName:string}
 
-获取指定codeName对应的蜂鸟商户当前的access_token
+配置蜂鸟商户授权回调地址: 开发者中心 -> 应用管理 -> 查看应用详情
+```
+```http
+/query-fengniao-app-token/{codeName:string}/{merchantId:string}
+
+获取指定codeName对应的蜂鸟应用获取授权的商户当前的access_token
 返回数据:
-成功: {"appId": #appId#, "token": #access_token#}
+成功: {"appId": #appId#, "merchant_id": #merchantId#, "access_token": #accessToken#}
 错误: {"error": #ErrorMessage#}
 ```
 ```http
-/proxy-fengniao-app/{codeName:string}/...
+/proxy-fengniao-app/{codeName:string}/{merchantId:string}/...
 
-代理指定codeName对应的蜂鸟商户接口, 改写请求体为{"app_id":#appId#, "data":#原请求体#, "salt":#随机数#, "signature":#自动生成的签名#}
+代理指定codeName对应的蜂鸟应用获取授权的商户接口, 包装原请求体为business_data并签名
 ```
 ```http
-/callback-fengniao-order/{codeName:string}
+/fengniao-app-callback/{codeName:string}
 
-蜂鸟订单状态变更回调地址
-配置回调根地址FengniaoCallbackAddress后, 代理调用创建蜂鸟订单接口时, 将自动改写notify_url参数为此地址
-接收到蜂鸟订单状态变更回调消息后, 将自动验签并转发消息体中的data字段到fengniao_app_config.callback_order_url地址(POST)
+配置蜂鸟应用消息推送回调地址: 开发者中心 -> 应用管理 -> 查看应用详情 -> 编辑
+验证蜂鸟回调消息签名, 并将回调请求中的business_data提取转发到蜂鸟应用配置fengniao_app_config.callback_url地址(POST JSON)
 ```
 
 #### Golang Kits

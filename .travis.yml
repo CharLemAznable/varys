@@ -14,11 +14,11 @@ before_script:
     fi
 script:
   - echo "building "$TARGET_NAME" ..."
-  - env GOOS=linux GOARCH=386 go build -ldflags="-s -w" -o $TARGET_NAME.linux.386.bin
-  - env GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o $TARGET_NAME.linux.amd64.bin
-  - env GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o $TARGET_NAME.darwin.amd64.bin
-  - env GOOS=windows GOARCH=386 go build -ldflags="-s -w" -o $TARGET_NAME.windows.386.exe
-  - env GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o $TARGET_NAME.windows.amd64.exe
+  - env GOOS=linux GOARCH=386 go build -ldflags="-s -w" -o $TARGET_NAME.linux.386.bin cmd/all/main.go
+  - env GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o $TARGET_NAME.linux.amd64.bin cmd/all/main.go
+  - env GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o $TARGET_NAME.darwin.amd64.bin cmd/all/main.go
+  - env GOOS=windows GOARCH=386 go build -ldflags="-s -w" -o $TARGET_NAME.windows.386.exe cmd/all/main.go
+  - env GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o $TARGET_NAME.windows.amd64.exe cmd/all/main.go
 before_deploy:
   - wget https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
   - tar -xvJf upx-3.95-amd64_linux.tar.xz
