@@ -19,8 +19,8 @@ func init() {
         gokits.HandleFunc(mux, fengniaoAppAuthPath, fengniaoAppAuth)
         gokits.HandleFunc(mux, fengniaoAppAuthCallbackPath, Post(fengniaoAppAuthCallback))
         gokits.HandleFunc(mux, queryFengniaoAppTokenPath, queryFengniaoAppToken)
-        gokits.HandleFunc(mux, proxyFengniaoAppPath, proxyFengniaoApp, gokits.GzipResponseDisabled)
-        gokits.HandleFunc(mux, fengniaoAppCallbackPath, fengniaoAppCallback)
+        gokits.HandleFunc(mux, proxyFengniaoAppPath, Post(proxyFengniaoApp), gokits.GzipResponseDisabled)
+        gokits.HandleFunc(mux, fengniaoAppCallbackPath, Post(fengniaoAppCallback))
     })
 }
 
