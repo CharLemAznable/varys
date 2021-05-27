@@ -113,8 +113,8 @@ type FengniaoAppTokenKey struct {
 
 type FengniaoAppToken struct {
     AppId       string `json:"appId"`
-    MerchantId  string `json:"merchant_id"`
-    AccessToken string `json:"access_token"`
+    MerchantId  string `json:"merchantId"`
+    AccessToken string `json:"token"`
 }
 
 type QueryFengniaoAppToken struct {

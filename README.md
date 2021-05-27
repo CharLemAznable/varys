@@ -304,7 +304,7 @@ https://open.ele.me/app-auth?app_id=#AppId##&dev_id=#DevId#
 
 获取指定codeName对应的蜂鸟应用获取授权的商户当前的access_token
 返回数据:
-成功: {"appId": #appId#, "merchant_id": #merchantId#, "access_token": #accessToken#}
+成功: {"appId": #appId#, "merchantId": #merchantId#, "token": #accessToken#}
 错误: {"error": #ErrorMessage#}
 ```
 ```http

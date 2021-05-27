@@ -31,7 +31,6 @@ select c.code_name
   from fengniao_app_config c
  where c.enabled      = 1
    and c.code_name    = :CodeName
-   and c.merchant_id  = :MerchantId
 `
 
 const queryTokenSQL = `
