@@ -16,11 +16,40 @@ import (
 
 func init() {
     base.RegisterHandler(func(mux *http.ServeMux) {
+        gokits.HandleFunc(mux, fengniaoAppAuthPath, fengniaoAppAuth)
         gokits.HandleFunc(mux, fengniaoAppAuthCallbackPath, fengniaoAppAuthCallback)
         gokits.HandleFunc(mux, queryFengniaoAppTokenPath, queryFengniaoAppToken)
         gokits.HandleFunc(mux, proxyFengniaoAppPath, proxyFengniaoApp, gokits.GzipResponseDisabled)
         gokits.HandleFunc(mux, fengniaoAppCallbackPath, fengniaoAppCallback)
     })
+}
+
+// /fengniao-app-auth/{codeName:string}
+const fengniaoAppAuthPath = "/fengniao-app-auth/"
+const fengniaoAppAuthPageHtmlFormat = `
+<html><head><script>
+    location.replace(
+        "https://open.ele.me/app-auth?app_id=%s&dev_id=%s"
+    );
+</script></head></html>
+`
+
+func fengniaoAppAuth(writer http.ResponseWriter, request *http.Request) {
+    codeName := base.TrimPrefixPath(request, fengniaoAppAuthPath)
+    if "" == codeName {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
+        return
+    }
+
+    configCacheData, err := configCache.Value(codeName)
+    if nil != err {
+        gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Illegal"}))
+        return
+    }
+    config := configCacheData.Data().(*FengniaoAppConfig)
+
+    gokits.ResponseHtml(writer, fmt.Sprintf(
+        fengniaoAppAuthPageHtmlFormat, config.AppId, config.DevId))
 }
 
 // /fengniao-app-auth-callback/{codeName:string}

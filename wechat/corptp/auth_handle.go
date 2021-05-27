@@ -116,7 +116,6 @@ func wechatCorpTpAuthRedirect(writer http.ResponseWriter, request *http.Request)
     if "" != redirectUrl && "" != redirectQuery {
         redirectUrl = redirectUrl + "?" + redirectQuery
     }
-
     gokits.ResponseHtml(writer, fmt.Sprintf(wechatCorpTpAuthRedirectPageHtmlFormat, redirectUrl))
 }
 

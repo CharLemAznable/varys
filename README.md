@@ -286,7 +286,15 @@ https://open.work.weixin.qq.com/3rdapp/install?suite_id=#suiteId#&pre_auth_code=
 
 蜂鸟:
 ```http
-//fengniao-app-auth-callback/{codeName:string}
+/fengniao-app-auth/{codeName:string}
+
+蜂鸟应用授权入口页面, 跳转到蜂鸟的授权页面
+用于引导商户向应用授权
+跳转页面地址:
+https://open.ele.me/app-auth?app_id=#AppId##&dev_id=#DevId#
+```
+```http
+/fengniao-app-auth-callback/{codeName:string}
 
 配置蜂鸟商户授权回调地址: 开发者中心 -> 应用管理 -> 查看应用详情
 授权完成后, 将授权商户的merchantId以authNotify类型回调至蜂鸟应用配置fengniao_app_config.callback_url地址(POST JSON)
