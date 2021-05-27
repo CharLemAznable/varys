@@ -143,7 +143,7 @@ func tokenLoader(key interface{}, args ...interface{}) (*gokits.CacheItem, error
         // 只有第一次会刷新access_token和refresh_token，
         // 后续调用会返回第一次刷新的access_token和refresh_token。
         golog.Debugf("Try to request and update Fengniao App Token:(%+v)", tokenKey)
-        token, err := tokenRefresher(tokenKey, query.RefreshToken)
+        token, err := tokenUpdater(tokenKey, query.RefreshToken)
         if nil != err {
             return nil, err
         }
@@ -154,12 +154,43 @@ func tokenLoader(key interface{}, args ...interface{}) (*gokits.CacheItem, error
     effectiveSpan := time.Duration(query.ExpireTime-time.Now().Unix()) * time.Second // in second
     // token有效期少于缓存时长, 则仅缓存剩余有效期时长
     ls := gokits.Condition(effectiveSpan > tokenLifeSpan, tokenLifeSpan, effectiveSpan).(time.Duration)
-    token := &FengniaoAppToken{AppId: query.AppId, MerchantId: query.MerchantId, AccessToken: query.AccessToken}
+    token := &FengniaoAppToken{AppId: query.AppId,
+        MerchantId:  query.MerchantId,
+        AccessToken: query.AccessToken}
     golog.Infof("Load Fengniao App Token Cache:(%+v) %+v, cache %3.1f min", tokenKey, token, ls.Minutes())
     return gokits.NewCacheItem(tokenKey, ls, token), nil
 }
 
-func tokenRefresher(tokenKey FengniaoAppTokenKey, refreshToken string) (*FengniaoAppToken, error) {
+func tokenUpdater(tokenKey FengniaoAppTokenKey, refreshToken string) (*FengniaoAppToken, error) {
+    response, err := tokenRefresher(tokenKey, refreshToken)
+    if nil != err {
+        return nil, err
+    }
+
+    // 剩余有效时间, 单位: 秒
+    expireIn, _ := gokits.IntFromStr(response.Data.ExpireIn)
+    // 剩余有效时间, 单位: 秒
+    reExpireIn, _ := gokits.IntFromStr(response.Data.ReExpireIn)
+    // 更新提前时间: token缓存时长 * 缓存提前更新系数(1.1)
+    updateAhead := int(tokenLifeSpan.Seconds() * 1.1)
+    _, err = base.DB.NamedExecX(updateTokenSQL,
+        map[string]interface{}{
+            "CodeName":     tokenKey.CodeName,
+            "MerchantId":   response.Data.MerchantId,
+            "AccessToken":  response.Data.AccessToken,
+            "RefreshToken": response.Data.RefreshToken,
+            "ExpireIn":     expireIn - updateAhead,
+            "ReExpireIn":   reExpireIn - updateAhead})
+    if nil != err {
+        return nil, errors.New("Update Fengniao App Token Failed: " + err.Error())
+    }
+
+    return &FengniaoAppToken{AppId: response.Data.AppId,
+        MerchantId:  response.Data.MerchantId,
+        AccessToken: response.Data.AccessToken}, nil
+}
+
+func tokenRefresher(tokenKey FengniaoAppTokenKey, refreshToken string) (*Response, error) {
     codeName := tokenKey.CodeName
     cache, err := configCache.Value(codeName)
     if nil != err {
@@ -185,35 +216,13 @@ func tokenRefresher(tokenKey FengniaoAppTokenKey, refreshToken string) (*Fengnia
     result, err := gokits.NewHttpReq(refreshURL).
         RequestBody(gokits.Json(params)).
         Prop("Content-Type", "application/json").Post()
-    golog.Debugf("Refresh Fengniao App Token Response:(%s %s) %s",
-        codeName, merchantId, result)
+    golog.Debugf("Refresh Fengniao App Token Response:(%+v) %s", tokenKey, result)
     if nil != err {
         return nil, errors.New("Refresh Fengniao App Token Failed: " + err.Error())
     }
-
     response := gokits.UnJson(result, new(Response)).(*Response)
     if nil == response || "" == response.Data.AccessToken {
         return nil, errors.New("Refresh Fengniao App Token Failed: " + err.Error())
     }
-
-    // 剩余有效时间, 单位: 秒
-    expireIn, _ := gokits.IntFromStr(response.Data.ExpireIn)
-    // 剩余有效时间, 单位: 秒
-    reExpireIn, _ := gokits.IntFromStr(response.Data.ReExpireIn)
-    // 更新提前时间: token缓存时长 * 缓存提前更新系数(1.1)
-    updateAhead := int(tokenLifeSpan.Seconds() * 1.1)
-    _, err = base.DB.NamedExecX(updateTokenSQL,
-        map[string]interface{}{
-            "CodeName":     codeName,
-            "MerchantId":   merchantId,
-            "AccessToken":  response.Data.AccessToken,
-            "RefreshToken": response.Data.RefreshToken,
-            "ExpireIn":     expireIn - updateAhead,
-            "ReExpireIn":   reExpireIn - updateAhead})
-    if nil != err {
-        return nil, errors.New("Update Fengniao App Token Failed: " + err.Error())
-    }
-
-    return &FengniaoAppToken{AppId: appId, MerchantId: merchantId,
-        AccessToken: response.Data.AccessToken}, nil
+    return response, nil
 }
