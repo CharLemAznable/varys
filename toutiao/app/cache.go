@@ -3,7 +3,7 @@ package app
 import (
     "errors"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/kataras/golog"
     "time"
 )
@@ -24,7 +24,7 @@ type ToutiaoAppConfig struct {
 }
 
 func configLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
-    return base.ConfigLoader(
+    return ConfigLoader(
         "Toutiao App",
         &ToutiaoAppConfig{},
         queryConfigSQL,
@@ -83,11 +83,11 @@ func (q *QueryToutiaoAppToken) GetExpireTime() int64 {
 }
 
 func tokenLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
-    return base.TokenLoader(
+    return TokenLoader(
         "Toutiao App",
         &QueryToutiaoAppToken{},
         queryTokenSQL,
-        func(queryDest base.UpdatedRecord) interface{} {
+        func(queryDest UpdatedRecord) interface{} {
             query := queryDest.(*QueryToutiaoAppToken)
             return &ToutiaoAppToken{
                 AppId:       query.AppId,

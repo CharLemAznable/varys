@@ -2,13 +2,13 @@ package corp
 
 import (
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "net/http"
     "strings"
 )
 
 func init() {
-    base.RegisterHandler(func(mux *http.ServeMux) {
+    RegisterHandler(func(mux *http.ServeMux) {
         gokits.HandleFunc(mux, queryWechatCorpTokenPath, queryWechatCorpToken)
         gokits.HandleFunc(mux, proxyWechatCorpPath, proxyWechatCorp, gokits.GzipResponseDisabled)
     })
@@ -18,7 +18,7 @@ func init() {
 const queryWechatCorpTokenPath = "/query-wechat-corp-token/"
 
 func queryWechatCorpToken(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, queryWechatCorpTokenPath)
+    codeName := TrimPrefixPath(request, queryWechatCorpTokenPath)
     if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
         return
@@ -37,7 +37,7 @@ func queryWechatCorpToken(writer http.ResponseWriter, request *http.Request) {
 const proxyWechatCorpPath = "/proxy-wechat-corp/"
 
 func proxyWechatCorp(writer http.ResponseWriter, request *http.Request) {
-    codePath := base.TrimPrefixPath(request, proxyWechatCorpPath)
+    codePath := TrimPrefixPath(request, proxyWechatCorpPath)
     splits := strings.SplitN(codePath, "/", 2)
 
     codeName := splits[0]

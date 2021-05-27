@@ -4,7 +4,7 @@ import (
     "errors"
     "fmt"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/kataras/golog"
     "time"
 )
@@ -32,7 +32,7 @@ type WechatCorpTpPermanentCode struct {
 
 func permanentCodeLoader(key interface{}, args ...interface{}) (*gokits.CacheItem, error) {
     result := &WechatCorpTpPermanentCode{}
-    err := base.DB.NamedGet(result, queryPermanentCodeSQL, key)
+    err := DB.NamedGet(result, queryPermanentCodeSQL, key)
     if nil != err {
         return nil, errors.New(fmt.Sprintf("Unauthorized corp: %+v", key))
     }
@@ -119,7 +119,7 @@ func authTokenLoader(key interface{}, args ...interface{}) (*gokits.CacheItem, e
     }
 
     query := &QueryWechatCorpTpAuthToken{}
-    err := base.DB.NamedGet(query, queryAuthTokenSQL, tpAuthKey)
+    err := DB.NamedGet(query, queryAuthTokenSQL, tpAuthKey)
     if nil != err {
         return nil, errors.New(fmt.Sprintf("Unauthorized corp: %+v", tpAuthKey)) // requires that the token already exists
     }
@@ -138,11 +138,11 @@ func authTokenLoader(key interface{}, args ...interface{}) (*gokits.CacheItem, e
         }
 
         expireTime, _ := gokits.Int64FromStr(response["ExpireTime"])
-        count, err := base.DB.NamedExecX(updateAuthTokenSQL, map[string]interface{}{
+        count, err := DB.NamedExecX(updateAuthTokenSQL, map[string]interface{}{
             "CodeName": tpAuthKey.CodeName, "CorpId": tpAuthKey.CorpId,
             "AccessToken": response["CorpAccessToken"], "ExpireTime": expireTime})
         if nil != err || count < 1 { // 记录入库失败, 则查询记录并返回
-            err := base.DB.NamedGet(query, queryAuthTokenSQL, tpAuthKey)
+            err := DB.NamedGet(query, queryAuthTokenSQL, tpAuthKey)
             if nil != err {
                 return nil, errors.New(fmt.Sprintf("Query Wechat Corp Tp Auth Token:(%+v) Failed", tpAuthKey))
             }

@@ -3,7 +3,7 @@ package apptp
 import (
     "errors"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/CharLemAznable/wechataes"
     "github.com/kataras/golog"
     "time"
@@ -33,7 +33,7 @@ type WechatTpConfig struct {
 }
 
 func configLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
-    return base.ConfigLoader(
+    return ConfigLoader(
         "Wechat Tp",
         &WechatTpConfig{},
         queryConfigSQL,
@@ -75,7 +75,7 @@ func tokenRequestor(codeName interface{}) (map[string]string, error) {
     config := cache.Data().(*WechatTpConfig)
 
     var ticket string
-    err = base.DB.NamedGet(&ticket, queryTicketSQL,
+    err = DB.NamedGet(&ticket, queryTicketSQL,
         map[string]interface{}{"CodeName": codeName})
     if nil != err {
         return nil, err
@@ -118,11 +118,11 @@ func (q *QueryWechatTpToken) GetExpireTime() int64 {
 
 // 获取第三方平台component_access_token
 func tokenLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
-    return base.TokenLoader(
+    return TokenLoader(
         "Wechat Tp",
         &QueryWechatTpToken{},
         queryTokenSQL,
-        func(queryDest base.UpdatedRecord) interface{} {
+        func(queryDest UpdatedRecord) interface{} {
             query := queryDest.(*QueryWechatTpToken)
             return &WechatTpToken{
                 AppId:       query.AppId,

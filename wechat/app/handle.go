@@ -2,14 +2,14 @@ package app
 
 import (
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/CharLemAznable/varys/wechat/jsapi"
     "net/http"
     "strings"
 )
 
 func init() {
-    base.RegisterHandler(func(mux *http.ServeMux) {
+    RegisterHandler(func(mux *http.ServeMux) {
         gokits.HandleFunc(mux, queryWechatAppTokenPath, queryWechatAppToken)
         gokits.HandleFunc(mux, proxyWechatAppPath, proxyWechatApp, gokits.GzipResponseDisabled)
         gokits.HandleFunc(mux, proxyWechatAppMpLoginPath, proxyWechatAppMpLogin, gokits.GzipResponseDisabled)
@@ -21,7 +21,7 @@ func init() {
 const queryWechatAppTokenPath = "/query-wechat-app-token/"
 
 func queryWechatAppToken(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, queryWechatAppTokenPath)
+    codeName := TrimPrefixPath(request, queryWechatAppTokenPath)
     if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
         return
@@ -40,7 +40,7 @@ func queryWechatAppToken(writer http.ResponseWriter, request *http.Request) {
 const proxyWechatAppPath = "/proxy-wechat-app/"
 
 func proxyWechatApp(writer http.ResponseWriter, request *http.Request) {
-    codePath := base.TrimPrefixPath(request, proxyWechatAppPath)
+    codePath := TrimPrefixPath(request, proxyWechatAppPath)
     splits := strings.SplitN(codePath, "/", 2)
 
     codeName := splits[0]
@@ -76,7 +76,7 @@ func proxyWechatApp(writer http.ResponseWriter, request *http.Request) {
 const proxyWechatAppMpLoginPath = "/proxy-wechat-app-mp-login/"
 
 func proxyWechatAppMpLogin(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, proxyWechatAppMpLoginPath)
+    codeName := TrimPrefixPath(request, proxyWechatAppMpLoginPath)
     if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
         return
@@ -107,7 +107,7 @@ func proxyWechatAppMpLogin(writer http.ResponseWriter, request *http.Request) {
 const queryWechatAppJsConfigPath = "/query-wechat-app-js-config/"
 
 func queryWechatAppJsConfig(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, queryWechatAppJsConfigPath)
+    codeName := TrimPrefixPath(request, queryWechatAppJsConfigPath)
     if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
         return

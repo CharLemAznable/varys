@@ -3,14 +3,14 @@ package corptp
 import (
     "encoding/xml"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/CharLemAznable/wechataes"
     "github.com/kataras/golog"
     "net/http"
 )
 
 func init() {
-    base.RegisterHandler(func(mux *http.ServeMux) {
+    RegisterHandler(func(mux *http.ServeMux) {
         gokits.HandleFunc(mux, acceptWechatCorpTpInfoPath, acceptWechatCorpTpInfo)
     })
 }
@@ -85,7 +85,7 @@ func parseWechatCorpTpInfoData(codeName string, request *http.Request) (*WechatC
 const acceptWechatCorpTpInfoPath = "/accept-wechat-corp-tp-info/"
 
 func acceptWechatCorpTpInfo(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, acceptWechatCorpTpInfoPath)
+    codeName := TrimPrefixPath(request, acceptWechatCorpTpInfoPath)
     if "" != codeName {
         infoData, err := parseWechatCorpTpInfoData(codeName, request)
         if nil == err {
@@ -96,7 +96,7 @@ func acceptWechatCorpTpInfo(writer http.ResponseWriter, request *http.Request) {
                 return
 
             case "suite_ticket":
-                _, _ = base.DB.NamedExec(updateTicketSQL,
+                _, _ = DB.NamedExec(updateTicketSQL,
                     map[string]interface{}{"CodeName": codeName,
                         "Ticket": infoData.SuiteTicket})
 

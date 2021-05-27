@@ -3,7 +3,7 @@ package corptp
 import (
     "errors"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/kataras/golog"
     "time"
 )
@@ -104,17 +104,17 @@ func wechatCorpTpAuthCreator(codeName, authCode interface{}) {
 
     corpId := response["CorpId"]
     permanentCode := response["PermanentCode"]
-    _, _ = base.DB.NamedExec(enableAuthSQL, map[string]interface{}{
+    _, _ = DB.NamedExec(enableAuthSQL, map[string]interface{}{
         "CodeName": codeName, "CorpId": corpId, "PermanentCode": permanentCode})
 
     accessToken := response["AccessToken"]
     expireTime := response["ExpireTime"]
     arg := map[string]interface{}{"CodeName": codeName,
         "CorpId": corpId, "AccessToken": accessToken, "ExpireTime": expireTime}
-    _, err = base.DB.NamedExec(createAuthTokenSQL, arg)
+    _, err = DB.NamedExec(createAuthTokenSQL, arg)
     if nil != err { // 尝试插入记录失败, 则尝试更新记录
         golog.Warnf("Create Wechat Corp Tp AuthToken Failed:(%s, corpId:%s) %s", codeName, corpId, err.Error())
-        _, _ = base.DB.NamedExec(updateAuthTokenSQL, arg)
+        _, _ = DB.NamedExec(updateAuthTokenSQL, arg)
         // 忽略更新记录的结果
         // 如果当前存在有效期内的token, 则token不会被更新, 重复请求微信也会返回同样的token
     }
@@ -126,11 +126,11 @@ func wechatCorpTpCreateAuth(codeName string, infoData *WechatCorpTpInfoData) {
 
 func wechatCorpTpCancelAuth(codeName string, infoData *WechatCorpTpInfoData) {
     authCorpId := infoData.AuthCorpId
-    _, _ = base.DB.NamedExec(disableAuthSQL,
+    _, _ = DB.NamedExec(disableAuthSQL,
         map[string]interface{}{"CodeName": codeName, "CorpId": authCorpId})
 
     // delete cache, publish to cluster nodes
-    base.PublishToClusterNodes(func(address string) {
+    PublishToClusterNodes(func(address string) {
         rsp, err := gokits.NewHttpReq(address + gokits.PathJoin(
             cleanWechatCorpTpAuthTokenPath, codeName, authCorpId)).Get()
         if nil != err {

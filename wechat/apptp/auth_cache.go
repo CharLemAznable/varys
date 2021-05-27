@@ -3,7 +3,7 @@ package apptp
 import (
     "errors"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/CharLemAznable/varys/wechat/jsapi"
     "github.com/kataras/golog"
     "time"
@@ -82,7 +82,7 @@ func authTokenLoader(key interface{}, args ...interface{}) (*gokits.CacheItem, e
     }
 
     query := &QueryWechatTpAuthToken{}
-    err := base.DB.NamedGet(query, queryAuthTokenSQL,
+    err := DB.NamedGet(query, queryAuthTokenSQL,
         map[string]interface{}{"CodeName": tokenKey.CodeName,
             "AuthorizerAppId": tokenKey.AuthorizerAppId})
     if nil != err {
@@ -98,21 +98,21 @@ func authTokenLoader(key interface{}, args ...interface{}) (*gokits.CacheItem, e
     isUpdated := "1" == query.Updated
     if isExpired && isUpdated { // 已过期 && 是最新记录 -> 触发更新
         golog.Debugf("Try to request and update Wechat Tp Auth Token:(%+v)", key)
-        count, err := base.DB.NamedExecX(updateAuthTokenSQL,
+        count, err := DB.NamedExecX(updateAuthTokenSQL,
             map[string]interface{}{"CodeName": tokenKey.CodeName,
                 "AuthorizerAppId": tokenKey.AuthorizerAppId})
         if nil == err && count > 0 {
             response, err := refreshRequestor(
                 tokenKey.CodeName, tokenKey.AuthorizerAppId, authorizerRefreshToken)
             if nil != err {
-                _, _ = base.DB.NamedExec(uncompleteAuthTokenSQL,
+                _, _ = DB.NamedExec(uncompleteAuthTokenSQL,
                     map[string]interface{}{"CodeName": tokenKey.CodeName,
                         "AuthorizerAppId": tokenKey.AuthorizerAppId})
                 return nil, err
             }
             completeArg := wechatTpAuthCompleteArg(response, authTokenLifeSpan)
             completeArg["CodeName"] = tokenKey.CodeName
-            _, err = base.DB.NamedExec(completeAuthTokenSQL, completeArg)
+            _, err = DB.NamedExec(completeAuthTokenSQL, completeArg)
             if nil != err {
                 return nil, err
             }

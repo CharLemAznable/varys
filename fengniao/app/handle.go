@@ -5,7 +5,7 @@ import (
     "crypto/sha256"
     "fmt"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/kataras/golog"
     "io"
     "io/ioutil"
@@ -15,9 +15,9 @@ import (
 )
 
 func init() {
-    base.RegisterHandler(func(mux *http.ServeMux) {
+    RegisterHandler(func(mux *http.ServeMux) {
         gokits.HandleFunc(mux, fengniaoAppAuthPath, fengniaoAppAuth)
-        gokits.HandleFunc(mux, fengniaoAppAuthCallbackPath, fengniaoAppAuthCallback)
+        gokits.HandleFunc(mux, fengniaoAppAuthCallbackPath, Post(fengniaoAppAuthCallback))
         gokits.HandleFunc(mux, queryFengniaoAppTokenPath, queryFengniaoAppToken)
         gokits.HandleFunc(mux, proxyFengniaoAppPath, proxyFengniaoApp, gokits.GzipResponseDisabled)
         gokits.HandleFunc(mux, fengniaoAppCallbackPath, fengniaoAppCallback)
@@ -35,7 +35,7 @@ const fengniaoAppAuthPageHtmlFormat = `
 `
 
 func fengniaoAppAuth(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, fengniaoAppAuthPath)
+    codeName := TrimPrefixPath(request, fengniaoAppAuthPath)
     if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
         return
@@ -63,7 +63,7 @@ type AuthCallbackRequest struct {
 }
 
 func fengniaoAppAuthCallback(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, fengniaoAppAuthCallbackPath)
+    codeName := TrimPrefixPath(request, fengniaoAppAuthCallbackPath)
     if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
         return
@@ -108,7 +108,7 @@ func fengniaoAppAuthCallback(writer http.ResponseWriter, request *http.Request) 
 const queryFengniaoAppTokenPath = "/query-fengniao-app-token/"
 
 func queryFengniaoAppToken(writer http.ResponseWriter, request *http.Request) {
-    pathParams := base.TrimPrefixPath(request, queryFengniaoAppTokenPath)
+    pathParams := TrimPrefixPath(request, queryFengniaoAppTokenPath)
     if "" == pathParams {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Path Params is Empty"}))
         return
@@ -135,7 +135,7 @@ func queryFengniaoAppToken(writer http.ResponseWriter, request *http.Request) {
 const proxyFengniaoAppPath = "/proxy-fengniao-app/"
 
 func proxyFengniaoApp(writer http.ResponseWriter, request *http.Request) {
-    pathParams := base.TrimPrefixPath(request, proxyFengniaoAppPath)
+    pathParams := TrimPrefixPath(request, proxyFengniaoAppPath)
     if "" == pathParams {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Path Params is Empty"}))
         return
@@ -212,7 +212,7 @@ type CallbackRequest struct {
 const fengniaoAppCallbackPath = "/fengniao-app-callback/"
 
 func fengniaoAppCallback(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, fengniaoAppCallbackPath)
+    codeName := TrimPrefixPath(request, fengniaoAppCallbackPath)
     if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
         return

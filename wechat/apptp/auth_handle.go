@@ -4,7 +4,7 @@ import (
     "errors"
     "fmt"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/CharLemAznable/varys/wechat/jsapi"
     "github.com/kataras/golog"
     "net/http"
@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-    base.RegisterHandler(func(mux *http.ServeMux) {
+    RegisterHandler(func(mux *http.ServeMux) {
         gokits.HandleFunc(mux, wechatTpAuthorizeScanPath, wechatTpAuthorizeScan)
         gokits.HandleFunc(mux, wechatTpAuthorizeLinkPath, wechatTpAuthorizeLink)
         gokits.HandleFunc(mux, wechatTpAuthorizeRedirectPath, wechatTpAuthorizeRedirect)
@@ -66,7 +66,7 @@ const scanRedirectPageHtmlFormat = `
 `
 
 func wechatTpAuthorizeScan(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, wechatTpAuthorizeScanPath)
+    codeName := TrimPrefixPath(request, wechatTpAuthorizeScanPath)
     if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "CodeName is Empty"}))
         return
@@ -100,7 +100,7 @@ const linkRedirectPageHtmlFormat = `
 `
 
 func wechatTpAuthorizeLink(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, wechatTpAuthorizeLinkPath)
+    codeName := TrimPrefixPath(request, wechatTpAuthorizeLinkPath)
     if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "CodeName is Empty"}))
         return
@@ -132,7 +132,7 @@ const redirectPageHtmlFormat = `
 `
 
 func wechatTpAuthorizeRedirect(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, wechatTpAuthorizeRedirectPath)
+    codeName := TrimPrefixPath(request, wechatTpAuthorizeRedirectPath)
     if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "CodeName is Empty"}))
         return
@@ -158,7 +158,7 @@ func wechatTpAuthorizeRedirect(writer http.ResponseWriter, request *http.Request
 const cleanWechatTpAuthTokenPath = "/clean-wechat-tp-auth-token/"
 
 func cleanWechatTpAuthToken(writer http.ResponseWriter, request *http.Request) {
-    pathParams := base.TrimPrefixPath(request, cleanWechatTpAuthTokenPath)
+    pathParams := TrimPrefixPath(request, cleanWechatTpAuthTokenPath)
     if "" == pathParams {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Path Params is Empty"}))
         return
@@ -180,7 +180,7 @@ func cleanWechatTpAuthToken(writer http.ResponseWriter, request *http.Request) {
 const queryWechatTpAuthTokenPath = "/query-wechat-tp-auth-token/"
 
 func queryWechatTpAuthToken(writer http.ResponseWriter, request *http.Request) {
-    pathParams := base.TrimPrefixPath(request, queryWechatTpAuthTokenPath)
+    pathParams := TrimPrefixPath(request, queryWechatTpAuthTokenPath)
     if "" == pathParams {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Path Params is Empty"}))
         return
@@ -207,7 +207,7 @@ func queryWechatTpAuthToken(writer http.ResponseWriter, request *http.Request) {
 const proxyWechatTpAuthPath = "/proxy-wechat-tp-auth/"
 
 func proxyWechatTpAuth(writer http.ResponseWriter, request *http.Request) {
-    codePath := base.TrimPrefixPath(request, proxyWechatTpAuthPath)
+    codePath := TrimPrefixPath(request, proxyWechatTpAuthPath)
     splits := strings.SplitN(codePath, "/", 3)
     if 3 != len(splits) {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Missing param codeName/authorizerAppId/proxy-path"}))
@@ -244,7 +244,7 @@ func proxyWechatTpAuth(writer http.ResponseWriter, request *http.Request) {
 const proxyWechatTpAuthMpLoginPath = "/proxy-wechat-tp-auth-mp-login/"
 
 func proxyWechatTpAuthMpLogin(writer http.ResponseWriter, request *http.Request) {
-    codePath := base.TrimPrefixPath(request, proxyWechatTpAuthMpLoginPath)
+    codePath := TrimPrefixPath(request, proxyWechatTpAuthMpLoginPath)
     splits := strings.SplitN(codePath, "/", 3)
     if 3 != len(splits) {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Missing param codeName/authorizerAppId/proxy-path"}))
@@ -283,7 +283,7 @@ func proxyWechatTpAuthMpLogin(writer http.ResponseWriter, request *http.Request)
 const queryWechatTpAuthJsConfigPath = "/query-wechat-tp-auth-js-config/"
 
 func queryWechatTpAuthJsConfig(writer http.ResponseWriter, request *http.Request) {
-    pathParams := base.TrimPrefixPath(request, queryWechatTpAuthJsConfigPath)
+    pathParams := TrimPrefixPath(request, queryWechatTpAuthJsConfigPath)
     if "" == pathParams {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "Path Params is Empty"}))
         return

@@ -5,7 +5,7 @@ import (
     "errors"
     "fmt"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/kataras/golog"
     "time"
 )
@@ -28,7 +28,7 @@ type FengniaoAppConfig struct {
 }
 
 func configLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
-    return base.ConfigLoader(
+    return ConfigLoader(
         "Fengniao App",
         &FengniaoAppConfig{},
         queryConfigSQL,
@@ -92,7 +92,7 @@ func tokenCreator(codeName string, config *FengniaoAppConfig, callback *AuthCall
     reExpireIn, _ := gokits.IntFromStr(response.Data.ReExpireIn)
     // 更新提前时间: token缓存时长 * 缓存提前更新系数(1.1)
     updateAhead := int(tokenLifeSpan.Seconds() * 1.1)
-    _, err = base.DB.NamedExecX(createTokenSQL,
+    _, err = DB.NamedExecX(createTokenSQL,
         map[string]interface{}{
             "CodeName":     codeName,
             "MerchantId":   merchantId,
@@ -131,7 +131,7 @@ func tokenLoader(key interface{}, args ...interface{}) (*gokits.CacheItem, error
     }
 
     query := &QueryFengniaoAppToken{}
-    err := base.DB.NamedGet(query, queryTokenSQL, tokenKey)
+    err := DB.NamedGet(query, queryTokenSQL, tokenKey)
     if nil != err {
         return nil, errors.New(fmt.Sprintf("Unauthorized merchant: %+v", tokenKey)) // requires that the token already exists
     }
@@ -173,7 +173,7 @@ func tokenUpdater(tokenKey FengniaoAppTokenKey, refreshToken string) (*FengniaoA
     reExpireIn, _ := gokits.IntFromStr(response.Data.ReExpireIn)
     // 更新提前时间: token缓存时长 * 缓存提前更新系数(1.1)
     updateAhead := int(tokenLifeSpan.Seconds() * 1.1)
-    _, err = base.DB.NamedExecX(updateTokenSQL,
+    _, err = DB.NamedExecX(updateTokenSQL,
         map[string]interface{}{
             "CodeName":     tokenKey.CodeName,
             "MerchantId":   response.Data.MerchantId,

@@ -68,8 +68,9 @@ func Load() {
     }
 }
 
-func Handle(mux *http.ServeMux) {
+func Handle(mux *http.ServeMux) *http.ServeMux {
     for _, handler := range handlers.handlers {
         handler(mux)
     }
+    return mux
 }

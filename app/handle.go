@@ -2,12 +2,12 @@ package app
 
 import (
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "net/http"
 )
 
 func init() {
-    base.RegisterHandler(func(mux *http.ServeMux) {
+    RegisterHandler(func(mux *http.ServeMux) {
         gokits.HandleFunc(mux, "/", gokits.EmptyHandler, gokits.DumpRequestDisabled)
         gokits.HandleFunc(mux, "/welcome", welcome, gokits.DumpRequestDisabled)
     })

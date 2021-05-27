@@ -3,7 +3,7 @@ package app
 import (
     "errors"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/CharLemAznable/varys/wechat/jsapi"
     "github.com/kataras/golog"
     "time"
@@ -25,7 +25,7 @@ type WechatAppConfig struct {
 }
 
 func configLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
-    return base.ConfigLoader(
+    return ConfigLoader(
         "Wechat App",
         &WechatAppConfig{},
         queryConfigSQL,
@@ -89,11 +89,11 @@ func (q *QueryWechatAppToken) GetExpireTime() int64 {
 }
 
 func tokenLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
-    return base.TokenLoader(
+    return TokenLoader(
         "Wechat App",
         &QueryWechatAppToken{},
         queryTokenSQL,
-        func(queryDest base.UpdatedRecord) interface{} {
+        func(queryDest UpdatedRecord) interface{} {
             query := queryDest.(*QueryWechatAppToken)
             return &WechatAppToken{
                 AppId:       query.AppId,

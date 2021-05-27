@@ -3,7 +3,7 @@ package apptp
 import (
     "encoding/xml"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/CharLemAznable/wechataes"
     "github.com/kataras/golog"
     "io"
@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-    base.RegisterHandler(func(mux *http.ServeMux) {
+    RegisterHandler(func(mux *http.ServeMux) {
         gokits.HandleFunc(mux, acceptWechatTpInfoPath, acceptWechatTpInfo)
         gokits.HandleFunc(mux, acceptWechatTpMsgPath, acceptWechatTpMsg)
         gokits.HandleFunc(mux, queryWechatTpTokenPath, queryWechatTpToken)
@@ -100,7 +100,7 @@ func parseWechatTpInfoData(codeName string, request *http.Request) (*WechatTpInf
 const acceptWechatTpInfoPath = "/accept-wechat-tp-info/"
 
 func acceptWechatTpInfo(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, acceptWechatTpInfoPath)
+    codeName := TrimPrefixPath(request, acceptWechatTpInfoPath)
     if "" != codeName {
         infoData, err := parseWechatTpInfoData(codeName, request)
         if nil == err {
@@ -108,7 +108,7 @@ func acceptWechatTpInfo(writer http.ResponseWriter, request *http.Request) {
                 switch infoData.InfoType {
 
                 case "component_verify_ticket":
-                    _, _ = base.DB.NamedExec(updateTicketSQL,
+                    _, _ = DB.NamedExec(updateTicketSQL,
                         map[string]interface{}{"CodeName": codeName,
                             "Ticket": infoData.ComponentVerifyTicket})
 
@@ -211,7 +211,7 @@ func parseWechatTpMsgMap(codeName string, request *http.Request) (*WechatTpMsgMa
 const acceptWechatTpMsgPath = "/accept-wechat-tp-msg/"
 
 func acceptWechatTpMsg(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, acceptWechatTpMsgPath)
+    codeName := TrimPrefixPath(request, acceptWechatTpMsgPath)
     if "" != codeName {
         msgMap, err := parseWechatTpMsgMap(codeName, request)
         if nil == err {
@@ -247,7 +247,7 @@ func forwardWechatTpMsg(codeName string, msgMap *WechatTpMsgMap) {
 const queryWechatTpTokenPath = "/query-wechat-tp-token/"
 
 func queryWechatTpToken(writer http.ResponseWriter, request *http.Request) {
-    codeName := base.TrimPrefixPath(request, queryWechatTpTokenPath)
+    codeName := TrimPrefixPath(request, queryWechatTpTokenPath)
     if "" == codeName {
         gokits.ResponseJson(writer, gokits.Json(map[string]string{"error": "codeName is Empty"}))
         return
@@ -266,7 +266,7 @@ func queryWechatTpToken(writer http.ResponseWriter, request *http.Request) {
 const proxyWechatTpPath = "/proxy-wechat-tp/"
 
 func proxyWechatTp(writer http.ResponseWriter, request *http.Request) {
-    codePath := base.TrimPrefixPath(request, proxyWechatTpPath)
+    codePath := TrimPrefixPath(request, proxyWechatTpPath)
     splits := strings.SplitN(codePath, "/", 2)
 
     codeName := splits[0]

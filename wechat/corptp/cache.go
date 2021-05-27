@@ -3,7 +3,7 @@ package corptp
 import (
     "errors"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/CharLemAznable/wechataes"
     "github.com/kataras/golog"
     "time"
@@ -31,7 +31,7 @@ type WechatCorpTpConfig struct {
 }
 
 func configLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
-    return base.ConfigLoader(
+    return ConfigLoader(
         "Wechat CorpTp",
         &WechatCorpTpConfig{},
         queryConfigSQL,
@@ -75,7 +75,7 @@ func wechatCorpTpTokenRequestor(codeName interface{}) (map[string]string, error)
     config := cache.Data().(*WechatCorpTpConfig)
 
     var ticket string
-    err = base.DB.NamedGet(&ticket, queryTicketSQL,
+    err = DB.NamedGet(&ticket, queryTicketSQL,
         map[string]interface{}{"CodeName": codeName})
     if nil != err {
         return nil, err
@@ -115,11 +115,11 @@ func (q *QueryWechatCorpTpToken) GetExpireTime() int64 {
 }
 
 func tokenLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
-    return base.TokenLoaderStrict(
+    return TokenLoaderStrict(
         "Wechat Corp Tp",
         &QueryWechatCorpTpToken{},
         queryTokenSQL,
-        func(queryDest base.ExpireTimeRecord) interface{} {
+        func(queryDest ExpireTimeRecord) interface{} {
             query := queryDest.(*QueryWechatCorpTpToken)
             return &WechatCorpTpToken{
                 SuiteId:     query.SuiteId,

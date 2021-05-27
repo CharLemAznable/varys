@@ -3,7 +3,7 @@ package corp
 import (
     "errors"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/kataras/golog"
     "time"
 )
@@ -24,7 +24,7 @@ type WechatCorpConfig struct {
 }
 
 func configLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
-    return base.ConfigLoader(
+    return ConfigLoader(
         "Wechat Corp",
         &WechatCorpConfig{},
         queryConfigSQL,
@@ -82,11 +82,11 @@ func (q *QueryWechatCorpToken) GetExpireTime() int64 {
 }
 
 func tokenLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {
-    return base.TokenLoaderStrict(
+    return TokenLoaderStrict(
         "Wechat Corp",
         &QueryWechatCorpToken{},
         queryTokenSQL,
-        func(queryDest base.ExpireTimeRecord) interface{} {
+        func(queryDest ExpireTimeRecord) interface{} {
             query := queryDest.(*QueryWechatCorpToken)
             return &WechatCorpToken{
                 CorpId:      query.CorpId,

@@ -1,19 +1,17 @@
 package app
 
 import (
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/kataras/golog"
     "net/http"
 )
 
 func Run() {
-    base.InitSqlxDB()
-    base.Load()
+    InitSqlxDB()
+    Load()
 
-    mux := http.NewServeMux()
-    base.Handle(mux)
-
-    server := http.Server{Addr: base.ServerAddr(), Handler: mux}
+    server := http.Server{Addr: ServerAddr(),
+        Handler: Handle(http.NewServeMux())}
     if err := server.ListenAndServe(); err != nil {
         golog.Errorf("Start server Error: %s", err.Error())
     }

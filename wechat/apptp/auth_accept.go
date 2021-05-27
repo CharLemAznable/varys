@@ -3,7 +3,7 @@ package apptp
 import (
     "errors"
     "github.com/CharLemAznable/gokits"
-    "github.com/CharLemAznable/varys/base"
+    . "github.com/CharLemAznable/varys/base"
     "github.com/CharLemAznable/varys/wechat/jsapi"
     "github.com/kataras/golog"
     "time"
@@ -81,15 +81,15 @@ func wechatTpAuthTokenBuilder(response map[string]string) interface{} {
 }
 
 func wechatTpAuthTokenCreator(codeName, authorizerAppId, authorizationCode interface{}) {
-    _, err := base.DB.NamedExec(createAuthTokenSQL,
+    _, err := DB.NamedExec(createAuthTokenSQL,
         map[string]interface{}{"CodeName": codeName, "AuthorizerAppId": authorizerAppId})
     if nil != err { // 尝试插入记录失败, 则尝试更新记录
         // 强制更新记录, 不论token是否已过期
-        count, err := base.DB.NamedExecX(updateAuthTokenForceSQL,
+        count, err := DB.NamedExecX(updateAuthTokenForceSQL,
             map[string]interface{}{"CodeName": codeName, "AuthorizerAppId": authorizerAppId})
         for nil != err || count < 1 { // 尝试更新记录失败, 则休眠(1 sec)后再次尝试更新记录
             time.Sleep(1 * time.Second)
-            count, err = base.DB.NamedExecX(updateAuthTokenForceSQL,
+            count, err = DB.NamedExecX(updateAuthTokenForceSQL,
                 map[string]interface{}{"CodeName": codeName, "AuthorizerAppId": authorizerAppId})
         }
     }
@@ -97,14 +97,14 @@ func wechatTpAuthTokenCreator(codeName, authorizerAppId, authorizationCode inter
     // 锁定成功, 开始更新
     response, err := wechatTpQueryAuthRequestor(codeName, authorizationCode)
     if nil != err {
-        _, _ = base.DB.NamedExec(uncompleteAuthTokenSQL,
+        _, _ = DB.NamedExec(uncompleteAuthTokenSQL,
             map[string]interface{}{"CodeName": codeName, "AuthorizerAppId": authorizerAppId})
         golog.Warnf("Request Wechat Tp Auth Token Failed:(%s, %s) %s", codeName, authorizerAppId, err.Error())
         return
     }
     completeArg := wechatTpAuthCompleteArg(response, authTokenLifeSpan)
     completeArg["CodeName"] = codeName
-    _, err = base.DB.NamedExec(completeAuthTokenSQL, completeArg)
+    _, err = DB.NamedExec(completeAuthTokenSQL, completeArg)
     if nil != err {
         golog.Warnf("Record new Wechat Tp Auth Token Failed:(%s, %s) %s", codeName, authorizerAppId, err.Error())
         return
@@ -120,7 +120,7 @@ func wechatTpAuthTokenCreator(codeName, authorizerAppId, authorizationCode inter
 func wechatTpAuthorized(codeName string, infoData *WechatTpInfoData) {
     authorizerAppId := infoData.AuthorizerAppId
     authorizationCode := infoData.AuthorizationCode
-    _, _ = base.DB.NamedExec(enableAuthSQL,
+    _, _ = DB.NamedExec(enableAuthSQL,
         map[string]interface{}{"CodeName": codeName,
             "AuthorizerAppId":   authorizerAppId,
             "AuthorizationCode": authorizationCode,
@@ -130,11 +130,11 @@ func wechatTpAuthorized(codeName string, infoData *WechatTpInfoData) {
 
 func wechatTpUnauthorized(codeName string, infoData *WechatTpInfoData) {
     authorizerAppId := infoData.AuthorizerAppId
-    _, _ = base.DB.NamedExec(disableAuthSQL,
+    _, _ = DB.NamedExec(disableAuthSQL,
         map[string]interface{}{"CodeName": codeName,
             "AuthorizerAppId": authorizerAppId})
     // delete cache, publish to cluster nodes
-    base.PublishToClusterNodes(func(address string) {
+    PublishToClusterNodes(func(address string) {
         rsp, err := gokits.NewHttpReq(address + gokits.PathJoin(
             cleanWechatTpAuthTokenPath, codeName, authorizerAppId)).Get()
         if nil != err {
@@ -147,7 +147,7 @@ func wechatTpUnauthorized(codeName string, infoData *WechatTpInfoData) {
 func wechatTpAuthorizedMp(codeName string, infoData *WechatTpInfoData) {
     mpAppId := infoData.MpAppId
     mpAuthCode := infoData.MpAuthCode
-    _, _ = base.DB.NamedExec(enableAuthSQL,
+    _, _ = DB.NamedExec(enableAuthSQL,
         map[string]interface{}{"CodeName": codeName,
             "AuthorizerAppId":   mpAppId,
             "AuthorizationCode": mpAuthCode,
