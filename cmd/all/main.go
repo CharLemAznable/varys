@@ -3,6 +3,7 @@ package main
 import (
     "github.com/CharLemAznable/varys"
     _ "github.com/CharLemAznable/varys/fengniao/app"
+    _ "github.com/CharLemAznable/varys/shansong/app"
     _ "github.com/CharLemAznable/varys/toutiao/app"
     _ "github.com/CharLemAznable/varys/wechat/app"
     _ "github.com/CharLemAznable/varys/wechat/apptp"

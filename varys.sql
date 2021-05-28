@@ -255,3 +255,36 @@ create table `fengniao_app_token` (
 ) comment='蜂鸟商户ACCESS_TOKEN记录表';
 
 -- FENGNIAO_APP_TOKEN end --
+
+
+-- SHANSONG_APP_TOKEN begin --
+
+drop table if exists `shansong_app_config` ;
+
+create table `shansong_app_config` (
+  `code_name` varchar(42) not null comment '代号',
+  `app_id` varchar(100) not null comment '闪送应用APP_ID',
+  `app_secret` varchar(100) not null comment '闪送应用APP_SECRET',
+  `redirect_url` text comment '闪送开发者授权回调URL',
+  `callback_url` text comment '闪送订单状态通知URL',
+  `enabled` tinyint not null default '1' comment '有效状态 0-无效 1-有效',
+  primary key (`code_name`)
+) comment='闪送应用配置表';
+
+
+drop table if exists `shansong_app_token` ;
+
+create table `shansong_app_token` (
+  `code_name` varchar(42) not null comment '代号',
+  `app_id` varchar(100) not null comment '闪送应用APP_ID',
+  `merchant_code` varchar(100) not null comment '闪送商户编码, 调用授权地址时设置为pathparam',
+  `code` text comment '商户授权码',
+  `access_token` text comment '闪送商户ACCESS_TOKEN',
+  `updated` tinyint not null default '1' comment '是否最新记录 0-否 1-是',
+  `expire_time` timestamp comment 'ACCESS_TOKEN过期时间',
+  `refresh_token` text comment '闪送商户REFRESH_TOKEN',
+  `update_time` timestamp not null default current_timestamp on update current_timestamp comment '更新时间',
+  primary key (`code_name`, `merchant_code`)
+) comment='闪送商户ACCESS_TOKEN记录表';
+
+-- SHANSONG_APP_TOKEN end --

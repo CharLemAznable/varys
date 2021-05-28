@@ -59,3 +59,13 @@ FengniaoAppRefreshURL = "https://open-anubis.ele.me/anubis-webapi/openapi/refres
 FengniaoAppConfigLifeSpan = "60m"
 FengniaoAppTokenLifeSpan = "8m"
 FengniaoAppProxyURL = "https://open-anubis.ele.me/anubis-webapi/v3/invoke/"
+
+ShansongAppAuthBaseURL = "http://open.ishansong.com/auth"
+ShansongAppTokenURL = "http://open.ishansong.com/openapi/oauth/token"
+ShansongAppRefreshTokenURL = "http://open.ishansong.com/openapi/oauth/refresh_token"
+ShansongAppConfigLifeSpan = "60m"
+ShansongAppTokenLifeSpan = "5m"
+ShansongAppTokenTempLifeSpan = "1m"
+ShansongAppDeveloperProxyURL = "http://open.ishansong.com/openapi/developer/v5/"
+ShansongAppMerchantProxyURL = "http://open.ishansong.com/openapi/merchantRegister/v5/"
+ShansongAppFileProxyURL = "http://open.ishansong.com/openapi/file/v5/"

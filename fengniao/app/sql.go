@@ -4,7 +4,7 @@ const queryConfigSQL = `
 select c.dev_id             as "DevId"
       ,c.app_id             as "AppId"
       ,c.app_secret         as "AppSecret"
-      ,c.callback_url       as "CallbackUrl"
+      ,c.callback_url       as "CallbackURL"
   from fengniao_app_config c
  where c.enabled    = 1
    and c.code_name  = :CodeName

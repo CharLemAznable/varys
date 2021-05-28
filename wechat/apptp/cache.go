@@ -28,8 +28,8 @@ type WechatTpConfig struct {
     Token          string
     AesKey         string
     RedirectURL    string
-    AuthForwardUrl string
-    MsgForwardUrl  string
+    AuthForwardURL string
+    MsgForwardURL  string
 }
 
 func configLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {

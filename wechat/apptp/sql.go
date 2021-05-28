@@ -25,8 +25,8 @@ select c.app_id             as "AppId"
       ,c.token              as "Token"
       ,c.aes_key            as "AesKey"
       ,c.redirect_url       as "RedirectURL"
-      ,c.auth_forward_url   as "AuthForwardUrl"
-      ,c.msg_forward_url    as "MsgForwardUrl"
+      ,c.auth_forward_url   as "AuthForwardURL"
+      ,c.msg_forward_url    as "MsgForwardURL"
   from wechat_app_third_platform_config c
  where c.enabled            = 1
    and c.code_name          = :CodeName

@@ -24,7 +24,7 @@ type FengniaoAppConfig struct {
     DevId       string
     AppId       string
     AppSecret   string
-    CallbackUrl string
+    CallbackURL string
 }
 
 func configLoader(codeName interface{}, args ...interface{}) (*gokits.CacheItem, error) {

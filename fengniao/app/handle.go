@@ -75,7 +75,7 @@ func fengniaoAppAuthCallback(writer http.ResponseWriter, request *http.Request) 
         return
     }
     config := configCacheData.Data().(*FengniaoAppConfig)
-    callbackUrl := config.CallbackUrl
+    callbackUrl := config.CallbackURL
 
     body, err := gokits.RequestBody(request)
     if nil != err {
@@ -225,7 +225,7 @@ func fengniaoAppCallback(writer http.ResponseWriter, request *http.Request) {
     }
     config := configCacheData.Data().(*FengniaoAppConfig)
     appId := config.AppId
-    callbackUrl := config.CallbackUrl
+    callbackUrl := config.CallbackURL
 
     body, err := gokits.RequestBody(request)
     if nil != err {

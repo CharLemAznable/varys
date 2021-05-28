@@ -141,7 +141,7 @@ func forwardWechatTpInfo(codeName string, infoData *WechatTpInfoData) {
         return
     }
     config := cache.Data().(*WechatTpConfig)
-    forwardUrl := config.AuthForwardUrl
+    forwardUrl := config.AuthForwardURL
 
     if "" != forwardUrl {
         rsp, err := gokits.NewHttpReq(forwardUrl).
@@ -230,7 +230,7 @@ func forwardWechatTpMsg(codeName string, msgMap *WechatTpMsgMap) {
         return
     }
     config := cache.Data().(*WechatTpConfig)
-    forwardUrl := config.MsgForwardUrl
+    forwardUrl := config.MsgForwardURL
 
     if "" != forwardUrl {
         rsp, err := gokits.NewHttpReq(forwardUrl).

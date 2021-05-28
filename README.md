@@ -101,6 +101,13 @@ $ nohup ./varys-[version].[arch].[os].bin &
 
   [fengniao_app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/fengniao/app/cache.go)
 
+包含闪送应用配置缓存和授权商户```access_token```缓存，其中:
+
+1) 应用配置缓存默认1小时
+2) 商户access_token缓存默认5分钟
+
+  [shansong_app_token_cache.go](https://github.com/CharLemAznable/varys/blob/master/shansong/app/cache.go)
+
 #### 访问路径
 
 默认服务地址:
@@ -317,6 +324,56 @@ https://open.ele.me/app-auth?app_id=#AppId##&dev_id=#DevId#
 
 配置蜂鸟应用消息推送回调地址: 开发者中心 -> 应用管理 -> 查看应用详情 -> 编辑
 验证蜂鸟回调消息签名, 并将回调请求中的business_data提取转发到蜂鸟应用配置fengniao_app_config.callback_url地址(POST JSON)
+```
+
+闪送:
+```http 
+/shansong-app-auth/{codeName:string}/{merchantCode:string}
+
+闪送应用授权入口页面, 跳转到闪送的授权页面
+用于引导商户向应用授权
+merchantCode将作为state值传递, 并作为varys的商户标识
+跳转页面地址:
+http://open.ishansong.com/auth?response_type=code&client_id=#AppId#&scope=shop_open_api&redirect_uri=#url_to_/shansong-app-auth-redirect/{codeName:string}#&state=#MerchantCode#
+```
+```http
+/shansong-app-auth-redirect/{codeName:string}
+
+闪送应用授权回调地址
+跳转页面地址:
+如果第三方平台配置了shansong_app_config.redirect_url, 则跳转到此地址
+```
+```http
+/query-shansong-app-token/{codeName:string}/{merchantCode:string}
+
+获取指定codeName对应的闪送应用获取授权的商户当前的access_token
+返回数据:
+成功: {"appId": #appId#, "merchantCode": #merchantCode#, "token": #accessToken#}
+错误: {"error": #ErrorMessage#}
+```
+```http
+/proxy-shansong-app-developer/{codeName:string}/{merchantCode:string}/...
+
+代理指定codeName对应的闪送应用获取授权的商户接口, 包装原请求体为data并签名
+代理指向http://open.ishansong.com/openapi/developer/v5/下的接口
+```
+```http
+/proxy-shansong-app-merchant/{codeName:string}/...
+
+代理指定codeName对应的闪送应用接口, 包装原请求体为data并签名
+代理指向http://open.ishansong.com/openapi/merchantRegister/v5/下的接口
+```
+```http
+/proxy-shansong-app-file/{codeName:string}/...
+
+代理指定codeName对应的闪送应用接口, 包装原请求体(上传文件)为file并签名
+代理指向http://open.ishansong.com/openapi/file/v5/下的接口
+```
+```http
+/shansong-app-callback/{codeName:string}
+
+配置闪送应用订单状态通知接口地址: 账户信息 -> 修改线上notifyUrl
+将回调请求透传转发到闪送应用配置shansong_app_config.callback_url地址(POST JSON), 并向闪送平台返回status=200
 ```
 
 #### Golang Kits
