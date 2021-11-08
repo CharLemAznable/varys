@@ -8,7 +8,6 @@ import (
     "github.com/kataras/golog"
     "strings"
     "testing"
-    "unsafe"
 )
 
 type Config struct {
@@ -69,7 +68,7 @@ func fixConfig() {
     }
     config.ClusterNodeAddresses = clusterNodeAddresses
 
-    gokits.GlobalHttpServerConfig = (*gokits.HttpServerConfig)(unsafe.Pointer(config))
+    gokits.GlobalHttpServerConfig = &config.HttpServerConfig
 
     golog.SetLevel(config.LogLevel)
     golog.Infof("config: %+v", *config)
